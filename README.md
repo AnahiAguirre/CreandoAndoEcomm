@@ -69,12 +69,19 @@ npm run dev
 | `npm run db:generate` | Genera una migración a partir de `src/infra/db/schema` |
 | `npm run db:migrate` | Aplica las migraciones pendientes |
 | `npm run db:studio` | Abre Drizzle Studio contra la base |
-| `npm run admin:promote -- email@x.com` | Le da rol admin a un usuario existente |
+| `npm run db:seed` | Carga productos de ejemplo (idempotente) para ver el catálogo antes de tener admin |
+| `npm run admin:promote -- email@x.com` | Le da rol admin a un usuario existente (fase 2) |
 
 ## Estado actual
 
-- ✅ Catálogo público, carrito, checkout con Mercado Pago, webhook con validación de firma e idempotencia, "Mis descargas" con signed URLs, panel admin (productos + uploads directos a Storage, órdenes, cupones, dashboard).
-- ✅ `npm run lint`, `npm run typecheck` y `npm run build` pasan limpios.
-- ⏳ **No probado contra una base real** — hace falta crear el proyecto de Supabase (paso 1) para levantarlo de verdad.
-- ⏳ Envío calculado: hoy usa una tabla de tarifas fija por provincia (`src/infra/shipping/zone-table-shipping-provider.ts`) hasta que haya una cuenta de Andreani/Correo Argentino o de un agregador como Enviopack — cambiar de implementación es una línea en `container.ts`.
-- ⏳ Producción: falta el checklist legal de la fase 9 del plan (botón de arrepentimiento, términos, credenciales productivas de MP).
+El código se está reconstruyendo por fases sobre el plan. Cada fase vive en su rama y se mergea a `main` cuando está verificada.
+
+| Fase | Estado | Contenido |
+|---|---|---|
+| 1 · Fundaciones | ✅ código listo · ⏳ sin probar contra Supabase | Esqueleto `domain/infra/lib/app`, schema del catálogo (`products`, `product_images`, `product_files`) + migración `0000_catalog`, cliente Postgres (pooler, `prepare: false`), catálogo público (`/` y `/producto/[slug]`), seed. |
+| 2 · Auth + admin | ⏳ | Better Auth (magic link + rol admin), guards, ABM de productos, uploads directos a Storage. |
+| 3 · Pago (digitales) | ⏳ | Carrito, `computeOrderTotals()`, `/api/checkout`, webhook MP con firma e idempotencia. |
+| 4 · Entrega digital | ⏳ | Entitlements, `/mis-descargas`, signed URLs, mail de confirmación. |
+| 5–9 | ⏳ | Físicos + envío, cupones, dashboard, envío calculado, producción (ver plan). |
+
+`npm run lint`, `npm run typecheck` y `npm run build` pasan limpios en la fase actual.
