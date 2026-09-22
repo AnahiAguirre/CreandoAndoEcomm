@@ -1,10 +1,11 @@
+import { DomainError } from '@/domain/shared/errors';
+
 import type { Product } from '../product';
 import type { ProductRepository } from '../product-repository';
 
-export class ProductNotFoundError extends Error {
-  constructor(readonly slug: string) {
-    super(`Product not found: ${slug}`);
-    this.name = 'ProductNotFoundError';
+export class ProductNotFoundError extends DomainError {
+  constructor(readonly identifier: string) {
+    super(`Product not found: ${identifier}`, 'PRODUCT_NOT_FOUND');
   }
 }
 
