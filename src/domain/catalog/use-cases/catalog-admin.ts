@@ -46,7 +46,9 @@ export const UPLOAD_POLICY: Record<UploadKind, { bucket: Bucket; mimeTypes: read
   file: {
     bucket: BUCKETS.files,
     mimeTypes: ['application/pdf'],
-    maxBytes: 100 * 1024 * 1024,
+    // Matches the `product-files` bucket limit (Supabase Free caps uploads at 50 MB).
+    // Raise both together if the plan changes.
+    maxBytes: 50 * 1024 * 1024,
   },
 };
 
