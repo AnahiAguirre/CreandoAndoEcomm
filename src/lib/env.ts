@@ -37,11 +37,21 @@ const schema = z
 // Deploy-time rule (fase 9): RESEND_API_KEY must be set on Vercel. Not enforced
 // here because `next build` runs with NODE_ENV=production locally too.
 
-const parsed = schema.safeParse(process.env);
+// A variable declared with no value (easy to do in the Vercel dashboard) arrives
+// as "", which would fail an `.optional()` check. Treat blank as absent.
+const source = Object.fromEntries(
+  Object.entries(process.env).filter(([, value]) => value !== undefined && value.trim() !== ''),
+);
+
+const parsed = schema.safeParse(source);
 
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
-  throw new Error(`Invalid environment variables:\n${issues}\nCopy .env.example to .env.local and fill it in.`);
+  throw new Error(
+    `Invalid environment variables:\n${issues}\n` +
+      'En local: copiá .env.example a .env.local y completalo. ' +
+      'En Vercel: Settings → Environment Variables (ojo con las variables sin valor).',
+  );
 }
 
 export const env = parsed.data;
