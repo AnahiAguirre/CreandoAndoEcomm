@@ -14,7 +14,7 @@ import { ResendMailSender } from '@/infra/mail/resend-mail-sender';
 import { SupabaseAssetUrlResolver } from '@/infra/storage/supabase-asset-url-resolver';
 import { SupabaseFileStorage } from '@/infra/storage/supabase-file-storage';
 
-import { env } from './env';
+import { authBaseUrl, env } from './env';
 
 /**
  * Composition root. This is the ONLY file that wires an `infra/` implementation
@@ -34,7 +34,7 @@ if (!env.RESEND_API_KEY) {
 export const auth = createAuth({
   db,
   mail,
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: authBaseUrl,
   secret: env.BETTER_AUTH_SECRET,
 });
 

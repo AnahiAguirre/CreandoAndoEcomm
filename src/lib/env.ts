@@ -18,7 +18,13 @@ const schema = z
 
     // --- Better Auth (fase 2) ---
     BETTER_AUTH_SECRET: z.string().min(32, 'Generá uno con: openssl rand -base64 32'),
-    BETTER_AUTH_URL: z.url(),
+    // Optional: on Vercel it is derived from the deployment URL (see `authBaseUrl`),
+    // so a preview can build before anyone knows its own address.
+    BETTER_AUTH_URL: z.url().optional(),
+
+    // Set by Vercel at build and run time. Never set these by hand.
+    VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+    VERCEL_URL: z.string().optional(),
 
     // --- mail (fase 2) — optional in dev: without a key, mails go to the console ---
     RESEND_API_KEY: z.string().startsWith('re_').optional(),
@@ -39,3 +45,14 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+/**
+ * Where this instance lives, for magic-link callbacks and cookies.
+ * `BETTER_AUTH_URL` wins when set (required once there's a custom domain);
+ * otherwise Vercel's own URL is used, so a preview deploy works out of the box.
+ */
+export const authBaseUrl: string =
+  env.BETTER_AUTH_URL ??
+  (env.VERCEL_PROJECT_PRODUCTION_URL && `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`) ??
+  (env.VERCEL_URL && `https://${env.VERCEL_URL}`) ??
+  'http://localhost:3000';
