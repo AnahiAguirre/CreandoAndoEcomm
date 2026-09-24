@@ -62,7 +62,7 @@ export function ProductGallery({ images, productName }: Props) {
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-2xl bg-madera-soft text-sm text-tinta-soft">
+      <div className="flex aspect-[3/2] items-center justify-center rounded-2xl bg-madera-soft text-sm text-tinta-soft">
         Sin fotos todavía
       </div>
     );
@@ -85,14 +85,14 @@ export function ProductGallery({ images, productName }: Props) {
           className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
         >
           {images.map((image, i) => (
-            <div key={image.id} className="relative aspect-square w-full shrink-0 snap-center">
+            <div key={image.id} className="relative aspect-[3/2] w-full shrink-0 snap-center">
               <Image
                 src={image.url}
                 alt={`${productName} — foto ${i + 1} de ${images.length}`}
                 fill
                 priority={i === 0}
                 sizes="(min-width: 768px) 50vw, 100vw"
-                className="object-contain p-6 mix-blend-multiply transition-transform duration-700 ease-suave"
+                className="object-cover transition-transform duration-700 ease-suave"
               />
             </div>
           ))}
@@ -132,7 +132,7 @@ export function ProductGallery({ images, productName }: Props) {
                   i === index ? 'ring-tinta' : 'ring-transparent opacity-60 hover:opacity-100',
                 )}
               >
-                <Image src={image.url} alt="" fill sizes="80px" className="object-contain p-1.5 mix-blend-multiply" />
+                <Image src={image.url} alt="" fill sizes="80px" className="object-cover" />
               </button>
             </li>
           ))}

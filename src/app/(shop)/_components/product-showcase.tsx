@@ -62,7 +62,7 @@ export function ProductShowcase({ product, imageUrl, tone, priority = false }: P
         </Reveal>
 
         <Reveal delay={120}>
-          <div className="relative mt-12 aspect-[16/10] w-full md:mt-16">
+          <div className="relative mt-12 aspect-[3/2] w-full overflow-hidden rounded-3xl bg-madera-soft md:mt-16">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -70,10 +70,10 @@ export function ProductShowcase({ product, imageUrl, tone, priority = false }: P
                 fill
                 priority={priority}
                 sizes="(min-width: 1024px) 64rem, 100vw"
-                className="object-contain mix-blend-multiply"
+                className="object-cover"
               />
             ) : (
-              <div className="grid h-full place-items-center rounded-3xl bg-madera-soft text-sm text-tinta-soft">
+              <div className="grid h-full place-items-center text-sm text-tinta-soft">
                 Sin foto todavía
               </div>
             )}

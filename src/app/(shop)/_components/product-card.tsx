@@ -26,7 +26,7 @@ export function ProductCard({ product, coverUrl }: Props) {
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
             /* Apple-ish: the photo breathes a little on hover. No tilt, no bounce. */
-            className="object-contain p-5 mix-blend-multiply transition-transform duration-700 ease-suave group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-700 ease-suave group-hover:scale-[1.04]"
           />
         ) : (
           <div className="grid h-full place-items-center text-sm text-tinta-soft">Sin foto</div>
