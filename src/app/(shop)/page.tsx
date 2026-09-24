@@ -1,16 +1,18 @@
-import { Reveal } from '@/components/reveal';
-import { coverImage, type Product } from '@/domain/catalog/product';
+import { coverImage, isDigital, type Product } from '@/domain/catalog/product';
 import { container } from '@/lib/container';
+import { formatPrice } from '@/lib/format';
 
-import { ProductCard } from './_components/product-card';
-import { ProductShowcase } from './_components/product-showcase';
+import { AssembleScene } from './_components/assemble-scene';
+import { CatalogRail } from './_components/catalog-rail';
+import { ClosingCta } from './_components/closing-cta';
+import { HomeHero } from './_components/home-hero';
+import { Manifesto } from './_components/manifesto';
+import { PrintablesFan } from './_components/printables-fan';
+import { ProductPicker } from './_components/product-picker';
 
 // The catalog is edited from the admin panel and must reflect changes
 // immediately, so render per request. Caching comes later with tags.
 export const dynamic = 'force-dynamic';
-
-/** How many products get a full section of their own before the grid takes over. */
-const SHOWCASED = 3;
 
 export default async function HomePage() {
   const products = await container.catalog.list.execute();
@@ -18,9 +20,6 @@ export default async function HomePage() {
     const image = coverImage(p);
     return image ? container.assetUrls.publicImageUrl(image.storagePath) : null;
   };
-
-  const showcased = products.slice(0, SHOWCASED);
-  const rest = products.slice(SHOWCASED);
 
   if (products.length === 0) {
     return (
@@ -31,35 +30,47 @@ export default async function HomePage() {
     );
   }
 
+  const toys = products.filter((p) => !isDigital(p));
+  const printables = products.filter(isDigital);
+  // The newest toy leads the page; with no toys yet, whatever is newest.
+  const featured = toys[0] ?? products[0];
+  const featuredCover = cover(featured);
+  const cheapestPrintable = [...printables].sort((a, b) => a.priceCents - b.priceCents)[0];
+
   return (
     <>
-      {showcased.map((product, i) => (
-        <ProductShowcase
-          key={product.id}
-          product={product}
-          imageUrl={cover(product)}
-          tone={i % 2 === 0 ? 'light' : 'sand'}
-          priority={i === 0}
+      <HomeHero product={featured} imageUrl={featuredCover} />
+      <AssembleScene imageUrl={featuredCover} label={featured.name} />
+      <Manifesto />
+      <CatalogRail products={products} coverUrl={cover} />
+      {printables.length > 0 && <PrintablesFan />}
+      {cheapestPrintable && !isDigital(featured) && (
+        <ProductPicker
+          toy={{
+            label: 'Juguete de madera',
+            points: [
+              { title: 'Hechos de madera', body: 'Juguetes para pasar de mano en mano.' },
+              { title: 'Sin pantallas', body: 'Piezas para armar, desarmar y volver a armar.' },
+            ],
+            product: featured.name,
+            price: formatPrice(featured.priceCents),
+            cta: 'Comprar',
+            href: `/producto/${featured.slug}`,
+          }}
+          printable={{
+            label: 'Imprimible en PDF',
+            points: [
+              { title: 'Descarga inmediata', body: 'Pagás y el PDF queda listo para bajar.' },
+              { title: 'Listo para A4', body: 'Láminas pensadas para imprimir en casa, sin ajustar nada.' },
+            ],
+            product: 'Cuadernos para colorear',
+            price: `desde ${formatPrice(cheapestPrintable.priceCents)}`,
+            cta: 'Ver imprimibles',
+            href: `/producto/${cheapestPrintable.slug}`,
+          }}
         />
-      ))}
-
-      {rest.length > 0 && (
-        <section className={showcased.length % 2 === 0 ? 'bg-white' : 'bg-arena'}>
-          <div className="mx-auto max-w-6xl px-4 py-20 md:py-28">
-            <Reveal>
-              <h2 className="text-center text-3xl font-semibold tracking-tight md:text-4xl">Todo el catálogo</h2>
-            </Reveal>
-
-            <ul className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {rest.map((p, i) => (
-                <Reveal as="li" key={p.id} delay={Math.min(i, 3) * 70}>
-                  <ProductCard product={p} coverUrl={cover(p)} />
-                </Reveal>
-              ))}
-            </ul>
-          </div>
-        </section>
       )}
+      <ClosingCta />
     </>
   );
 }
