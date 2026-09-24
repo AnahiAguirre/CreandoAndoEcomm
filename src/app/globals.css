@@ -1,11 +1,305 @@
 @import "tailwindcss";
 
+/*
+ * Paleta tomada de los productos: madera de haya, y los colores primarios de
+ * las piezas (rojo locomotora, amarillo cartel, azul techo, verde pino).
+ * Todo el color del sitio sale de acá; ningún componente hardcodea un hex.
+ */
+@theme {
+  /* Base neutra, como Apple: el producto pone el color, no el fondo. */
+  --color-crema: #ffffff;
+  --color-arena: #f5f2ec;
+  --color-madera: #efd6ac;
+  --color-madera-soft: #f7f4ef;
+  --color-madera-dark: #ddd5c8;
+  --color-tinta: #1a1714;
+  --color-tinta-soft: #6f6862;
+  --color-rojo: #d93b2b;
+  --color-rojo-dark: #a32a1d;
+  --color-amarillo: #f6be00;
+  --color-azul: #2d6fb0;
+  --color-verde: #2e7d46;
+
+  /* Solo para las ilustraciones de la home (la granja del rompecabezas). */
+  --color-cielo: #bcd9f0;
+  --color-pasto: #6aa86f;
+  --color-pino: #256b3b;
+  --color-tronco: #8a5a2b;
+  --color-hueso: #fff5e6;
+  --color-tinta-muted: #b9b1a8;
+  --color-link-oscuro: #7fb3ea;
+
+  /* Apple-like easing: nothing bounces, everything settles. */
+  --ease-suave: cubic-bezier(0.28, 0.11, 0.32, 1);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --background: #fffdf8;
-  --foreground: #1f1a17;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-crema);
+  color: var(--color-tinta);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll reveal: the element waits, then settles into place. Driven by
+   IntersectionObserver in components/reveal.tsx. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s var(--ease-suave),
+    transform 0.8s var(--ease-suave);
+}
+
+[data-reveal='shown'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hide the scrollbar on the horizontal carousels without losing the scroll. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Home animada, estilo página de producto de Apple.
+ *
+ * Regla de oro: el estilo base de cada clase ES su estado final. Los keyframes
+ * solo declaran el `from`, así que sin soporte para animaciones ligadas al
+ * scroll (Firefox), o con movimiento reducido, todo se ve armado y en su lugar.
+ */
+
+/* Entrada del hero, al cargar: por tiempo, no por scroll. */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+@keyframes hero-puzzle-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-11deg);
+    filter: blur(12px);
+  }
+}
+
+.hero-in {
+  animation: hero-in 1.2s var(--ease-suave) both;
+}
+
+.hero-puzzle-in {
+  animation: hero-puzzle-in 1.9s var(--ease-suave) 0.35s both;
+}
+
+/* Contadores: el número vive en una propiedad registrada y el CSS lo escribe. */
+@property --count {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.count-up {
+  counter-reset: n var(--count);
+}
+
+.count-up::after {
+  content: counter(n);
+}
+
+/* Texto que se "pinta" al recorrerlo: la mitad izquierda del degradé es tinta. */
+.paint-text {
+  background: linear-gradient(90deg, var(--color-tinta) 50%, var(--color-madera-dark) 50%);
+  background-size: 200% 100%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@supports (animation-timeline: view()) {
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(48px);
+    }
+  }
+
+  .scroll-rise {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 90%;
+  }
+
+  @keyframes hero-out {
+    to {
+      transform: scale(0.86);
+      opacity: 0.3;
+    }
+  }
+
+  .hero-out {
+    animation: hero-out linear both;
+    animation-timeline: view();
+    animation-range: exit 5% exit 90%;
+  }
+
+  /* La escena pegajosa publica su progreso como timeline con nombre. */
+  .assemble-scene {
+    view-timeline: --armar block;
+  }
+
+  /* Cada pieza parte de un lugar distinto y encastra en un momento distinto.
+     Los desplazamientos son en % del tamaño de la pieza: escalan en mobile. */
+  @keyframes piece-0 { 0% { transform: translate(-135%, -105%) rotate(-16deg); } 62% { transform: none; } }
+  @keyframes piece-1 { 0% { transform: translate(-10%, -145%) rotate(9deg); } 70% { transform: none; } }
+  @keyframes piece-2 { 0% { transform: translate(125%, -110%) rotate(18deg); } 58% { transform: none; } }
+  @keyframes piece-3 { 0% { transform: translate(-155%, 5%) rotate(12deg); } 78% { transform: none; } }
+  @keyframes piece-4 { 0% { transform: translate(5%, -20%) rotate(-6deg) scale(0.94); } 90% { transform: none; } }
+  @keyframes piece-5 { 0% { transform: translate(150%, 15%) rotate(-14deg); } 66% { transform: none; } }
+  @keyframes piece-6 { 0% { transform: translate(-125%, 120%) rotate(-10deg); } 74% { transform: none; } }
+  @keyframes piece-7 { 0% { transform: translate(15%, 145%) rotate(15deg); } 84% { transform: none; } }
+  @keyframes piece-8 { 0% { transform: translate(135%, 115%) rotate(-20deg); } 96% { transform: none; } }
+
+  .puzzle-piece {
+    animation: linear both;
+    animation-timeline: --armar;
+    animation-range: contain 0% contain 85%;
+  }
+
+  .puzzle-piece-0 { animation-name: piece-0; }
+  .puzzle-piece-1 { animation-name: piece-1; }
+  .puzzle-piece-2 { animation-name: piece-2; }
+  .puzzle-piece-3 { animation-name: piece-3; }
+  .puzzle-piece-4 { animation-name: piece-4; }
+  .puzzle-piece-5 { animation-name: piece-5; }
+  .puzzle-piece-6 { animation-name: piece-6; }
+  .puzzle-piece-7 { animation-name: piece-7; }
+  .puzzle-piece-8 { animation-name: piece-8; }
+
+  @keyframes highlight {
+    from {
+      opacity: 0.18;
+    }
+  }
+
+  .scene-caption {
+    animation: highlight linear both;
+    animation-timeline: --armar;
+  }
+
+  .scene-caption-1 { animation-range: contain 0% contain 18%; }
+  .scene-caption-2 { animation-range: contain 30% contain 52%; }
+  .scene-caption-3 { animation-range: contain 62% contain 85%; }
+
+  @keyframes paint {
+    from {
+      background-position: 100% 0;
+    }
+  }
+
+  .paint-text {
+    animation: paint linear both;
+    animation-timeline: view();
+    animation-range: cover 18% cover 48%;
+  }
+
+  @keyframes count {
+    from {
+      --count: 0;
+    }
+  }
+
+  .count-up {
+    animation: count linear both;
+    animation-timeline: view();
+    animation-range: entry 30% cover 45%;
+  }
+
+  /* Galería horizontal: el scroll vertical la corre de costado. Solo desde
+     tablet; en el celu es un carrusel nativo con el dedo. */
+  @media (min-width: 768px) {
+    .catalog-rail {
+      view-timeline: --rail block;
+    }
+
+    @keyframes rail-slide {
+      to {
+        transform: translateX(min(0px, calc(100vw - 100%)));
+      }
+    }
+
+    .catalog-rail-track {
+      animation: rail-slide linear both;
+      animation-timeline: --rail;
+      animation-range: contain 5% contain 95%;
+    }
+  }
+
+  /* Las hojas se centran con su propio transform, así que la pila parte de -50%. */
+  @keyframes fan {
+    from {
+      transform: translateX(-50%);
+    }
+  }
+
+  .fan-page {
+    animation: fan linear both;
+    animation-timeline: view();
+    animation-range: entry 40% cover 55%;
+  }
+
+  @keyframes zoom-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0.4;
+    }
+  }
+
+  .scroll-zoom {
+    animation: zoom-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .hero-puzzle-in,
+  .hero-out,
+  .scroll-rise,
+  .scroll-zoom,
+  .puzzle-piece,
+  .scene-caption,
+  .paint-text,
+  .count-up,
+  .catalog-rail-track,
+  .fan-page {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }

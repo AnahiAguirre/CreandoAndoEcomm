@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { Reveal } from '@/components/reveal';
 import { isDigital, isInStock } from '@/domain/catalog/product';
 import { ProductNotFoundError } from '@/domain/catalog/use-cases/get-product-by-slug';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
+
+import { ProductGallery } from './_components/product-gallery';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,50 +35,60 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await loadProduct(slug);
-  const images = [...product.images].sort((a, b) => a.position - b.position);
   const available = isInStock(product);
 
+  const images = [...product.images]
+    .sort((a, b) => a.position - b.position)
+    .map((img) => ({ id: img.id, url: container.assetUrls.publicImageUrl(img.storagePath) }));
+
   return (
-    <article className="grid gap-8 md:grid-cols-2">
-      <div className="flex flex-col gap-3">
-        {images.length === 0 ? (
-          <div className="flex aspect-square items-center justify-center rounded-xl bg-neutral-100 text-neutral-400">
-            Sin imagen
-          </div>
-        ) : (
-          images.map((img, i) => (
-            <div key={img.id} className="relative aspect-square overflow-hidden rounded-xl bg-neutral-100">
-              <Image
-                src={container.assetUrls.publicImageUrl(img.storagePath)}
-                alt={`${product.name} ${i + 1}`}
-                fill
-                priority={i === 0}
-                sizes="(min-width: 768px) 50vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          ))
-        )}
-      </div>
+    <article className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+      <Reveal>
+        <Link href="/" className="text-sm text-tinta-soft transition-colors hover:text-tinta">
+          ← Volver al catálogo
+        </Link>
+      </Reveal>
 
-      <div className="flex flex-col gap-4">
-        <span className="w-fit rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium">
-          {isDigital(product) ? 'PDF imprimible · entrega inmediata' : 'Juguete · envío a todo el país'}
-        </span>
-        <h1 className="text-3xl font-bold leading-tight">{product.name}</h1>
-        <p className="text-2xl font-semibold">{formatPrice(product.priceCents)}</p>
-        {!available && <p className="font-medium text-red-600">Sin stock por el momento</p>}
-        <p className="whitespace-pre-line text-neutral-700">{product.description}</p>
+      <div className="mt-6 grid gap-10 md:grid-cols-2 md:gap-14">
+        <Reveal>
+          <ProductGallery images={images} productName={product.name} />
+        </Reveal>
 
-        {/* Carrito + checkout llegan en fase 3. */}
-        <button
-          type="button"
-          disabled
-          className="mt-4 w-fit rounded-lg bg-black px-5 py-3 font-medium text-white opacity-50"
-          title="El carrito llega en la fase 3"
-        >
-          Agregar al carrito
-        </button>
+        {/* Sticky like an Apple product page: the photos scroll, the buy box stays. */}
+        <Reveal delay={90} className="md:sticky md:top-24 md:self-start">
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
+            {isDigital(product) ? 'Imprimible en PDF · entrega inmediata' : 'Juguete de madera · envío a todo el país'}
+          </span>
+
+          <h1 className="mt-3 text-balance text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
+            {product.name}
+          </h1>
+
+          <p className="mt-4 text-3xl font-bold tracking-tight">{formatPrice(product.priceCents)}</p>
+
+          {available ? (
+            !isDigital(product) && (
+              <p className="mt-1 text-sm font-medium text-verde">
+                {product.stock <= 3 ? `Últimas ${product.stock} unidades` : 'Disponible'}
+              </p>
+            )
+          ) : (
+            <p className="mt-1 text-sm font-medium text-rojo">Sin stock por el momento</p>
+          )}
+
+          {product.description && (
+            <p className="mt-6 whitespace-pre-line leading-relaxed text-tinta-soft">{product.description}</p>
+          )}
+
+          {/* El carrito llega en el próximo paso de la fase 3. */}
+          <button
+            type="button"
+            disabled
+            className="mt-8 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white opacity-40 sm:w-auto"
+          >
+            Agregar al carrito
+          </button>
+        </Reveal>
       </div>
     </article>
   );
