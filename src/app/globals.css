@@ -1,11 +1,77 @@
 @import "tailwindcss";
 
+/*
+ * Paleta tomada de los productos: madera de haya, y los colores primarios de
+ * las piezas (rojo locomotora, amarillo cartel, azul techo, verde pino).
+ * Todo el color del sitio sale de acá; ningún componente hardcodea un hex.
+ */
+@theme {
+  /* Base neutra, como Apple: el producto pone el color, no el fondo. */
+  --color-crema: #ffffff;
+  --color-arena: #f5f2ec;
+  --color-madera: #efd6ac;
+  --color-madera-soft: #f7f4ef;
+  --color-madera-dark: #ddd5c8;
+  --color-tinta: #1a1714;
+  --color-tinta-soft: #6f6862;
+  --color-rojo: #d93b2b;
+  --color-rojo-dark: #a32a1d;
+  --color-amarillo: #f6be00;
+  --color-azul: #2d6fb0;
+  --color-verde: #2e7d46;
+
+  /* Apple-like easing: nothing bounces, everything settles. */
+  --ease-suave: cubic-bezier(0.28, 0.11, 0.32, 1);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --background: #fffdf8;
-  --foreground: #1f1a17;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-crema);
+  color: var(--color-tinta);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll reveal: the element waits, then settles into place. Driven by
+   IntersectionObserver in components/reveal.tsx. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s var(--ease-suave),
+    transform 0.8s var(--ease-suave);
+}
+
+[data-reveal='shown'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hide the scrollbar on the horizontal carousels without losing the scroll. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }
