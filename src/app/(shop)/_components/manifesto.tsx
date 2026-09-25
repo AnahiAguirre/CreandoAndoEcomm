@@ -9,7 +9,7 @@ const LINES = [
 
 /** Figures shown as a counter. `count` animates; `label` sits under it. */
 const FIGURES = [
-  { count: 9, label: 'piezas encastrables en el Rompecabezas Granja', color: 'text-rojo' },
+  { count: 6, label: 'modelos: ballena, rana, pingüino, auto, cohete y abeja', color: 'text-rojo-vivo' },
   { count: 20, label: 'láminas en el cuaderno de Animales', color: 'text-azul' },
   { count: 16, label: 'láminas en el cuaderno de Dinosaurios', color: 'text-verde' },
 ] as const;
