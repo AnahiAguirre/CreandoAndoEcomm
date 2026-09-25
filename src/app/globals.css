@@ -18,9 +18,10 @@
   --color-rojo-dark: #a32a1d;
   --color-amarillo: #f6be00;
   --color-azul: #2d6fb0;
+  --color-azul-dark: #1f5287;
   --color-verde: #2e7d46;
 
-  /* Solo para las ilustraciones de la home (la granja del rompecabezas). */
+  /* Solo para la home y sus ilustraciones (la granja del rompecabezas). */
   --color-cielo: #bcd9f0;
   --color-pasto: #6aa86f;
   --color-pino: #256b3b;
@@ -28,6 +29,12 @@
   --color-hueso: #fff5e6;
   --color-tinta-muted: #b9b1a8;
   --color-link-oscuro: #7fb3ea;
+  --color-tinta-medio: #4a443f;
+  --color-niebla: #e8e2da;
+  --color-arena-dark: #e6e0d7;
+  --color-amarillo-dark: #b88a00;
+  --color-amarillo-soft: #fdecc0;
+  --color-verde-soft: #d6ead9;
 
   /* Apple-like easing: nothing bounces, everything settles. */
   --ease-suave: cubic-bezier(0.28, 0.11, 0.32, 1);
@@ -246,10 +253,10 @@ body {
     }
   }
 
-  /* Las hojas se centran con su propio transform, así que la pila parte de -50%. */
+  /* Las hojas se centran con margen, así que la pila es simplemente sin transform. */
   @keyframes fan {
     from {
-      transform: translateX(-50%);
+      transform: none;
     }
   }
 
