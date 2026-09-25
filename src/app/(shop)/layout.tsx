@@ -9,7 +9,7 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <SiteHeader />
-      <main>{children}</main>
+      <main className="tienda">{children}</main>
       <SiteFooter />
     </>
   );

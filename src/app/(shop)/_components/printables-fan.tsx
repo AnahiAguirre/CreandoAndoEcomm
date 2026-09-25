@@ -1,4 +1,4 @@
-import { DinoArt, FishArt, FlowerArt } from './line-art';
+import { DinoArt, FishArt, FlowerArt } from './illustrations/line-art';
 
 // Centered with margins, not a transform, so .fan-page can animate from `none`.
 const sheet =
@@ -8,8 +8,7 @@ const sheet =
 export function PrintablesFan() {
   return (
     <section
-      id="imprimibles"
-      className="flex scroll-mt-14 flex-col items-center overflow-hidden bg-white px-4 py-24 md:h-[860px] md:pb-0 md:pt-[100px]"
+      className="flex flex-col items-center overflow-hidden bg-white px-4 py-24 md:h-[860px] md:pb-0 md:pt-[100px]"
     >
       <p className="scroll-rise text-xs font-semibold uppercase tracking-[0.14em] text-tinta-soft md:text-[15px]">
         Imprimibles en PDF

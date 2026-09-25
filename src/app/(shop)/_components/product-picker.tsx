@@ -34,7 +34,7 @@ export function ProductPicker({ toyHref, printablesHref }: Props) {
         { title: 'Pintado a mano', body: 'Madera pintada a mano, pieza por pieza.' },
         { title: 'Envío a domicilio', body: '[Plazo y zonas de envío]' },
       ],
-      product: 'Rompecabezas Granja',
+      product: 'Rompecabezas',
       price: '$18.500',
       cta: 'Comprar',
       href: toyHref,

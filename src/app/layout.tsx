@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Fredoka, Nunito } from 'next/font/google';
 
 import './globals.css';
 
-// One neutral grotesque, like the reference sites: the photos carry the
-// personality, the type just gets out of the way.
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+// Rounded and friendly, like the toys: Fredoka for headings, Nunito to read.
+const fredoka = Fredoka({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-fredoka', display: 'swap' });
+const nunito = Nunito({ subsets: ['latin'], weight: ['400', '600', '700', '800'], variable: '--font-nunito', display: 'swap' });
 
 export const metadata: Metadata = {
   title: { default: 'CreandoAndo', template: '%s · CreandoAndo' },
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" className={inter.variable}>
+    <html lang="es-AR" className={`${fredoka.variable} ${nunito.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

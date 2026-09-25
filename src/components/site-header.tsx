@@ -20,10 +20,13 @@ export async function SiteHeader() {
         </Link>
 
         <div className="flex items-center gap-5 md:gap-8">
-          <Link href="/#armar" className={`${navLink} hidden sm:inline`}>
-            Juguetes
+          <Link href="/#armar" className={`${navLink} hidden md:inline`}>
+            Rompecabezas
           </Link>
-          <Link href="/#imprimibles" className={`${navLink} hidden sm:inline`}>
+          <Link href="/#pistas" className={`${navLink} hidden md:inline`}>
+            Pistas
+          </Link>
+          <Link href="/#imprimibles" className={`${navLink} hidden md:inline`}>
             Imprimibles
           </Link>
           <Link href="/#catalogo" className={navLink}>
