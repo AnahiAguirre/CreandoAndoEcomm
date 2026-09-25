@@ -4,12 +4,10 @@ import { cn } from '@/lib/utils';
 
 const PIECES = Array.from({ length: 9 }, (_, i) => ({ row: Math.floor(i / 3), col: i % 3 }));
 
-/** Gap between pieces, as a % of a piece's side. */
+/** Gap around each piece, as a % of a piece's side. */
 const INSET = 2;
 
 interface Props {
-  /** Photo to cut into pieces. Without one, the farm illustration is used. */
-  imageUrl?: string | null;
   /** What the picture shows, for screen readers. */
   label: string;
   /**
@@ -21,45 +19,37 @@ interface Props {
 }
 
 /**
- * A picture cut into a 3×3 wooden puzzle. Every piece draws the whole picture
- * and shows only its own ninth of it, so the seams line up.
+ * The farm illustration cut into a 3×3 wooden puzzle. Every piece draws the
+ * whole picture and shows only its own ninth of it, so the seams line up.
  */
-export function PhotoPuzzle({ imageUrl, label, scatter = false, className }: Props) {
-  // The picture spans three pieces, measured from inside the piece's inset box.
+export function FarmPuzzle({ label, scatter = false, className }: Props) {
+  // The art spans three pieces, measured from inside the piece's inset box.
   const artSize = 300 / ((100 - INSET * 2) / 100);
 
   return (
     <div role="img" aria-label={label} className={cn('relative aspect-square', className)}>
-      {PIECES.map(({ row, col }, i) => {
-        const artBox: CSSProperties = {
-          width: `${artSize}%`,
-          height: `${artSize}%`,
-          left: `${-((col * 100 + INSET) / (100 - INSET * 2)) * 100}%`,
-          top: `${-((row * 100 + INSET) / (100 - INSET * 2)) * 100}%`,
-        };
-
-        return (
-          <div
-            key={i}
-            className={cn('absolute size-1/3', scatter && `puzzle-piece puzzle-piece-${i}`)}
-            style={{ left: `${(col * 100) / 3}%`, top: `${(row * 100) / 3}%` }}
-          >
-            <div className="absolute overflow-hidden rounded-[9%] bg-madera-soft" style={{ inset: `${INSET}%` }}>
-              {imageUrl ? (
-                // A CSS background, not <Image>: nine crops of one photo, fetched once.
-                <div
-                  className="absolute bg-cover bg-center"
-                  style={{ ...artBox, backgroundImage: `url("${imageUrl}")` }}
-                />
-              ) : (
-                <FarmArt className="absolute max-w-none" style={artBox} />
-              )}
-              {/* The painted wooden edge of each piece. */}
-              <div className="pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_4px_var(--color-madera),inset_0_-8px_12px_rgb(0_0_0/0.12)]" />
-            </div>
+      {PIECES.map(({ row, col }, i) => (
+        <div
+          key={i}
+          className={cn(
+            'absolute size-1/3',
+            scatter && `puzzle-piece puzzle-piece-${i} drop-shadow-[0_18px_22px_rgb(26_23_20/0.22)]`,
+          )}
+          style={{ left: `${(col * 100) / 3}%`, top: `${(row * 100) / 3}%` }}
+        >
+          <div className="absolute overflow-hidden rounded-[9%]" style={{ inset: `${INSET}%` }}>
+            <FarmArt
+              className="absolute max-w-none"
+              style={{
+                width: `${artSize}%`,
+                height: `${artSize}%`,
+                left: `${-((col * 100 + INSET) / (100 - INSET * 2)) * 100}%`,
+                top: `${-((row * 100 + INSET) / (100 - INSET * 2)) * 100}%`,
+              }}
+            />
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }
