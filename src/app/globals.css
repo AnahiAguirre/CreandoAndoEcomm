@@ -24,7 +24,6 @@
   --color-verde: #2e7d46;
 
   /* Home: fondos de sección y de tarjeta, y textos secundarios. */
-  --color-crema-calida: #fbf6ee;
   --color-amarillo-crema: #fdf3dc;
   --color-rojo-vivo: #e2382b;
   --color-tinta-calida: #5a524b;
@@ -36,17 +35,27 @@
   --color-amarillo-dark: #b88a00;
   --color-amarillo-soft: #fdecc0;
   --color-verde-soft: #d6ead9;
-  --color-verde-menta: #e7f3e3;
-  --color-azul-soft: #dcebf7;
-  --color-foto: #f4ece0;
-  --color-foto-borde: #cdbfa9;
+
+  /* Bordes y fondos neutros del catálogo y el header. */
+  --color-borde-suave: #ece6dd;
+  --color-hero-fondo: #fffdf9;
+  --color-elegidos-fondo: #f7f3ec;
+  --color-categoria-rompecabezas: #f4ecdf;
+  --color-categoria-pistas: #eaf4fb;
+  --color-ghost-borde: #cfdcea;
+  --color-ghost-fondo: #eef4fb;
+  --color-control-borde: #e6dfd4;
+  --color-barra-fondo: #e3dccf;
+  --color-chip-fondo: #eef0f3;
+  --color-chip-texto: #cfc8bf;
+  --color-icono-azul-fondo: #e6eef7;
 
   /* Apple-like easing: nothing bounces, everything settles. */
   --ease-suave: cubic-bezier(0.28, 0.11, 0.32, 1);
 
-  /* Redonda y amable, como los juguetes: Fredoka para títulos, Nunito para leer. */
+  /* Geométrica para títulos, redonda y amable para leer, como pide el diseño. */
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fredoka), var(--font-nunito), ui-sans-serif, sans-serif;
+  --font-display: var(--font-outfit), var(--font-nunito), ui-sans-serif, sans-serif;
 }
 
 :root {
@@ -59,11 +68,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Los títulos de la tienda van en Fredoka, con su espaciado natural. */
+/* Los títulos de la tienda van en la tipografía geométrica, con su espaciado natural. */
 .tienda h1,
-.tienda h2 {
+.tienda h2,
+.tienda h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.01em !important;
+  letter-spacing: -0.02em !important;
 }
 
 /* Scroll reveal: the element waits, then settles into place. Driven by
@@ -192,6 +202,74 @@ body {
 .wheel {
   transform-box: fill-box;
   transform-origin: center;
+}
+
+/* Carrusel del hero: acercamiento lento sobre la foto activa. */
+@keyframes ken-burns {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+/* La mancha de fondo respira despacio y cambia de forma sin parar. */
+@keyframes blob-morph {
+  0%,
+  100% {
+    border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%;
+    transform: rotate(0deg);
+  }
+  50% {
+    border-radius: 44% 56% 42% 58% / 56% 44% 58% 42%;
+    transform: rotate(6deg);
+  }
+}
+
+.blob {
+  animation: blob-morph 14s ease-in-out infinite;
+}
+
+.blob-small {
+  border-radius: 50%;
+  animation: blob-morph 9s ease-in-out infinite reverse;
+}
+
+/* Barrita de progreso del carrusel: se llena mientras el slide está activo. */
+@keyframes progress-bar {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Botones claros: el borde y el fondo se iluminan al pasar. Nada rebota. */
+.ghost-btn {
+  transition:
+    background-color 0.25s,
+    border-color 0.25s;
+}
+
+.ghost-btn:hover {
+  background-color: var(--color-ghost-fondo) !important;
+  border-color: var(--color-azul) !important;
+}
+
+.nav-btn {
+  transition:
+    background-color 0.25s,
+    color 0.25s,
+    transform 0.25s;
+}
+
+.nav-btn:hover {
+  background-color: var(--color-azul) !important;
+  color: #ffffff !important;
+  border-color: var(--color-azul) !important;
+  transform: scale(1.06);
 }
 
 @supports (animation-timeline: view()) {
