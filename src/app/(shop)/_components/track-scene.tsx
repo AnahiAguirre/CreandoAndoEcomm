@@ -16,6 +16,7 @@ export function TrackScene() {
           Cada día, <span className="text-azul">un recorrido nuevo.</span>
         </>,
       ]}
+      cta={{ label: 'Elegí tu pista', href: '#elegidos' }}
     >
       <Stage width={600} height={560} className="[--s:0.55] sm:[--s:0.75] md:[--s:1]">
         <TrainTrack />

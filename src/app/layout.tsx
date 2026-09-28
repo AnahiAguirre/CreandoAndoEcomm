@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { Fredoka, Nunito } from 'next/font/google';
+import { Nunito, Outfit } from 'next/font/google';
 
 import './globals.css';
 
-// Rounded and friendly, like the toys: Fredoka for headings, Nunito to read.
-const fredoka = Fredoka({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-fredoka', display: 'swap' });
+// Geométrica para los títulos, redonda y fácil de leer para el cuerpo — como
+// pide el diseño aprobado de la tienda.
+const outfit = Outfit({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-outfit', display: 'swap' });
 const nunito = Nunito({ subsets: ['latin'], weight: ['400', '600', '700', '800'], variable: '--font-nunito', display: 'swap' });
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" className={`${fredoka.variable} ${nunito.variable}`}>
+    <html lang="es-AR" className={`${outfit.variable} ${nunito.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

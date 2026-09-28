@@ -16,6 +16,7 @@ export function AssembleScene() {
           Se arma, se desarma, <span className="text-rojo-vivo">se vuelve a armar.</span>
         </>,
       ]}
+      cta={{ label: 'Elegí tu rompecabezas', href: '#elegidos' }}
     >
       <Stage width={600} height={620} className="[--s:0.5] sm:[--s:0.7] md:[--s:0.9]">
         <CarPuzzle motion="scatter" />

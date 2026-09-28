@@ -16,6 +16,7 @@ export function ColoringScene() {
           ¿Terminó? <span className="text-rojo-vivo">Imprimís otra.</span>
         </>,
       ]}
+      cta={{ label: 'Ver cuadernos para colorear', href: '#elegidos' }}
     >
       <Stage width={420} height={560} className="[--s:0.6] sm:[--s:0.8] md:[--s:1]">
         <ColoringSheet />

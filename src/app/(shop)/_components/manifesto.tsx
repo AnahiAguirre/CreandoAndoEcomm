@@ -9,7 +9,7 @@ const LINES = [
 
 /** Figures shown as a counter. `count` animates; `label` sits under it. */
 const FIGURES = [
-  { count: 6, label: 'modelos: ballena, rana, pingüino, auto, cohete y abeja', color: 'text-rojo-vivo' },
+  { count: 3, label: 'secciones: rompecabezas, pistas de tren e imprimibles', color: 'text-rojo-vivo' },
   { count: 20, label: 'láminas en el cuaderno de Animales', color: 'text-azul' },
   { count: 16, label: 'láminas en el cuaderno de Dinosaurios', color: 'text-verde' },
 ] as const;
@@ -31,7 +31,7 @@ export function Manifesto() {
         </p>
       </section>
 
-      <section id="detalles" className="scroll-mt-14 bg-white px-4 pb-24 md:h-[460px] md:pb-0">
+      <section id="detalles" className="scroll-mt-16 bg-white px-4 pb-24 md:h-[460px] md:pb-0">
         <div className="mx-auto grid max-w-[70rem] grid-cols-2 gap-6 gap-y-12 border-t border-arena-dark pt-14 md:grid-cols-4">
           {FIGURES.map((f) => (
             <Reveal key={f.label} className="flex flex-col gap-2">
