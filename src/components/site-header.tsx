@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { isAdmin } from '@/domain/auth/user';
 import { getCurrentUser } from '@/lib/auth-guards';
 
+import { MobileMenu } from './mobile-menu';
+import { NAV_LINKS } from './nav-links';
 import { SignOutButton } from './sign-out-button';
 
 const navLink = 'text-tinta-medio transition-colors duration-300 ease-suave hover:text-tinta';
@@ -11,11 +13,10 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
 
   return (
-    // Sticky and translucent, 64px, like the approved design. Every anchor
-    // link is prefixed with `/` because this header renders on every page,
-    // not just the home — it has to go home first before it can scroll.
+    // Sticky and translucent, 64px, like the approved design. Below `md` the
+    // section links move into MobileMenu, which drops its panel under here.
     <header className="sticky top-0 z-50 h-16 border-b border-borde-suave bg-white/90 backdrop-blur-[16px] backdrop-saturate-[1.8]">
-      <nav aria-label="Principal" className="mx-auto grid h-16 max-w-[75rem] grid-cols-3 items-center px-4">
+      <nav aria-label="Principal" className="mx-auto flex h-16 max-w-[75rem] items-center justify-between px-4 md:grid md:grid-cols-3">
         <Link href="/" className="flex items-center gap-2.5 text-tinta hover:text-tinta">
           <span className="flex size-[30px] items-center justify-center rounded-lg bg-azul">
             <svg
@@ -35,22 +36,15 @@ export async function SiteHeader() {
           <span className="font-display text-xl font-bold">CreandoAndo</span>
         </Link>
 
-        <div className="hidden items-center justify-center gap-8 text-[15px] font-semibold sm:flex">
-          <Link href="/#armar" className={navLink}>
-            Rompecabezas
-          </Link>
-          <Link href="/#pistas" className={navLink}>
-            Pistas
-          </Link>
-          <Link href="/#imprimibles" className={navLink}>
-            Imprimibles
-          </Link>
-          <Link href="/#elegidos" className={navLink}>
-            Catálogo
-          </Link>
+        <div className="hidden items-center justify-center gap-8 text-[15px] font-semibold md:flex">
+          {NAV_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className={navLink}>
+              {l.label}
+            </Link>
+          ))}
         </div>
 
-        <div className="flex items-center justify-end gap-5 text-[15px] font-bold">
+        <div className="flex items-center justify-end gap-4 text-[15px] font-bold md:gap-5">
           {user ? (
             <>
               {isAdmin(user) && (
@@ -65,6 +59,7 @@ export async function SiteHeader() {
               Ingresar
             </Link>
           )}
+          <MobileMenu />
         </div>
       </nav>
     </header>
