@@ -25,12 +25,15 @@ interface Props {
 /**
  * A tall section with a sticky stage: while you scroll through it, the
  * drawing moves and the captions light up one by one. The section's height is
- * the length of the animation.
+ * the length of the animation — desktop only. A phone screen has no room for
+ * a long pinned choreography, so below `md` this is just a normal, short
+ * section: the drawing sits still in its finished state (the "regla de oro"
+ * already guarantees that — see globals.css) and nothing pins or scrolls dead.
  */
 export function StickyScene({ id, className, eyebrow, captions, cta, children }: Props) {
   return (
-    <section id={id} className={cn('relative h-[1800px] scroll-mt-16', className)}>
-      <div className="sticky top-16 flex h-[calc(100svh-4rem)] max-h-[820px] items-center overflow-hidden">
+    <section id={id} className={cn('relative scroll-mt-16 md:h-[1800px]', className)}>
+      <div className="flex items-center overflow-hidden py-16 md:sticky md:top-16 md:h-[calc(100svh-4rem)] md:max-h-[820px] md:py-0">
         <div className="mx-auto grid w-full max-w-[1200px] items-center gap-6 px-4 md:grid-cols-2 md:gap-0 md:px-0">
           <div className="flex flex-col gap-3 md:gap-7 md:pr-10">
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-tinta-soft md:text-[15px]">{eyebrow}</p>
