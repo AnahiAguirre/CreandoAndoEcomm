@@ -49,6 +49,7 @@
   --color-chip-fondo: #eef0f3;
   --color-chip-texto: #cfc8bf;
   --color-icono-azul-fondo: #e6eef7;
+  --color-accion-suave: #eef2f7;
 
   /* Apple-like easing: nothing bounces, everything settles. */
   --ease-suave: cubic-bezier(0.28, 0.11, 0.32, 1);
@@ -238,6 +239,38 @@ body {
   color: #ffffff !important;
   border-color: var(--color-azul) !important;
   transform: scale(1.06);
+}
+
+/* "Agregar al carrito", sólido: se eleva y oscurece al pasar. No hace nada
+   todavía — el carrito llega en la fase 3 — pero ya se ve y se siente como
+   un botón de verdad. */
+.cart-btn {
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.25s,
+    box-shadow 0.25s;
+}
+
+.cart-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--color-azul-dark) !important;
+  box-shadow: 0 14px 26px -10px rgb(45 111 176 / 0.85);
+}
+
+.cart-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* La misma acción, clara: la usan las tarjetas de "Los más elegidos". */
+.cart-btn-suave {
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.cart-btn-suave:hover {
+  background-color: var(--color-azul) !important;
+  color: #ffffff !important;
 }
 
 @supports (animation-timeline: view()) {
