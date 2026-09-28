@@ -63,6 +63,19 @@
   color-scheme: light;
 }
 
+/* Below `md` the header carries a second row (the section pills, 3rem).
+   Anchored sections already clear the 64px bar with scroll-mt-16; this adds
+   the pills on top of that, so a jump never lands under the header. */
+html {
+  scroll-padding-top: 3rem;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 0;
+  }
+}
+
 body {
   background: var(--color-crema);
   color: var(--color-tinta);
