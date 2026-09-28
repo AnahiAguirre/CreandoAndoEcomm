@@ -109,38 +109,6 @@ body {
  * scroll (Firefox), o con movimiento reducido, todo se ve armado y en su lugar.
  */
 
-/* Entrada del hero, al cargar: por tiempo, no por scroll. */
-@keyframes hero-in {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-}
-
-@keyframes hero-puzzle-in {
-  from {
-    opacity: 0;
-    transform: scale(0.8) rotate(-16deg);
-    filter: blur(12px);
-  }
-}
-
-.hero-in {
-  animation: hero-in 1.2s var(--ease-suave) 0.1s both;
-}
-
-.hero-in-2 {
-  animation-delay: 0.25s;
-}
-
-.hero-in-3 {
-  animation-delay: 0.4s;
-}
-
-.hero-puzzle-in {
-  animation: hero-puzzle-in 1.9s var(--ease-suave) 0.35s both;
-}
-
 /* Hero: después de que aparece el tablero, las piezas caen en su lugar de a una. */
 @keyframes piece-drop {
   from {
@@ -292,30 +260,24 @@ body {
     animation-range: entry 20% cover 35%;
   }
 
-  @keyframes hero-out {
-    to {
-      transform: scale(0.86);
-      opacity: 0.3;
+  /* Las tres escenas pegajosas (piezas, tren, crayón) y el resalte de sus
+     títulos son solo de escritorio: un celular no tiene alto de sobra para
+     una coreografía larga atada al scroll. Debajo de `md`, StickyScene ya
+     deja de fijar la sección y la achica al tamaño del contenido — sin un
+     timeline con nombre que resolver acá, cada dibujo simplemente se
+     muestra en su estado final (la "regla de oro" de arriba). */
+  @media (min-width: 768px) {
+    .assemble-scene {
+      view-timeline: --armar block;
     }
-  }
 
-  .hero-out {
-    animation: hero-out linear both;
-    animation-timeline: view();
-    animation-range: exit 5% exit 90%;
-  }
+    .track-scene {
+      view-timeline: --pista block;
+    }
 
-  /* Cada escena pegajosa publica su progreso como timeline con nombre. */
-  .assemble-scene {
-    view-timeline: --armar block;
-  }
-
-  .track-scene {
-    view-timeline: --pista block;
-  }
-
-  .coloring-scene {
-    view-timeline: --imp block;
+    .coloring-scene {
+      view-timeline: --imp block;
+    }
   }
 
   /* Los títulos de cada escena se encienden de a uno. */
@@ -329,13 +291,15 @@ body {
     animation: highlight linear both;
   }
 
-  .assemble-scene .scene-caption { animation-timeline: --armar; }
-  .track-scene .scene-caption { animation-timeline: --pista; }
-  .coloring-scene .scene-caption { animation-timeline: --imp; }
+  @media (min-width: 768px) {
+    .assemble-scene .scene-caption { animation-timeline: --armar; }
+    .track-scene .scene-caption { animation-timeline: --pista; }
+    .coloring-scene .scene-caption { animation-timeline: --imp; }
 
-  .scene-caption-1 { animation-range: contain 0% contain 18%; }
-  .scene-caption-2 { animation-range: contain 30% contain 52%; }
-  .scene-caption-3 { animation-range: contain 62% contain 85%; }
+    .scene-caption-1 { animation-range: contain 0% contain 18%; }
+    .scene-caption-2 { animation-range: contain 30% contain 52%; }
+    .scene-caption-3 { animation-range: contain 62% contain 85%; }
+  }
 
   /* Rompecabezas: cada pieza parte de un lugar distinto y encastra en un momento distinto. */
   @keyframes piece-0 { 0% { transform: translate(-300px, -190px) rotate(-18deg); } 62% { transform: none; } }
@@ -345,33 +309,25 @@ body {
   @keyframes piece-4 { 0% { transform: translate(-170px, 270px) rotate(-120deg); } 90% { transform: none; } }
   @keyframes piece-5 { 0% { transform: translate(210px, 260px) rotate(140deg); } 96% { transform: none; } }
 
-  .puzzle-piece {
-    animation: linear both;
-    animation-timeline: --armar;
-    animation-range: contain 0% contain 85%;
-  }
+  @media (min-width: 768px) {
+    .puzzle-piece {
+      animation: linear both;
+      animation-timeline: --armar;
+      animation-range: contain 0% contain 85%;
+    }
 
-  .puzzle-piece-0 { animation-name: piece-0; }
-  .puzzle-piece-1 { animation-name: piece-1; }
-  .puzzle-piece-2 { animation-name: piece-2; }
-  .puzzle-piece-3 { animation-name: piece-3; }
-  .puzzle-piece-4 { animation-name: piece-4; }
-  .puzzle-piece-5 { animation-name: piece-5; }
+    .puzzle-piece-0 { animation-name: piece-0; }
+    .puzzle-piece-1 { animation-name: piece-1; }
+    .puzzle-piece-2 { animation-name: piece-2; }
+    .puzzle-piece-3 { animation-name: piece-3; }
+    .puzzle-piece-4 { animation-name: piece-4; }
+    .puzzle-piece-5 { animation-name: piece-5; }
+  }
 
   /* Pista: el tren avanza por la curva mientras scrolleás. */
   @keyframes train-0 { from { offset-distance: 32%; } }
   @keyframes train-1 { from { offset-distance: 17.01%; } }
   @keyframes train-2 { from { offset-distance: 2.02%; } }
-
-  .train-car {
-    animation: linear both;
-    animation-timeline: --pista;
-    animation-range: contain 0% contain 100%;
-  }
-
-  .train-car-0 { animation-name: train-0; }
-  .train-car-1 { animation-name: train-1; }
-  .train-car-2 { animation-name: train-2; }
 
   @keyframes spin {
     to {
@@ -379,10 +335,22 @@ body {
     }
   }
 
-  .track-scene .wheel {
-    animation: spin linear both;
-    animation-timeline: --pista;
-    animation-range: contain 0% contain 100%;
+  @media (min-width: 768px) {
+    .train-car {
+      animation: linear both;
+      animation-timeline: --pista;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .train-car-0 { animation-name: train-0; }
+    .train-car-1 { animation-name: train-1; }
+    .train-car-2 { animation-name: train-2; }
+
+    .track-scene .wheel {
+      animation: spin linear both;
+      animation-timeline: --pista;
+      animation-range: contain 0% contain 100%;
+    }
   }
 
   /* Imprimibles: la lámina se pinta de a una zona, como con un crayón. */
@@ -392,17 +360,19 @@ body {
     }
   }
 
-  .crayon {
-    animation: crayon linear both;
-    animation-timeline: --imp;
-  }
+  @media (min-width: 768px) {
+    .crayon {
+      animation: crayon linear both;
+      animation-timeline: --imp;
+    }
 
-  .crayon-0 { animation-range: contain 4% contain 18%; }
-  .crayon-1 { animation-range: contain 17% contain 31%; }
-  .crayon-2 { animation-range: contain 30% contain 44%; }
-  .crayon-3 { animation-range: contain 43% contain 57%; }
-  .crayon-4 { animation-range: contain 56% contain 70%; }
-  .crayon-5 { animation-range: contain 69% contain 83%; }
+    .crayon-0 { animation-range: contain 4% contain 18%; }
+    .crayon-1 { animation-range: contain 17% contain 31%; }
+    .crayon-2 { animation-range: contain 30% contain 44%; }
+    .crayon-3 { animation-range: contain 43% contain 57%; }
+    .crayon-4 { animation-range: contain 56% contain 70%; }
+    .crayon-5 { animation-range: contain 69% contain 83%; }
+  }
 
   @keyframes paint {
     from {
@@ -476,10 +446,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-in,
-  .hero-puzzle-in,
   .piece-drop,
-  .hero-out,
   .scroll-rise,
   .scroll-rise-late,
   .scroll-zoom,

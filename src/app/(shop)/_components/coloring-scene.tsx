@@ -7,7 +7,7 @@ export function ColoringScene() {
   return (
     <StickyScene
       id="imprimibles"
-      className="coloring-scene h-[1600px] bg-amarillo-crema"
+      className="coloring-scene bg-amarillo-crema md:h-[1600px]"
       eyebrow="Imprimibles en PDF"
       captions={[
         'Láminas listas para imprimir.',
