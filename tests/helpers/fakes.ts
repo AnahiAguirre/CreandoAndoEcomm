@@ -1,8 +1,10 @@
 import type { Product, ProductFile, ProductImage } from '@/domain/catalog/product';
 import type { ProductInput } from '@/domain/catalog/product-input';
 import type { AdminProduct, NewProductFile, ProductRepository } from '@/domain/catalog/product-repository';
+import type { DeliverableFile, Entitlement, LibraryItem } from '@/domain/delivery/entitlement';
+import type { EntitlementRepository, NewEntitlement } from '@/domain/delivery/entitlement-repository';
 import type { MailMessage, MailSender } from '@/domain/notifications/mail-sender';
-import type { Bucket, FileStorage, SignedUpload } from '@/domain/storage/file-storage';
+import type { Bucket, FileStorage, SignedDownloadOptions, SignedUpload } from '@/domain/storage/file-storage';
 
 // ---------- builders ----------
 
@@ -164,6 +166,7 @@ export class FakeFileStorage implements FileStorage {
   readonly objects = new Set<string>();
   readonly signed: { bucket: Bucket; path: string }[] = [];
   readonly removed: { bucket: Bucket; paths: string[] }[] = [];
+  readonly downloads: ({ bucket: Bucket; path: string } & SignedDownloadOptions)[] = [];
 
   /** Simulates the browser finishing its PUT. */
   put(bucket: Bucket, path: string) {
@@ -173,6 +176,11 @@ export class FakeFileStorage implements FileStorage {
   async createSignedUpload(bucket: Bucket, path: string): Promise<SignedUpload> {
     this.signed.push({ bucket, path });
     return { path, token: `token-for-${path}` };
+  }
+
+  async createSignedDownload(bucket: Bucket, path: string, options: SignedDownloadOptions): Promise<string> {
+    this.downloads.push({ bucket, path, ...options });
+    return `https://storage.test/${bucket}/${path}?ttl=${options.expiresInSeconds}`;
   }
 
   async exists(bucket: Bucket, path: string): Promise<boolean> {
@@ -187,8 +195,63 @@ export class FakeFileStorage implements FileStorage {
 
 export class FakeMailSender implements MailSender {
   readonly sent: MailMessage[] = [];
+  /** Set to make the next sends fail, like Resend being down. */
+  failWith: Error | null = null;
 
   async send(message: MailMessage): Promise<void> {
+    if (this.failWith) throw this.failWith;
     this.sent.push(message);
+  }
+}
+
+/** Reads products (and their files) from the product fake, like the SQL joins do. */
+export class InMemoryEntitlementRepository implements EntitlementRepository {
+  readonly items: Entitlement[] = [];
+
+  constructor(private readonly products: InMemoryProductRepository) {}
+
+  async grant(input: NewEntitlement): Promise<{ entitlement: Entitlement; created: boolean }> {
+    const existing = this.items.find((e) => e.email === input.email && e.productId === input.productId);
+    if (existing) return { entitlement: existing, created: false };
+    const entitlement: Entitlement = { id: nextId(), ...input, createdAt: new Date() };
+    this.items.push(entitlement);
+    return { entitlement, created: true };
+  }
+
+  async revoke(id: string): Promise<Entitlement | null> {
+    const index = this.items.findIndex((e) => e.id === id);
+    return index === -1 ? null : this.items.splice(index, 1)[0];
+  }
+
+  async listForProduct(productId: string): Promise<Entitlement[]> {
+    return this.items.filter((e) => e.productId === productId);
+  }
+
+  async has(email: string, productId: string): Promise<boolean> {
+    return this.items.some((e) => e.email === email && e.productId === productId);
+  }
+
+  async library(email: string): Promise<LibraryItem[]> {
+    return this.items
+      .filter((e) => e.email === email)
+      .map((e) => {
+        const p = this.products.items.get(e.productId)!;
+        return {
+          productId: p.id,
+          slug: p.slug,
+          name: p.name,
+          coverPath: p.images[0]?.storagePath ?? null,
+          files: p.files.map((f) => ({ id: f.id, filename: f.filename, sizeBytes: f.sizeBytes })),
+          grantedAt: e.createdAt,
+        };
+      });
+  }
+
+  async findFile(fileId: string): Promise<DeliverableFile | null> {
+    for (const p of this.products.items.values()) {
+      const f = p.files.find((x) => x.id === fileId);
+      if (f) return { id: f.id, productId: p.id, storagePath: f.storagePath, filename: f.filename };
+    }
+    return null;
   }
 }

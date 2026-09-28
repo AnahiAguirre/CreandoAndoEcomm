@@ -3,15 +3,19 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ProductNotFoundError } from '@/domain/catalog/use-cases/get-product-by-slug';
+import { entitlementSource } from '@/domain/delivery/entitlement';
 import { container } from '@/lib/container';
 
 import { updateProduct } from '../actions';
+import { AccessManager } from '../_components/access-manager';
 import { FileManager } from '../_components/file-manager';
 import { ImageManager } from '../_components/image-manager';
 import { ProductForm } from '../_components/product-form';
 import { PublishToggle } from '../_components/publish-toggle';
 
 export const dynamic = 'force-dynamic';
+
+const dateFormat = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,6 +44,15 @@ export default async function EditProductPage({ params, searchParams }: Props) {
     id: img.id,
     url: container.assetUrls.publicImageUrl(img.storagePath),
   }));
+  const grants =
+    product.kind === 'digital'
+      ? (await container.delivery.listGrants(product.id)).map((e) => ({
+          id: e.id,
+          email: e.email,
+          source: entitlementSource(e),
+          createdAt: dateFormat.format(e.createdAt),
+        }))
+      : [];
 
   return (
     <section className="flex flex-col gap-8">
@@ -73,7 +86,12 @@ export default async function EditProductPage({ params, searchParams }: Props) {
 
         <div className="flex flex-col gap-8">
           <ImageManager productId={product.id} images={images} />
-          {product.kind === 'digital' && <FileManager productId={product.id} files={product.files} />}
+          {product.kind === 'digital' && (
+            <>
+              <FileManager productId={product.id} files={product.files} />
+              <AccessManager productId={product.id} grants={grants} hasFiles={product.files.length > 0} />
+            </>
+          )}
         </div>
       </div>
     </section>

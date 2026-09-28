@@ -16,13 +16,21 @@ export interface SignedUpload {
   token: string;
 }
 
+export interface SignedDownloadOptions {
+  expiresInSeconds: number;
+  /** Name the browser saves the file as (instead of the random storage path). */
+  filename: string;
+}
+
 /**
  * Port: object storage. Files never travel through our server (Vercel caps
  * request bodies at ~4.5 MB and a coloring PDF blows past that): the server
- * only hands out upload tokens and, later, download URLs.
+ * only hands out upload tokens and short-lived download URLs.
  */
 export interface FileStorage {
   createSignedUpload(bucket: Bucket, path: string): Promise<SignedUpload>;
+  /** A URL that downloads the object directly from storage and stops working after `expiresInSeconds`. */
+  createSignedDownload(bucket: Bucket, path: string, options: SignedDownloadOptions): Promise<string>;
   exists(bucket: Bucket, path: string): Promise<boolean>;
   remove(bucket: Bucket, paths: string[]): Promise<void>;
 }

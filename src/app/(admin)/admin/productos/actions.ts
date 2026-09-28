@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { productInputSchema } from '@/domain/catalog/product-input';
 import type { UploadKind, UploadTicket } from '@/domain/catalog/use-cases/catalog-admin';
+import { emailSchema } from '@/domain/delivery/entitlement';
 import { DomainError } from '@/domain/shared/errors';
 import { requireAdmin } from '@/lib/auth-guards';
 import { container } from '@/lib/container';
@@ -158,5 +159,32 @@ export async function removeFile(productId: string, fileId: string): Promise<Act
     return toResultError(err);
   }
   revalidateProduct(productId);
+  return { ok: true, data: undefined };
+}
+
+// ---------- access to digital products (hand-granted until payments exist) ----------
+
+export async function grantAccess(
+  productId: string,
+  email: string,
+): Promise<ActionResult<{ created: boolean; mailed: boolean }>> {
+  await requireAdmin();
+  try {
+    const { created, mailed } = await container.delivery.grant(productId, emailSchema.parse(email));
+    revalidatePath(`/admin/productos/${productId}`);
+    return { ok: true, data: { created, mailed } };
+  } catch (err) {
+    return toResultError(err);
+  }
+}
+
+export async function revokeAccess(productId: string, entitlementId: string): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    await container.delivery.revoke(entitlementId);
+  } catch (err) {
+    return toResultError(err);
+  }
+  revalidatePath(`/admin/productos/${productId}`);
   return { ok: true, data: undefined };
 }
