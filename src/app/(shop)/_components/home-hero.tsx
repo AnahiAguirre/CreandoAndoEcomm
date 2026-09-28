@@ -176,13 +176,13 @@ export function HomeHero() {
       {/* Mobile: the design is a fixed 1440px desktop layout, so below `md`
           it becomes a simple stacked carousel — same state, no blob or Ken Burns. */}
       {/* The buttons are the call to action, so they must land on the first
-          screen: the photo takes what the screen's height can spare (30svh),
+          screen: the photo takes what the screen's height can spare (26svh),
           the title keeps room for two lines so nothing jumps between slides,
           and the description goes after the controls. */}
       <div className="flex flex-col items-center gap-3 px-4 pb-8 pt-4 text-center md:hidden">
         {/* No arrows on a phone: a horizontal swipe on the photo changes product. */}
         <div
-          className="relative h-[clamp(140px,30svh,280px)] w-full max-w-md touch-pan-y overflow-hidden rounded-2xl bg-white"
+          className="relative h-[clamp(120px,26svh,280px)] w-full max-w-md touch-pan-y overflow-hidden rounded-2xl bg-white"
           onTouchStart={(e) => {
             touchX.current = e.touches[0].clientX;
           }}
