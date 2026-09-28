@@ -162,32 +162,36 @@ export function HomeHero() {
     >
       {/* Mobile: the design is a fixed 1440px desktop layout, so below `md`
           it becomes a simple stacked carousel — same state, no blob or Ken Burns. */}
-      <div className="flex flex-col items-center gap-5 px-4 py-12 text-center md:hidden">
-        <div className="relative aspect-[4/3] w-full max-w-sm overflow-hidden rounded-3xl bg-white">
-          <Image src={cur.img} alt={cur.alt} fill sizes="24rem" className="object-contain" priority />
+      {/* The buttons are the call to action, so they must land on the first
+          screen: the photo takes what the screen's height can spare (30svh),
+          the title keeps room for two lines so nothing jumps between slides,
+          and the description goes after the controls. */}
+      <div className="flex flex-col items-center gap-3 px-4 pb-8 pt-4 text-center md:hidden">
+        <div className="relative h-[clamp(140px,30svh,280px)] w-full max-w-md overflow-hidden rounded-2xl bg-white">
+          <Image src={cur.img} alt={cur.alt} fill sizes="28rem" className="object-contain" priority />
         </div>
-        <span className="text-[13px] font-extrabold uppercase tracking-[0.16em] text-azul">Colección de madera</span>
-        <h1 className="text-4xl font-bold leading-tight">{cur.title}</h1>
-        <p className="max-w-sm text-tinta-calida">{cur.desc}</p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-azul">Colección de madera</span>
+        <h1 className="flex min-h-[2.3em] items-center justify-center text-[28px] font-bold leading-[1.15]">{cur.title}</h1>
+        <span className="text-sm text-tinta-soft">
+          Precio <span className="font-display ml-1.5 text-lg font-bold text-tinta">[PRECIO]</span>
+        </span>
+        <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-2">
           {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
           <button
             type="button"
-            className="cart-btn flex h-[52px] items-center gap-2 rounded-full bg-azul px-6 font-bold text-white"
+            className="cart-btn flex h-12 min-w-[190px] flex-[1.4] items-center justify-center gap-2 rounded-full bg-azul px-4 text-[15px] font-bold text-white"
           >
             <CartIcon /> Agregar al carrito
           </button>
           <a
             href={cur.href}
-            className="ghost-btn rounded-full border-[1.5px] border-ghost-borde px-6 py-3 font-bold text-azul"
+            className="ghost-btn flex h-12 min-w-[120px] flex-1 items-center justify-center whitespace-nowrap rounded-full border-[1.5px] border-ghost-borde px-4 text-[15px] font-bold text-azul"
           >
-            Ver detalle <span aria-hidden="true">›</span>
+            Ver detalle <span aria-hidden="true">&nbsp;›</span>
           </a>
         </div>
-        <span className="text-sm text-tinta-soft">
-          Precio <span className="font-display ml-1.5 text-xl font-bold text-tinta">[PRECIO]</span>
-        </span>
         <Controls slide={slide} paused={paused} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
+        <p className="max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
       </div>
 
       {/* Desktop: the design's exact absolute layout, at its own 1440px scale. */}
