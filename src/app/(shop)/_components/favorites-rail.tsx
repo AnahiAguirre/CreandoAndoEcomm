@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
+import { CartIcon } from './cart-icon';
 import { DinoArt, FishArt } from './illustrations/line-art';
 
 interface PhotoCard {
@@ -103,6 +104,13 @@ export function FavoritesRail() {
                 <div className="flex flex-1 flex-col gap-1.5 px-5 pb-5 pt-[18px]">
                   <span className="text-base font-bold md:text-[17px]">{c.title}</span>
                   <span className="text-tinta-medio md:text-[16px]">{c.price}</span>
+                  {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
+                  <button
+                    type="button"
+                    className="cart-btn-suave mt-auto flex min-h-11 items-center justify-center gap-2 rounded-full bg-accion-suave text-[15px] font-bold text-tinta"
+                  >
+                    <CartIcon className="size-[18px]" /> Agregar al carrito
+                  </button>
                 </div>
               </div>
             ))}

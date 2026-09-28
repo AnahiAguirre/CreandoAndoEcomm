@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import { CartIcon } from './cart-icon';
+
 interface Slide {
   img: string;
   alt: string;
@@ -167,12 +169,21 @@ export function HomeHero() {
         <span className="text-[13px] font-extrabold uppercase tracking-[0.16em] text-azul">Colección de madera</span>
         <h1 className="text-4xl font-bold leading-tight">{cur.title}</h1>
         <p className="max-w-sm text-tinta-calida">{cur.desc}</p>
-        <a
-          href={cur.href}
-          className="ghost-btn rounded-full border-[1.5px] border-ghost-borde px-6 py-3 font-bold text-azul"
-        >
-          Ver detalle <span aria-hidden="true">›</span>
-        </a>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
+          <button
+            type="button"
+            className="cart-btn flex h-[52px] items-center gap-2 rounded-full bg-azul px-6 font-bold text-white"
+          >
+            <CartIcon /> Agregar al carrito
+          </button>
+          <a
+            href={cur.href}
+            className="ghost-btn rounded-full border-[1.5px] border-ghost-borde px-6 py-3 font-bold text-azul"
+          >
+            Ver detalle <span aria-hidden="true">›</span>
+          </a>
+        </div>
         <span className="text-sm text-tinta-soft">
           Precio <span className="font-display ml-1.5 text-xl font-bold text-tinta">[PRECIO]</span>
         </span>
@@ -236,6 +247,13 @@ export function HomeHero() {
               <h1 className="font-display text-[60px] font-bold leading-[1.02]">{s.title}</h1>
               <p className="max-w-[420px] text-lg leading-[1.55] text-tinta-calida">{s.desc}</p>
               <div className="mt-2 flex items-center gap-3.5">
+                {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
+                <button
+                  type="button"
+                  className="cart-btn flex h-[52px] items-center gap-2.5 rounded-full bg-azul px-[26px] font-bold text-white"
+                >
+                  <CartIcon /> Agregar al carrito
+                </button>
                 <a
                   href={s.href}
                   className="ghost-btn flex h-[52px] items-center gap-1.5 rounded-full border-[1.5px] border-ghost-borde px-[22px] font-bold text-azul"
