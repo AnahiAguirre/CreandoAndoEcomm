@@ -5,12 +5,15 @@ import { randomUUID } from 'node:crypto';
 import { CatalogAdmin } from '@/domain/catalog/use-cases/catalog-admin';
 import { GetProductBySlug } from '@/domain/catalog/use-cases/get-product-by-slug';
 import { ListCatalog } from '@/domain/catalog/use-cases/list-catalog';
+import { DigitalDelivery } from '@/domain/delivery/use-cases/digital-delivery';
 import type { MailSender } from '@/domain/notifications/mail-sender';
 import { createAuth } from '@/infra/auth/create-auth';
 import { db } from '@/infra/db/client';
+import { DrizzleEntitlementRepository } from '@/infra/db/repositories/drizzle-entitlement-repository';
 import { DrizzleProductRepository } from '@/infra/db/repositories/drizzle-product-repository';
 import { ConsoleMailSender } from '@/infra/mail/console-mail-sender';
 import { ResendMailSender } from '@/infra/mail/resend-mail-sender';
+import { downloadReadyMail } from '@/infra/mail/templates/download-ready';
 import { SupabaseAssetUrlResolver } from '@/infra/storage/supabase-asset-url-resolver';
 import { SupabaseFileStorage } from '@/infra/storage/supabase-file-storage';
 
@@ -21,6 +24,7 @@ import { authBaseUrl, env } from './env';
  * to the `domain/` port it fulfils. Nothing under `app/` imports from `infra/`.
  */
 const productRepository = new DrizzleProductRepository(db);
+const entitlementRepository = new DrizzleEntitlementRepository(db);
 const fileStorage = new SupabaseFileStorage(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY);
 
 const mail: MailSender = env.RESEND_API_KEY
@@ -46,4 +50,7 @@ export const container = {
     getBySlug: new GetProductBySlug(productRepository),
     admin: new CatalogAdmin(productRepository, fileStorage, randomUUID),
   },
+  delivery: new DigitalDelivery(entitlementRepository, productRepository, fileStorage, mail, (to, productName) =>
+    downloadReadyMail(to, productName, `${authBaseUrl}/mis-descargas`),
+  ),
 } as const;

@@ -89,7 +89,7 @@ El código se reconstruye por fases sobre el plan. Cada fase vive en su rama y s
 | 1 · Fundaciones | ✅ verificada | Esqueleto `domain/infra/lib/app`, schema del catálogo, migración `0000_catalog`, cliente Postgres (pooler, `prepare:false`), catálogo público (`/` y `/producto/[slug]`), seed. |
 | 2 · Auth + admin | ✅ verificada | Better Auth (magic link + rol admin, migración `0001_auth`), `requireUser`/`requireAdmin`, `proxy.ts`, `/ingresar`, panel `/admin/productos` con ABM, uploads directos a Storage y reglas de publicación. Tests unitarios (Vitest). |
 | 3 · Pago (digitales) | ⏳ | Carrito, `computeOrderTotals()`, `/api/checkout`, webhook MP con firma e idempotencia. |
-| 4 · Entrega digital | ⏳ | Entitlements, `/mis-descargas`, signed URLs, mail de confirmación. |
+| 4 · Entrega digital | 🟡 sin pagos | Entitlements por email (migración `0002_entitlements`), `/mis-descargas`, `GET /api/download/[fileId]` → signed URL de 60 s, mail "ya podés descargarlo". Por ahora el acceso se da a mano desde la ficha del producto en el admin; en la fase 3 el webhook llama al mismo `DigitalDelivery.grant()` con el `orderId`. |
 | 5–9 | ⏳ | Físicos + envío, cupones, dashboard, envío calculado, producción (ver plan). |
 
 `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` pasan limpios.

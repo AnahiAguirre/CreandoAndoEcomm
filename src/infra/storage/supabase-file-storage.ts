@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-import type { Bucket, FileStorage, SignedUpload } from '@/domain/storage/file-storage';
+import type { Bucket, FileStorage, SignedDownloadOptions, SignedUpload } from '@/domain/storage/file-storage';
 
 /**
  * Server-side storage access with the secret (service) key. This key bypasses
@@ -20,6 +20,14 @@ export class SupabaseFileStorage implements FileStorage {
     const { data, error } = await this.client.storage.from(bucket).createSignedUploadUrl(path);
     if (error || !data) throw new Error(`Supabase Storage: could not sign upload for ${bucket}/${path}: ${error?.message}`);
     return { path: data.path, token: data.token };
+  }
+
+  async createSignedDownload(bucket: Bucket, path: string, options: SignedDownloadOptions): Promise<string> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .createSignedUrl(path, options.expiresInSeconds, { download: options.filename });
+    if (error || !data) throw new Error(`Supabase Storage: could not sign download for ${bucket}/${path}: ${error?.message}`);
+    return data.signedUrl;
   }
 
   async exists(bucket: Bucket, path: string): Promise<boolean> {

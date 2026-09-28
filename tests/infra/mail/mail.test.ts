@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsoleMailSender } from '@/infra/mail/console-mail-sender';
+import { downloadReadyMail } from '@/infra/mail/templates/download-ready';
 import { magicLinkMail } from '@/infra/mail/templates/magic-link';
 
 describe('magicLinkMail', () => {
@@ -16,6 +17,24 @@ describe('magicLinkMail', () => {
   it('mentions the expiry so the user knows to act quickly', () => {
     expect(mail.text).toMatch(/15 minutos/);
     expect(mail.html).toMatch(/15 minutos/);
+  });
+});
+
+describe('downloadReadyMail', () => {
+  const library = 'https://tienda.test/mis-descargas';
+
+  it('links to Mis descargas (never to the file) in both bodies', () => {
+    const mail = downloadReadyMail('vos@ejemplo.com', 'Cuaderno Animales', library);
+    expect(mail.to).toBe('vos@ejemplo.com');
+    expect(mail.subject).toContain('Cuaderno Animales');
+    expect(mail.text).toContain(library);
+    expect(mail.html).toContain(`href="${library}"`);
+  });
+
+  it('escapes the product name in the HTML', () => {
+    const mail = downloadReadyMail('vos@ejemplo.com', '<b>Dinos</b> & más', library);
+    expect(mail.html).not.toContain('<b>Dinos</b>');
+    expect(mail.html).toContain('&#60;b&#62;Dinos');
   });
 });
 
