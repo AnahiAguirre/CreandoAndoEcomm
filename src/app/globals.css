@@ -123,28 +123,6 @@ body {
  * scroll (Firefox), o con movimiento reducido, todo se ve armado y en su lugar.
  */
 
-/* Hero: después de que aparece el tablero, las piezas caen en su lugar de a una. */
-@keyframes piece-drop {
-  from {
-    opacity: 0;
-    transform: translateY(-150px) rotate(-10deg);
-  }
-  60% {
-    opacity: 1;
-  }
-}
-
-.piece-drop {
-  animation: piece-drop 0.9s cubic-bezier(0.34, 1.35, 0.55, 1) both;
-}
-
-.piece-drop-0 { animation-delay: 1.1s; }
-.piece-drop-1 { animation-delay: 1.28s; }
-.piece-drop-2 { animation-delay: 1.46s; }
-.piece-drop-3 { animation-delay: 1.64s; }
-.piece-drop-4 { animation-delay: 1.82s; }
-.piece-drop-5 { animation-delay: 2s; }
-
 /* Contadores: el número vive en una propiedad registrada y el CSS lo escribe. */
 @property --count {
   syntax: '<integer>';
@@ -306,120 +284,6 @@ body {
     animation-range: entry 20% cover 35%;
   }
 
-  /* Las tres escenas pegajosas (piezas, tren, crayón) y el resalte de sus
-     títulos son solo de escritorio: un celular no tiene alto de sobra para
-     una coreografía larga atada al scroll. Debajo de `md`, StickyScene ya
-     deja de fijar la sección y la achica al tamaño del contenido — sin un
-     timeline con nombre que resolver acá, cada dibujo simplemente se
-     muestra en su estado final (la "regla de oro" de arriba). */
-  @media (min-width: 768px) {
-    .assemble-scene {
-      view-timeline: --armar block;
-    }
-
-    .track-scene {
-      view-timeline: --pista block;
-    }
-
-    .coloring-scene {
-      view-timeline: --imp block;
-    }
-  }
-
-  /* Los títulos de cada escena se encienden de a uno. */
-  @keyframes highlight {
-    from {
-      opacity: 0.18;
-    }
-  }
-
-  .scene-caption {
-    animation: highlight linear both;
-  }
-
-  @media (min-width: 768px) {
-    .assemble-scene .scene-caption { animation-timeline: --armar; }
-    .track-scene .scene-caption { animation-timeline: --pista; }
-    .coloring-scene .scene-caption { animation-timeline: --imp; }
-
-    .scene-caption-1 { animation-range: contain 0% contain 18%; }
-    .scene-caption-2 { animation-range: contain 30% contain 52%; }
-    .scene-caption-3 { animation-range: contain 62% contain 85%; }
-  }
-
-  /* Rompecabezas: cada pieza parte de un lugar distinto y encastra en un momento distinto. */
-  @keyframes piece-0 { 0% { transform: translate(-300px, -190px) rotate(-18deg); } 62% { transform: none; } }
-  @keyframes piece-1 { 0% { transform: translate(290px, -230px) rotate(14deg); } 70% { transform: none; } }
-  @keyframes piece-2 { 0% { transform: translate(-330px, 120px) rotate(10deg); } 78% { transform: none; } }
-  @keyframes piece-3 { 0% { transform: translate(310px, 150px) rotate(-12deg); } 84% { transform: none; } }
-  @keyframes piece-4 { 0% { transform: translate(-170px, 270px) rotate(-120deg); } 90% { transform: none; } }
-  @keyframes piece-5 { 0% { transform: translate(210px, 260px) rotate(140deg); } 96% { transform: none; } }
-
-  @media (min-width: 768px) {
-    .puzzle-piece {
-      animation: linear both;
-      animation-timeline: --armar;
-      animation-range: contain 0% contain 85%;
-    }
-
-    .puzzle-piece-0 { animation-name: piece-0; }
-    .puzzle-piece-1 { animation-name: piece-1; }
-    .puzzle-piece-2 { animation-name: piece-2; }
-    .puzzle-piece-3 { animation-name: piece-3; }
-    .puzzle-piece-4 { animation-name: piece-4; }
-    .puzzle-piece-5 { animation-name: piece-5; }
-  }
-
-  /* Pista: el tren avanza por la curva mientras scrolleás. */
-  @keyframes train-0 { from { offset-distance: 32%; } }
-  @keyframes train-1 { from { offset-distance: 17.01%; } }
-  @keyframes train-2 { from { offset-distance: 2.02%; } }
-
-  @keyframes spin {
-    to {
-      transform: rotate(1080deg);
-    }
-  }
-
-  @media (min-width: 768px) {
-    .train-car {
-      animation: linear both;
-      animation-timeline: --pista;
-      animation-range: contain 0% contain 100%;
-    }
-
-    .train-car-0 { animation-name: train-0; }
-    .train-car-1 { animation-name: train-1; }
-    .train-car-2 { animation-name: train-2; }
-
-    .track-scene .wheel {
-      animation: spin linear both;
-      animation-timeline: --pista;
-      animation-range: contain 0% contain 100%;
-    }
-  }
-
-  /* Imprimibles: la lámina se pinta de a una zona, como con un crayón. */
-  @keyframes crayon {
-    from {
-      clip-path: inset(0 100% 0 0);
-    }
-  }
-
-  @media (min-width: 768px) {
-    .crayon {
-      animation: crayon linear both;
-      animation-timeline: --imp;
-    }
-
-    .crayon-0 { animation-range: contain 4% contain 18%; }
-    .crayon-1 { animation-range: contain 17% contain 31%; }
-    .crayon-2 { animation-range: contain 30% contain 44%; }
-    .crayon-3 { animation-range: contain 43% contain 57%; }
-    .crayon-4 { animation-range: contain 56% contain 70%; }
-    .crayon-5 { animation-range: contain 69% contain 83%; }
-  }
-
   @keyframes paint {
     from {
       background-position: 100% 0;
@@ -491,8 +355,90 @@ body {
   }
 }
 
+/* Escenas que se reproducen solas (StickyScene con play="view"): PlayOnView
+   pone data-play="idle" al hidratar y "running" cuando la sección entra en
+   pantalla. Sin JS no hay atributo y el dibujo queda en su estado final. */
+@keyframes highlight {
+  from {
+    opacity: 0.18;
+  }
+}
+
+/* Rompecabezas: cada pieza parte de un lugar distinto y encastra en un momento distinto. */
+@keyframes piece-0 { 0% { transform: translate(-300px, -190px) rotate(-18deg); } 62% { transform: none; } }
+@keyframes piece-1 { 0% { transform: translate(290px, -230px) rotate(14deg); } 70% { transform: none; } }
+@keyframes piece-2 { 0% { transform: translate(-330px, 120px) rotate(10deg); } 78% { transform: none; } }
+@keyframes piece-3 { 0% { transform: translate(310px, 150px) rotate(-12deg); } 84% { transform: none; } }
+@keyframes piece-4 { 0% { transform: translate(-170px, 270px) rotate(-120deg); } 90% { transform: none; } }
+@keyframes piece-5 { 0% { transform: translate(210px, 260px) rotate(140deg); } 96% { transform: none; } }
+
+/* Pista: el tren sube y baja la curva. */
+@keyframes train-0 { from { offset-distance: 32%; } }
+@keyframes train-1 { from { offset-distance: 17.01%; } }
+@keyframes train-2 { from { offset-distance: 2.02%; } }
+
+@keyframes spin {
+  to {
+    transform: rotate(1080deg);
+  }
+}
+
+[data-play] .scene-caption { animation: highlight 0.7s ease-out 0.2s both; }
+[data-play] .scene-caption-2 { animation-delay: 1s; }
+[data-play] .scene-caption-3 { animation-delay: 1.8s; }
+
+[data-play] .puzzle-piece {
+  animation-duration: 2.8s;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1);
+  animation-fill-mode: both;
+}
+[data-play] .puzzle-piece-0 { animation-name: piece-0; }
+[data-play] .puzzle-piece-1 { animation-name: piece-1; }
+[data-play] .puzzle-piece-2 { animation-name: piece-2; }
+[data-play] .puzzle-piece-3 { animation-name: piece-3; }
+[data-play] .puzzle-piece-4 { animation-name: piece-4; }
+[data-play] .puzzle-piece-5 { animation-name: piece-5; }
+
+[data-play] .train-car {
+  animation-duration: 3.4s;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  animation-fill-mode: both;
+}
+[data-play] .train-car-0 { animation-name: train-0; }
+[data-play] .train-car-1 { animation-name: train-1; }
+[data-play] .train-car-2 { animation-name: train-2; }
+[data-play] .wheel { animation: spin 3.4s cubic-bezier(0.45, 0, 0.25, 1) both; }
+
+/* Imprimibles: la lámina se pinta de a una zona, como con un crayón. */
+@keyframes crayon {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+[data-play] .crayon {
+  animation-name: crayon;
+  animation-duration: 0.55s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+[data-play] .crayon-0 { animation-delay: 0.2s; }
+[data-play] .crayon-1 { animation-delay: 0.65s; }
+[data-play] .crayon-2 { animation-delay: 1.1s; }
+[data-play] .crayon-3 { animation-delay: 1.55s; }
+[data-play] .crayon-4 { animation-delay: 2s; }
+[data-play] .crayon-5 { animation-delay: 2.45s; }
+
+/* Antes de llegar, todo espera en su primer cuadro. */
+[data-play='idle'] .scene-caption,
+[data-play='idle'] .puzzle-piece,
+[data-play='idle'] .train-car,
+[data-play='idle'] .wheel,
+[data-play='idle'] .crayon {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .piece-drop,
   .scroll-rise,
   .scroll-rise-late,
   .scroll-zoom,

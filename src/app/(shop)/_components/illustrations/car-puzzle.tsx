@@ -1,5 +1,3 @@
-import { cn } from '@/lib/utils';
-
 /*
  * The wooden car puzzle: a board with six slots and six pieces (four body
  * pieces that interlock, two wheels). Colors are the drawing's own.
@@ -93,16 +91,11 @@ function PieceArt({ piece }: { piece: Piece }) {
   );
 }
 
-interface Props {
-  /**
-   * How the pieces arrive. `drop`: they fall into place on load (hero).
-   * `scatter`: they fly in with the scroll (needs `.assemble-scene` above).
-   */
-  motion: 'drop' | 'scatter';
-}
-
-/** Board and pieces as separate layers, so each piece can move on its own. 600×620 px. */
-export function CarPuzzle({ motion }: Props) {
+/**
+ * Board and pieces as separate layers, so each piece can move on its own. 600×620 px.
+ * Inside a `[data-play]` section the pieces fly in when it comes into view.
+ */
+export function CarPuzzle() {
   return (
     <div
       role="img"
@@ -116,10 +109,7 @@ export function CarPuzzle({ motion }: Props) {
       {PIECES.map((piece, i) => (
         <div
           key={i}
-          className={cn(
-            'absolute left-0 top-0 drop-shadow-[0_10px_12px_rgb(26_23_20/0.18)]',
-            motion === 'drop' ? `piece-drop piece-drop-${i}` : `puzzle-piece puzzle-piece-${i}`,
-          )}
+          className={`puzzle-piece puzzle-piece-${i} absolute left-0 top-0 drop-shadow-[0_10px_12px_rgb(26_23_20/0.18)]`}
           style={{ width: WIDTH, height: HEIGHT, transformOrigin: piece.origin }}
         >
           <svg

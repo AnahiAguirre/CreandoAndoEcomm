@@ -2,12 +2,13 @@ import { CarPuzzle } from './illustrations/car-puzzle';
 import { Stage } from './illustrations/stage';
 import { StickyScene } from './sticky-scene';
 
-/** Rompecabezas: the car's pieces fly into the board as you scroll. */
+/** Rompecabezas: the car's pieces fly into the board when it comes into view. */
 export function AssembleScene() {
   return (
     <StickyScene
       id="armar"
       className="assemble-scene bg-arena"
+      play="view"
       eyebrow="Juguete de madera"
       captions={[
         'Piezas grandes y gruesas.',
@@ -19,7 +20,7 @@ export function AssembleScene() {
       cta={{ label: 'Elegí tu rompecabezas', href: '#elegidos' }}
     >
       <Stage width={600} height={620} className="[--s:0.5] sm:[--s:0.7] md:[--s:0.9]">
-        <CarPuzzle motion="scatter" />
+        <CarPuzzle />
       </Stage>
     </StickyScene>
   );

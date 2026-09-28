@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { CarPuzzle } from './illustrations/car-puzzle';
 import { ColoringSheet } from './illustrations/coloring-sheet';
 import { Stage } from './illustrations/stage';
-import { TrainTrackArt } from './illustrations/train-track';
+import { TrainTrack } from './illustrations/train-track';
+import { PlayOnView } from './play-on-view';
 
 interface Category {
   href: string;
@@ -24,7 +25,7 @@ const CATEGORIES: Category[] = [
     cta: 'Ver rompecabezas',
     art: (
       <Stage width={600} height={620} className="[--s:0.36]">
-        <CarPuzzle motion="drop" />
+        <CarPuzzle />
       </Stage>
     ),
   },
@@ -34,7 +35,11 @@ const CATEGORIES: Category[] = [
     title: 'Pistas de tren',
     desc: 'Tramos de madera que encastran: subidas, bajadas y un recorrido nuevo cada día.',
     cta: 'Ver pistas',
-    art: <TrainTrackArt className="w-[250px] rounded-[28px]" />,
+    art: (
+      <Stage width={600} height={560} className="[--s:0.42]">
+        <TrainTrack />
+      </Stage>
+    ),
   },
   {
     href: '/#imprimibles',
@@ -50,10 +55,13 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-/** Three doors into the catalog: rompecabezas, pistas y imprimibles. */
+/**
+ * Three doors into the catalog: rompecabezas, pistas y imprimibles. Their
+ * drawings play once, on their own, as soon as the cards are on screen.
+ */
 export function CategoryCards() {
   return (
-    <section className="bg-white px-4 py-[88px] md:pb-24">
+    <PlayOnView className="bg-white px-4 py-[88px] md:pb-24">
       <div className="mx-auto max-w-[75rem]">
         <h2 className="text-4xl font-bold md:text-[40px]">Explorá por categoría</h2>
         <p className="mt-2 text-lg text-tinta-calida md:text-[17px]">
@@ -81,6 +89,6 @@ export function CategoryCards() {
           ))}
         </div>
       </div>
-    </section>
+    </PlayOnView>
   );
 }

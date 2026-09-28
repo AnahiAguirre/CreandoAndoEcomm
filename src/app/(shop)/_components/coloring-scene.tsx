@@ -2,12 +2,13 @@ import { ColoringSheet } from './illustrations/coloring-sheet';
 import { Stage } from './illustrations/stage';
 import { StickyScene } from './sticky-scene';
 
-/** Imprimibles: the sheet gets colored in, one area at a time, as you scroll. */
+/** Imprimibles: the sheet gets colored in, one area at a time, when it comes into view. */
 export function ColoringScene() {
   return (
     <StickyScene
       id="imprimibles"
-      className="coloring-scene bg-amarillo-crema md:h-[1600px]"
+      className="coloring-scene bg-amarillo-crema"
+      play="view"
       eyebrow="Imprimibles en PDF"
       captions={[
         'Láminas listas para imprimir.',

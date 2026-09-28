@@ -2,12 +2,13 @@ import { Stage } from './illustrations/stage';
 import { TrainTrack } from './illustrations/train-track';
 import { StickyScene } from './sticky-scene';
 
-/** Pistas: the train rides the track as you scroll. */
+/** Pistas: the train rides the track when it comes into view. */
 export function TrackScene() {
   return (
     <StickyScene
       id="pistas"
       className="track-scene bg-white"
+      play="view"
       eyebrow="Pistas de tren"
       captions={[
         'Tramos de madera que encastran.',

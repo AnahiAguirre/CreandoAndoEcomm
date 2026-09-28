@@ -1,7 +1,7 @@
 /*
  * A coloring sheet: a fish over grass, with bubbles and a star. Each area has
- * its own crayon fill under the black outline; inside `.coloring-scene` the
- * fills sweep in one by one as you scroll. Colors are the drawing's own.
+ * its own crayon fill under the black outline; inside a `[data-play]` section the
+ * fills sweep in one by one when it comes into view. Colors are the drawing's own.
  */
 
 const FILLS = [

@@ -86,8 +86,8 @@ const CARS = [
 ];
 
 /**
- * The track with the train on it, 600×560 px. Inside `.track-scene` the train
- * rides the curve as you scroll; anywhere else it waits at the end of the ride.
+ * The track with the train on it, 600×560 px. Inside a `[data-play]` section the train
+ * rides the curve when it comes into view; anywhere else it waits at the end of the ride.
  */
 export function TrainTrack() {
   return (
@@ -120,21 +120,5 @@ export function TrainTrack() {
         </div>
       ))}
     </div>
-  );
-}
-
-/** Track and locomotive in a single drawing, for the catalog card. */
-export function TrainTrackArt({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 600 560" className={className} aria-hidden="true">
-      <rect width="600" height="560" fill="#eaf4fb" />
-      <rect x="0" y="500" width="600" height="60" fill="#7cc36b" />
-      <Stilts />
-      <path d={TRACK} fill="none" stroke="#e8cda0" strokeWidth="22" />
-      <path d={TRACK} fill="none" stroke="#c9a574" strokeWidth="22" strokeDasharray="3 86" />
-      <g transform="translate(240,170) scale(1.1)">
-        <Locomotive />
-      </g>
-    </svg>
   );
 }
