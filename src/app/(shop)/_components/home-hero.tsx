@@ -49,15 +49,46 @@ const SLIDES: Slide[] = [
 
 const AUTOPLAY_MS = 3200;
 
-interface ControlsProps {
+interface DotsProps {
   slide: number;
   paused: boolean;
-  onPrev: () => void;
-  onNext: () => void;
   onPick: (i: number) => void;
 }
 
-/** Prev/next arrows, the "01 / 03" counter, and the progress-bar dots. Shared by the mobile and desktop layouts. */
+/** One bar per product; the active one grows and fills up while its slide is on screen. */
+function ProgressDots({ slide, paused, onPick }: DotsProps) {
+  return (
+    <div className="flex items-center">
+      {SLIDES.map((s, i) => (
+        <button
+          key={s.title}
+          type="button"
+          aria-label={`Ver ${s.title}`}
+          aria-pressed={i === slide}
+          onClick={() => onPick(i)}
+          className="flex h-11 items-center border-0 bg-transparent px-1"
+        >
+          <span
+            className="relative h-1.5 overflow-hidden rounded-full bg-barra-fondo transition-[width] duration-[450ms] ease-[cubic-bezier(.2,.8,.2,1)]"
+            style={{ width: i === slide ? 44 : 8 }}
+          >
+            <span
+              className="absolute left-0 top-0 h-1.5 w-0 rounded-full bg-azul"
+              style={{ animation: i === slide && !paused ? `progress-bar ${AUTOPLAY_MS}ms linear forwards` : 'none' }}
+            />
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface ControlsProps extends DotsProps {
+  onPrev: () => void;
+  onNext: () => void;
+}
+
+/** Desktop: prev/next arrows, the "01 / 03" counter, and the progress bars. */
 function Controls({ slide, paused, onPrev, onNext, onPick }: ControlsProps) {
   return (
     <div className="flex items-center gap-4">
@@ -84,28 +115,7 @@ function Controls({ slide, paused, onPrev, onNext, onPick }: ControlsProps) {
       <span className="font-display ml-1.5 min-w-[52px] text-[15px] font-semibold text-tinta-soft">
         0{slide + 1} / 0{SLIDES.length}
       </span>
-      <div className="flex items-center">
-        {SLIDES.map((s, i) => (
-          <button
-            key={s.title}
-            type="button"
-            aria-label={`Ver ${s.title}`}
-            aria-pressed={i === slide}
-            onClick={() => onPick(i)}
-            className="flex h-11 items-center border-0 bg-transparent px-1"
-          >
-            <span
-              className="relative h-1.5 overflow-hidden rounded-full bg-barra-fondo transition-[width] duration-[450ms] ease-[cubic-bezier(.2,.8,.2,1)]"
-              style={{ width: i === slide ? 44 : 8 }}
-            >
-              <span
-                className="absolute left-0 top-0 h-1.5 w-0 rounded-full bg-azul"
-                style={{ animation: i === slide && !paused ? `progress-bar ${AUTOPLAY_MS}ms linear forwards` : 'none' }}
-              />
-            </span>
-          </button>
-        ))}
-      </div>
+      <ProgressDots slide={slide} paused={paused} onPick={onPick} />
     </div>
   );
 }
@@ -120,6 +130,7 @@ export function HomeHero() {
   const [dir, setDir] = useState<1 | -1>(1);
   const [paused, setPaused] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchX = useRef<number | null>(null);
 
   function restart() {
     if (timer.current) clearInterval(timer.current);
@@ -157,8 +168,10 @@ export function HomeHero() {
     <section
       id="top"
       className="relative overflow-hidden bg-hero-fondo md:h-[700px]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      // Only a real mouse pauses: a tap fires a synthetic mouseenter with no
+      // matching leave, which would freeze autoplay on a phone for good.
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setPaused(true)}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && setPaused(false)}
     >
       {/* Mobile: the design is a fixed 1440px desktop layout, so below `md`
           it becomes a simple stacked carousel — same state, no blob or Ken Burns. */}
@@ -167,7 +180,19 @@ export function HomeHero() {
           the title keeps room for two lines so nothing jumps between slides,
           and the description goes after the controls. */}
       <div className="flex flex-col items-center gap-3 px-4 pb-8 pt-4 text-center md:hidden">
-        <div className="relative h-[clamp(140px,30svh,280px)] w-full max-w-md overflow-hidden rounded-2xl bg-white">
+        {/* No arrows on a phone: a horizontal swipe on the photo changes product. */}
+        <div
+          className="relative h-[clamp(140px,30svh,280px)] w-full max-w-md touch-pan-y overflow-hidden rounded-2xl bg-white"
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0].clientX;
+          }}
+          onTouchEnd={(e) => {
+            if (touchX.current === null) return;
+            const dx = e.changedTouches[0].clientX - touchX.current;
+            touchX.current = null;
+            if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          }}
+        >
           <Image src={cur.img} alt={cur.alt} fill sizes="28rem" className="object-contain" priority />
         </div>
         <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-azul">Colección de madera</span>
@@ -190,7 +215,7 @@ export function HomeHero() {
             Ver detalle <span aria-hidden="true">&nbsp;›</span>
           </a>
         </div>
-        <Controls slide={slide} paused={paused} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
+        <ProgressDots slide={slide} paused={paused} onPick={pick} />
         <p className="max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
       </div>
 
