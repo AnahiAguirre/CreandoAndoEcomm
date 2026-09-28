@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { isAdmin } from '@/domain/auth/user';
@@ -17,22 +18,18 @@ export async function SiteHeader() {
     // section links move into MobileMenu, which drops its panel under here.
     <header className="sticky top-0 z-50 h-16 border-b border-borde-suave bg-white/90 backdrop-blur-[16px] backdrop-saturate-[1.8]">
       <nav aria-label="Principal" className="mx-auto flex h-16 max-w-[75rem] items-center justify-between px-4 md:grid md:grid-cols-3">
-        <Link href="/" className="flex items-center gap-2.5 text-tinta hover:text-tinta">
-          <span className="flex size-[30px] items-center justify-center rounded-lg bg-azul">
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M4 12h5a2 2 0 1 0 0-4V4h11v5a2 2 0 1 1 0 4v7H4z" />
-            </svg>
-          </span>
+        <Link href="/" className="flex items-center gap-2 text-tinta hover:text-tinta">
+          {/* The logo is a JPEG on white; multiply drops that white square so
+              the translucent header shows through around the splashes. At
+              56px its lettering is too small to read, so the name stays beside it. */}
+          <Image
+            src="/home/logo.jpeg"
+            alt=""
+            width={56}
+            height={56}
+            priority
+            className="size-14 mix-blend-multiply"
+          />
           <span className="font-display text-xl font-bold">CreandoAndo</span>
         </Link>
 
