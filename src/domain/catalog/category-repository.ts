@@ -11,8 +11,6 @@ export interface CategoryFields {
  */
 export interface CategoryRepository {
   listAll(): Promise<AdminCategory[]>;
-  /** Storefront: only categories that have at least one published product. */
-  listWithActiveProducts(): Promise<Category[]>;
   findById(id: string): Promise<Category | null>;
   slugTaken(slug: string, excludeId?: string): Promise<boolean>;
   create(fields: CategoryFields): Promise<Category>;

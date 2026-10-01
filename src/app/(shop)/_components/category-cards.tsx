@@ -18,7 +18,7 @@ interface Category {
 
 const CATEGORIES: Category[] = [
   {
-    href: '/#armar',
+    href: '/catalogo?categoria=rompecabezas',
     bg: 'bg-categoria-rompecabezas',
     title: 'Rompecabezas',
     desc: 'Piezas grandes de madera, fáciles de agarrar. Para armar, desarmar y volver a armar.',
@@ -30,9 +30,9 @@ const CATEGORIES: Category[] = [
     ),
   },
   {
-    href: '/#pistas',
+    href: '/catalogo?categoria=pistas-de-madera',
     bg: 'bg-categoria-pistas',
-    title: 'Pistas de tren',
+    title: 'Pistas de madera',
     desc: 'Tramos de madera que encastran: subidas, bajadas y un recorrido nuevo cada día.',
     cta: 'Ver pistas',
     art: (
@@ -42,7 +42,7 @@ const CATEGORIES: Category[] = [
     ),
   },
   {
-    href: '/#imprimibles',
+    href: '/catalogo?categoria=imprimibles',
     bg: 'bg-amarillo-crema',
     title: 'Imprimibles',
     desc: 'Cuadernos para colorear en PDF, listos para imprimir en A4.',
@@ -57,11 +57,11 @@ const CATEGORIES: Category[] = [
 
 /**
  * Three doors into the catalog: rompecabezas, pistas y imprimibles. Their
- * drawings play once, on their own, as soon as the cards are on screen.
+ * drawings play once, on their own, each as soon as its card is on screen.
  */
 export function CategoryCards() {
   return (
-    <PlayOnView className="bg-white px-4 py-[88px] md:pb-24">
+    <section className="bg-white px-4 py-[88px] md:pb-24">
       <div className="mx-auto max-w-[75rem]">
         <h2 className="text-4xl font-bold md:text-[40px]">Explorá por categoría</h2>
         <p className="mt-2 text-lg text-tinta-calida md:text-[17px]">
@@ -76,7 +76,9 @@ export function CategoryCards() {
               className="group flex flex-col overflow-hidden rounded-[20px] text-tinta ring-1 ring-borde-suave transition-transform duration-[600ms] ease-suave hover:-translate-y-1.5 hover:text-tinta hover:shadow-[0_20px_40px_-32px_rgb(26_23_20/0.35)]"
             >
               <div className={`flex h-60 items-center justify-center overflow-hidden ${c.bg}`}>
-                <div className="transition-transform duration-[600ms] ease-suave group-hover:scale-[1.03]">{c.art}</div>
+                <PlayOnView className="transition-transform duration-[600ms] ease-suave group-hover:scale-[1.03]">
+                  {c.art}
+                </PlayOnView>
               </div>
               <div className="flex flex-col gap-2 px-6 pb-[26px] pt-[22px]">
                 <h3 className="text-[22px] font-bold">{c.title}</h3>
@@ -89,6 +91,6 @@ export function CategoryCards() {
           ))}
         </div>
       </div>
-    </PlayOnView>
+    </section>
   );
 }

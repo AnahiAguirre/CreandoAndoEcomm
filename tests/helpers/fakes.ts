@@ -183,19 +183,14 @@ export class InMemoryCategoryRepository implements CategoryRepository {
 
   constructor(private readonly products?: InMemoryProductRepository) {}
 
-  private count(id: string, onlyActive = false): number {
-    return [...(this.products?.items.values() ?? [])].filter((p) => p.categoryId === id && (!onlyActive || p.active))
-      .length;
+  private count(id: string): number {
+    return [...(this.products?.items.values() ?? [])].filter((p) => p.categoryId === id).length;
   }
 
   async listAll(): Promise<AdminCategory[]> {
     return [...this.items.values()]
       .map((c) => ({ ...c, productCount: this.count(c.id) }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  async listWithActiveProducts(): Promise<Category[]> {
-    return [...this.items.values()].filter((c) => this.count(c.id, true) > 0);
   }
 
   async findById(id: string): Promise<Category | null> {

@@ -54,7 +54,11 @@ export default async function CatalogPage({ searchParams }: Props) {
       )}
 
       {products.length === 0 ? (
-        <p className="mt-8 text-tinta-soft">Estamos preparando los primeros productos. ¡Volvé pronto!</p>
+        <p className="mt-8 text-tinta-soft">
+          {selected
+            ? `Todavía no hay productos en ${selected.name}. ¡Volvé pronto!`
+            : 'Estamos preparando los primeros productos. ¡Volvé pronto!'}
+        </p>
       ) : (
         <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => {

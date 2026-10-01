@@ -54,11 +54,15 @@ export class CategoryAdmin {
   }
 }
 
-/** Storefront: the categories worth showing as filters. */
+/**
+ * Storefront: every category is a filter and a landing target (the home cards
+ * link to them), even while it has no published products yet.
+ */
 export class ListStorefrontCategories {
   constructor(private readonly categories: CategoryRepository) {}
 
-  execute(): Promise<Category[]> {
-    return this.categories.listWithActiveProducts();
+  async execute(): Promise<Category[]> {
+    const all = await this.categories.listAll();
+    return all.map(({ id, slug, name }) => ({ id, slug, name }));
   }
 }

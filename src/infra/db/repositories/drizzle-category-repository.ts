@@ -30,15 +30,6 @@ export class DrizzleCategoryRepository implements CategoryRepository {
     return rows;
   }
 
-  async listWithActiveProducts(): Promise<Category[]> {
-    const rows = await this.db
-      .selectDistinct({ id: categories.id, slug: categories.slug, name: categories.name })
-      .from(categories)
-      .innerJoin(products, and(eq(products.categoryId, categories.id), eq(products.active, true)))
-      .orderBy(asc(categories.name));
-    return rows.map(toCategory);
-  }
-
   async findById(id: string): Promise<Category | null> {
     const row = await this.db.query.categories.findFirst({ where: eq(categories.id, id) });
     return row ? toCategory(row) : null;

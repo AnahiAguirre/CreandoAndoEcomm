@@ -131,7 +131,7 @@ describe('products and categories', () => {
 });
 
 describe('storefront', () => {
-  it('only offers categories with a published product, and filters the catalog by one', async () => {
+  it('offers every category, even empty ones, and filters the catalog by one', async () => {
     const pistas = await admin.create({ name: 'Pistas' });
     const vacia = await admin.create({ name: 'Vacía' });
     const borrador = await admin.create({ name: 'Solo borradores' });
@@ -140,8 +140,8 @@ describe('storefront', () => {
     products.items.set('c', buildProduct({ id: 'c', categoryId: borrador.id, active: false }));
 
     const shown = await new ListStorefrontCategories(categories).execute();
-    expect(shown.map((c) => c.id)).toEqual([pistas.id]);
-    expect(shown.map((c) => c.id)).not.toContain(vacia.id);
+    expect(shown.map((c) => c.id).sort()).toEqual([pistas.id, vacia.id, borrador.id].sort());
+    expect(shown[0]).not.toHaveProperty('productCount');
 
     const list = new ListCatalog(products);
     expect((await list.execute()).map((p) => p.id).sort()).toEqual(['a', 'b']);
