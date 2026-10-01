@@ -50,7 +50,7 @@ export async function SiteHeader() {
                 Mis descargas
               </Link>
               {isAdmin(user) && (
-                <Link href="/admin" className={navLink}>
+                <Link href="/admin" className={`${navLink} hidden md:inline`}>
                   Admin
                 </Link>
               )}
@@ -66,8 +66,12 @@ export async function SiteHeader() {
 
       <nav aria-label="Secciones" className="no-scrollbar h-12 overflow-x-auto md:hidden">
         <ul className="flex h-12 w-max items-center gap-2 px-4">
-          {/* On a phone the top row has no room for it, so "Mis descargas" rides here. */}
-          {[...NAV_LINKS, ...(user ? [{ href: '/mis-descargas', label: 'Mis descargas' }] : [])].map((l) => (
+          {/* On a phone the top row has no room for them, so "Mis descargas" and "Admin" ride here. */}
+          {[
+            ...NAV_LINKS,
+            ...(user ? [{ href: '/mis-descargas', label: 'Mis descargas' }] : []),
+            ...(user && isAdmin(user) ? [{ href: '/admin', label: 'Admin' }] : []),
+          ].map((l) => (
             <li key={l.href}>
               <Link href={l.href} className={pill}>
                 {l.label}

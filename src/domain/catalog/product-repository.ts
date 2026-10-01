@@ -23,7 +23,7 @@ export interface NewProductFile {
  */
 export interface ProductRepository {
   // --- storefront ---
-  listActive(): Promise<Product[]>;
+  listActive(filter?: { categoryId?: string }): Promise<Product[]>;
   findActiveBySlug(slug: string): Promise<Product | null>;
 
   // --- admin ---
@@ -33,6 +33,9 @@ export interface ProductRepository {
   create(input: ProductInput): Promise<AdminProduct>;
   update(id: string, input: ProductInput): Promise<AdminProduct>;
   setActive(id: string, active: boolean): Promise<void>;
+  setPrice(id: string, priceCents: number): Promise<void>;
+  /** All-or-nothing: either every price changes or none does. */
+  setPrices(changes: { id: string; priceCents: number }[]): Promise<void>;
 
   addImage(productId: string, storagePath: string): Promise<ProductImage>;
   /** Returns the removed row so the caller can delete the object from storage. */

@@ -22,6 +22,13 @@
       "when": 1790626979025,
       "tag": "0002_entitlements",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790884683580,
+      "tag": "0003_categories",
+      "breakpoints": true
     }
   ]
 }

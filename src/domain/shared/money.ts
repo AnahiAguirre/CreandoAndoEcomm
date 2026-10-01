@@ -10,3 +10,11 @@ export function assertCents(value: number, label = 'amount'): Cents {
   }
   return value;
 }
+
+/**
+ * Applies a percentage change to a price and rounds to the nearest multiple of
+ * `roundTo` centavos. Integer-only output; the float only lives inside this call.
+ */
+export function adjustCents(cents: Cents, percent: number, roundTo = 1): Cents {
+  return Math.round((cents * (100 + percent)) / 100 / roundTo) * roundTo;
+}

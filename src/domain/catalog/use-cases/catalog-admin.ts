@@ -1,9 +1,12 @@
 import { DomainError } from '@/domain/shared/errors';
+import { adjustCents } from '@/domain/shared/money';
 import { BUCKETS, type Bucket, type FileStorage, type SignedUpload } from '@/domain/storage/file-storage';
 
 import type { ProductFile, ProductImage } from '../product';
 import type { ProductInput } from '../product-input';
+import type { CategoryRepository } from '../category-repository';
 import type { AdminProduct, ProductRepository } from '../product-repository';
+import { CategoryNotFoundError } from './category-admin';
 import { ProductNotFoundError } from './get-product-by-slug';
 
 export class SlugTakenError extends DomainError {
@@ -23,6 +26,16 @@ export class InvalidUploadError extends DomainError {
     super(reason, 'INVALID_UPLOAD');
   }
 }
+
+export class InvalidPriceError extends DomainError {
+  constructor(reason: string) {
+    super(reason, 'INVALID_PRICE');
+  }
+}
+
+/** Sanity bounds for a bulk change; anything beyond is almost surely a typo. */
+export const MAX_PRICE_DROP_PERCENT = -90;
+export const MAX_PRICE_RISE_PERCENT = 500;
 
 export type UploadKind = 'image' | 'file';
 
@@ -59,6 +72,7 @@ export const UPLOAD_POLICY: Record<UploadKind, { bucket: Bucket; mimeTypes: read
 export class CatalogAdmin {
   constructor(
     private readonly products: ProductRepository,
+    private readonly categories: CategoryRepository,
     private readonly storage: FileStorage,
     private readonly randomId: () => string,
   ) {}
@@ -75,13 +89,19 @@ export class CatalogAdmin {
 
   async create(input: ProductInput): Promise<AdminProduct> {
     if (await this.products.slugTaken(input.slug)) throw new SlugTakenError(input.slug);
+    await this.assertCategory(input.categoryId);
     return this.products.create(input);
   }
 
   async update(id: string, input: ProductInput): Promise<AdminProduct> {
     await this.get(id);
     if (await this.products.slugTaken(input.slug, id)) throw new SlugTakenError(input.slug);
+    await this.assertCategory(input.categoryId);
     return this.products.update(id, input);
+  }
+
+  private async assertCategory(categoryId: string | null): Promise<void> {
+    if (categoryId && !(await this.categories.findById(categoryId))) throw new CategoryNotFoundError(categoryId);
   }
 
   async setActive(id: string, active: boolean): Promise<void> {
@@ -95,6 +115,28 @@ export class CatalogAdmin {
       }
     }
     await this.products.setActive(id, active);
+  }
+
+  async updatePrice(id: string, priceCents: number): Promise<void> {
+    await this.get(id);
+    if (!Number.isInteger(priceCents) || priceCents <= 0) throw new InvalidPriceError('El precio debe ser mayor a cero.');
+    await this.products.setPrice(id, priceCents);
+  }
+
+  /** Applies `percent` to every listed product; refuses the whole batch if any result is invalid. */
+  async adjustPrices(ids: string[], percent: number, roundTo = 1): Promise<number> {
+    if (!Number.isFinite(percent) || percent < MAX_PRICE_DROP_PERCENT || percent > MAX_PRICE_RISE_PERCENT) {
+      throw new InvalidPriceError(`El porcentaje debe estar entre ${MAX_PRICE_DROP_PERCENT}% y ${MAX_PRICE_RISE_PERCENT}%.`);
+    }
+    const changes = [];
+    for (const id of new Set(ids)) {
+      const product = await this.get(id);
+      const priceCents = adjustCents(product.priceCents, percent, roundTo);
+      if (priceCents <= 0) throw new InvalidPriceError(`"${product.name}" quedaría con precio cero o negativo.`);
+      changes.push({ id, priceCents });
+    }
+    await this.products.setPrices(changes);
+    return changes.length;
   }
 
   // ---- uploads: the browser talks to storage directly, we only issue tickets ----

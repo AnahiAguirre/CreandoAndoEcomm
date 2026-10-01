@@ -25,6 +25,8 @@ export interface Product {
   description: string;
   kind: ProductKind;
   priceCents: Cents;
+  /** Optional: a product can live without a category. */
+  categoryId: string | null;
   active: boolean;
   /** Only meaningful for `physical` products; digital ones are always in stock. */
   stock: number;
