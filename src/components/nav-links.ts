@@ -6,5 +6,5 @@ export const NAV_LINKS = [
   { href: '/#armar', label: 'Rompecabezas' },
   { href: '/#pistas', label: 'Pistas' },
   { href: '/#imprimibles', label: 'Imprimibles' },
-  { href: '/#elegidos', label: 'Catálogo' },
+  { href: '/catalogo', label: 'Catálogo' },
 ] as const;

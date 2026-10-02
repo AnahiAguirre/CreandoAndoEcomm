@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EditProductPage({ params, searchParams }: Props) {
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
-  const product = await loadProduct(id);
+  const [product, categories] = await Promise.all([loadProduct(id), container.catalog.categories.list()]);
   const images = product.images.map((img) => ({
     id: img.id,
     url: container.assetUrls.publicImageUrl(img.storagePath),
@@ -81,7 +81,12 @@ export default async function EditProductPage({ params, searchParams }: Props) {
       <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,22rem)]">
         <div>
           <h2 className="mb-4 font-semibold">Datos</h2>
-          <ProductForm action={updateProduct.bind(null, product.id)} product={product} submitLabel="Guardar cambios" />
+          <ProductForm
+            action={updateProduct.bind(null, product.id)}
+            product={product}
+            categories={categories}
+            submitLabel="Guardar cambios"
+          />
         </div>
 
         <div className="flex flex-col gap-8">

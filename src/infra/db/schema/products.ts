@@ -5,6 +5,14 @@ import { PRODUCT_KINDS } from '@/domain/catalog/product';
 
 export const productKind = pgEnum('product_kind', PRODUCT_KINDS);
 
+export const categories = pgTable('categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const products = pgTable(
   'products',
   {
@@ -15,6 +23,8 @@ export const products = pgTable(
     kind: productKind('kind').notNull(),
     // Integer centavos — never a float. See src/domain/shared/money.ts.
     priceCents: integer('price_cents').notNull(),
+    // Deleting a category keeps its products; they just become uncategorized.
+    categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
     active: boolean('active').notNull().default(false),
     // Physical products only. Digital ones keep 0 and are always sellable.
     stock: integer('stock').notNull().default(0),
@@ -26,7 +36,7 @@ export const products = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('products_active_idx').on(t.active)],
+  (t) => [index('products_active_idx').on(t.active), index('products_category_idx').on(t.categoryId)],
 );
 
 export const productImages = pgTable(
@@ -59,7 +69,12 @@ export const productFiles = pgTable(
   (t) => [index('product_files_product_idx').on(t.productId)],
 );
 
-export const productsRelations = relations(products, ({ many }) => ({
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
   images: many(productImages),
   files: many(productFiles),
 }));

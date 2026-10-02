@@ -79,6 +79,7 @@ npm run dev
 | `npm run db:studio` | Abre Drizzle Studio contra la base |
 | `npm run db:seed` | Carga productos de ejemplo (idempotente) |
 | `npm run admin:promote -- email@x.com` | Le da rol admin a un usuario existente |
+| `npm run storage:setup` | Crea los buckets `product-images` (público) y `product-files` (privado) si faltan; no toca los existentes |
 
 ## Estado actual
 

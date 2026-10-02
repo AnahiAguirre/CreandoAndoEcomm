@@ -44,7 +44,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 md:py-14">
       <Reveal>
-        <Link href="/" className="text-sm text-tinta-soft transition-colors hover:text-tinta">
+        <Link href="/catalogo" className="text-sm text-tinta-soft transition-colors hover:text-tinta">
           ← Volver al catálogo
         </Link>
       </Reveal>

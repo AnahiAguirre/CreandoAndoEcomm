@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { SignOutButton } from '@/components/sign-out-button';
 import { requireAdmin } from '@/lib/auth-guards';
 
-const NAV = [{ href: '/admin/productos', label: 'Productos' }];
+const NAV = [
+  { href: '/admin/productos', label: 'Productos' },
+  { href: '/admin/categorias', label: 'Categorías' },
+];
 
 /**
  * Every admin page renders inside this layout, so `requireAdmin()` here guards

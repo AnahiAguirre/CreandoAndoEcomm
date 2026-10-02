@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { productInputSchema } from '@/domain/catalog/product-input';
+import { priceSchema, productInputSchema } from '@/domain/catalog/product-input';
 import type { UploadKind, UploadTicket } from '@/domain/catalog/use-cases/catalog-admin';
 import { emailSchema } from '@/domain/delivery/entitlement';
 import { DomainError } from '@/domain/shared/errors';
@@ -52,6 +52,7 @@ function revalidateProduct(id?: string) {
   if (id) revalidatePath(`/admin/productos/${id}`);
   // Storefront pages are dynamic, but keep the cache honest anyway.
   revalidatePath('/');
+  revalidatePath('/catalogo');
 }
 
 export async function createProduct(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -89,6 +90,40 @@ export async function setProductActive(id: string, active: boolean): Promise<Act
   }
   revalidateProduct(id);
   return { ok: true, data: undefined };
+}
+
+// ---------- prices (quick edit from the list, and bulk % adjust) ----------
+
+export async function updateProductPrice(id: string, price: string): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    await container.catalog.admin.updatePrice(id, priceSchema.parse(price));
+  } catch (err) {
+    return toResultError(err);
+  }
+  revalidateProduct(id);
+  return { ok: true, data: undefined };
+}
+
+const bulkAdjustSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, 'No hay productos para actualizar.').max(500),
+  percent: z.number().finite(),
+  // centavos: sin redondeo, $1, $10, $100
+  roundTo: z.union([z.literal(1), z.literal(100), z.literal(1000), z.literal(10000)]),
+});
+
+export async function adjustProductPrices(
+  request: z.input<typeof bulkAdjustSchema>,
+): Promise<ActionResult<{ updated: number }>> {
+  await requireAdmin();
+  try {
+    const { ids, percent, roundTo } = bulkAdjustSchema.parse(request);
+    const updated = await container.catalog.admin.adjustPrices(ids, percent, roundTo);
+    revalidateProduct();
+    return { ok: true, data: { updated } };
+  } catch (err) {
+    return toResultError(err);
+  }
 }
 
 // ---------- uploads (browser → Storage; we only issue and confirm tickets) ----------

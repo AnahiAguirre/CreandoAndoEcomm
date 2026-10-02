@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Select, Textarea } from '@/components/ui/field';
 import { type ProductKind } from '@/domain/catalog/product';
 import { centsToPriceString } from '@/domain/catalog/product-input';
+import type { Category } from '@/domain/catalog/category';
 import type { AdminProduct } from '@/domain/catalog/product-repository';
 
 import type { FormState } from '../actions';
@@ -13,12 +14,13 @@ import type { FormState } from '../actions';
 interface Props {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   product?: AdminProduct;
+  categories: Category[];
   submitLabel: string;
 }
 
 const initial: FormState = { status: 'idle' };
 
-export function ProductForm({ action, product, submitLabel }: Props) {
+export function ProductForm({ action, product, categories, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, initial);
   const [kind, setKind] = useState<ProductKind>(product?.kind ?? 'digital');
   const errors = state.status === 'error' ? state.fieldErrors ?? {} : {};
@@ -56,6 +58,29 @@ export function ProductForm({ action, product, submitLabel }: Props) {
             defaultValue={product ? centsToPriceString(product.priceCents) : ''}
             aria-invalid={Boolean(errors.price)}
           />
+        </Field>
+
+        <Field
+          label="Categoría"
+          htmlFor="categoryId"
+          hint="Se administran en Categorías."
+          errors={errors.categoryId}
+          className="sm:col-span-2"
+        >
+          {/* keyed so the saved value shows after the form resets: <select> ignores a changed defaultValue */}
+          <Select
+            key={product?.categoryId ?? 'none'}
+            id="categoryId"
+            name="categoryId"
+            defaultValue={product?.categoryId ?? ''}
+          >
+            <option value="">Sin categoría</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
         </Field>
 
         <Field label="Descripción" htmlFor="description" errors={errors.description} className="sm:col-span-2">

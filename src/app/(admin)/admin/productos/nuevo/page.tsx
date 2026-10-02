@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { container } from '@/lib/container';
+
 import { createProduct } from '../actions';
 import { ProductForm } from '../_components/product-form';
 
 export const metadata: Metadata = { title: 'Nuevo producto' };
 
-export default function NewProductPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function NewProductPage() {
+  const categories = await container.catalog.categories.list();
   return (
     <section className="flex flex-col gap-6">
       <div>
@@ -18,7 +23,7 @@ export default function NewProductPage() {
           Se crea como borrador. Las fotos y el PDF se cargan en el paso siguiente.
         </p>
       </div>
-      <ProductForm action={createProduct} submitLabel="Crear y continuar" />
+      <ProductForm action={createProduct} categories={categories} submitLabel="Crear y continuar" />
     </section>
   );
 }

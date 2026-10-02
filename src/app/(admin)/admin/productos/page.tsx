@@ -7,7 +7,9 @@ import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/field';
 import { coverImage } from '@/domain/catalog/product';
 import { container } from '@/lib/container';
-import { formatPrice } from '@/lib/format';
+
+import { BulkPriceAdjust } from './_components/bulk-price-adjust';
+import { PriceCell } from './_components/price-cell';
 
 export const metadata: Metadata = { title: 'Productos' };
 export const dynamic = 'force-dynamic';
@@ -18,7 +20,11 @@ interface Props {
 
 export default async function AdminProductsPage({ searchParams }: Props) {
   const { q = '' } = await searchParams;
-  const products = await container.catalog.admin.list(q);
+  const [products, categories] = await Promise.all([
+    container.catalog.admin.list(q),
+    container.catalog.categories.list(),
+  ]);
+  const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
 
   return (
     <section className="flex flex-col gap-6">
@@ -36,6 +42,8 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         </button>
       </form>
 
+      {products.length > 0 && <BulkPriceAdjust productIds={products.map((p) => p.id)} filtered={q.trim() !== ''} />}
+
       {products.length === 0 ? (
         <p className="text-neutral-500">{q ? 'Sin resultados.' : 'Todavía no hay productos. Creá el primero.'}</p>
       ) : (
@@ -44,6 +52,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>
                 <th className="px-4 py-3">Producto</th>
+                <th className="px-4 py-3">Categoría</th>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3 text-right">Precio</th>
                 <th className="px-4 py-3 text-right">Stock</th>
@@ -74,12 +83,17 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                         </span>
                       </Link>
                     </td>
+                    <td className="px-4 py-3 text-neutral-600">
+                      {(p.categoryId && categoryNames.get(p.categoryId)) || <span className="text-neutral-400">—</span>}
+                    </td>
                     <td className="px-4 py-3">
                       <Badge tone={p.kind === 'digital' ? 'info' : 'neutral'}>
                         {p.kind === 'digital' ? 'PDF' : 'Físico'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatPrice(p.priceCents)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <PriceCell productId={p.id} priceCents={p.priceCents} />
+                    </td>
                     <td className="px-4 py-3 text-right tabular-nums">{p.kind === 'digital' ? '∞' : p.stock}</td>
                     <td className="px-4 py-3">
                       <Badge tone={p.active ? 'success' : 'warning'}>{p.active ? 'Publicado' : 'Borrador'}</Badge>

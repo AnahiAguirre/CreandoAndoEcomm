@@ -2,6 +2,13 @@ import { z } from 'zod';
 
 import { PRODUCT_KINDS } from './product';
 
+/** "1850" or "1850,50" → integer cents. Shared with the quick price edit. */
+export const priceSchema = z
+  .string()
+  .trim()
+  .regex(/^\d+(?:[.,]\d{1,2})?$/, 'Precio inválido (ej: 1850 o 1850,50)')
+  .transform(toCents);
+
 /**
  * What the admin sends when creating/editing a product. Shared by the form
  * (client-side hints) and the Server Action (the real validation).
@@ -20,11 +27,11 @@ export const productInputSchema = z
       .default(''),
     description: z.string().trim().max(5000).default(''),
     kind: z.enum(PRODUCT_KINDS),
-    price: z
-      .string()
-      .trim()
-      .regex(/^\d+(?:[.,]\d{1,2})?$/, 'Precio inválido (ej: 1850 o 1850,50)')
-      .transform(toCents),
+    price: priceSchema,
+    categoryId: z
+      .union([z.literal(''), z.uuid('Categoría inválida')])
+      .default('')
+      .transform((v) => v || null),
     stock: z.coerce.number().int().min(0).default(0),
     weightG: optionalPositiveInt(),
     lengthCm: optionalPositiveInt(),

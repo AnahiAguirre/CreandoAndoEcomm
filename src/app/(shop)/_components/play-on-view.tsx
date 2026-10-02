@@ -3,40 +3,41 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
 interface Props {
-  id?: string;
-  className: string;
+  className?: string;
   children: ReactNode;
 }
 
 /**
- * A section whose animations play once, on their own, the first time it comes
+ * A block whose animations play once, on their own, the first time it comes
  * into view. It drives `data-play`: `idle` (hold the first frame) once hydrated,
- * `running` when a good part of it is on screen. Before hydration there is no
- * attribute at all, so without JS the drawing just shows its finished state.
+ * `running` when half of it is on screen. Wrap each drawing on its own, not the
+ * whole section: on a phone things stack, and a section-wide trigger would play
+ * the lower drawings before anyone scrolls down to them. Before hydration there
+ * is no attribute at all, so without JS the drawing just shows its finished state.
  */
-export function PlayOnView({ id, className, children }: Props) {
-  const ref = useRef<HTMLElement>(null);
+export function PlayOnView({ className, children }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const section = ref.current;
-    if (!section) return;
+    const block = ref.current;
+    if (!block) return;
 
-    section.dataset.play = 'idle';
+    block.dataset.play = 'idle';
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        section.dataset.play = 'running';
+        block.dataset.play = 'running';
         observer.disconnect();
       },
-      { threshold: 0.3 },
+      { threshold: 0.5 },
     );
-    observer.observe(section);
+    observer.observe(block);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section ref={ref} id={id} className={className}>
+    <div ref={ref} className={className}>
       {children}
-    </section>
+    </div>
   );
 }

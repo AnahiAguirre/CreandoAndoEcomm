@@ -38,9 +38,12 @@ interface Props {
  * already guarantees that — see globals.css) and nothing pins or scrolls dead.
  *
  * With `play="view"` nothing pins: the section is one screen tall and the same
- * choreography runs on a clock, on every screen size, when you reach it.
+ * choreography runs on a clock, on every screen size: the captions when they
+ * come into view, the drawing when it does (on a phone it sits below them).
  */
 export function StickyScene({ id, className, eyebrow, captions, cta, children, play = 'scroll' }: Props) {
+  const Block = play === 'view' ? PlayOnView : 'div';
+
   const content = (
     <div
       className={cn(
@@ -49,7 +52,7 @@ export function StickyScene({ id, className, eyebrow, captions, cta, children, p
       )}
     >
       <div className="mx-auto grid w-full max-w-[1200px] items-center gap-6 px-4 md:grid-cols-2 md:gap-0 md:px-0">
-        <div className="flex flex-col gap-3 md:gap-7 md:pr-10">
+        <Block className="flex flex-col gap-3 md:gap-7 md:pr-10">
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-tinta-soft md:text-[15px]">{eyebrow}</p>
           {captions.map((caption, i) => (
             <h2
@@ -62,22 +65,14 @@ export function StickyScene({ id, className, eyebrow, captions, cta, children, p
           <a href={cta.href} className={`${pillButton} self-start text-[17px] font-bold`}>
             {cta.label}
           </a>
-        </div>
-        <div className="flex justify-center">{children}</div>
+        </Block>
+        <Block className="flex justify-center">{children}</Block>
       </div>
     </div>
   );
 
-  if (play === 'view') {
-    return (
-      <PlayOnView id={id} className={cn('relative scroll-mt-16', className)}>
-        {content}
-      </PlayOnView>
-    );
-  }
-
   return (
-    <section id={id} className={cn('relative scroll-mt-16 md:h-[1800px]', className)}>
+    <section id={id} className={cn('relative scroll-mt-16', play === 'scroll' && 'md:h-[1800px]', className)}>
       {content}
     </section>
   );

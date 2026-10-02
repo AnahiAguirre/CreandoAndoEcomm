@@ -1,5 +1,7 @@
 import type { Product, ProductFile, ProductImage } from '@/domain/catalog/product';
 import type { ProductInput } from '@/domain/catalog/product-input';
+import type { AdminCategory, Category } from '@/domain/catalog/category';
+import type { CategoryFields, CategoryRepository } from '@/domain/catalog/category-repository';
 import type { AdminProduct, NewProductFile, ProductRepository } from '@/domain/catalog/product-repository';
 import type { DeliverableFile, Entitlement, LibraryItem } from '@/domain/delivery/entitlement';
 import type { EntitlementRepository, NewEntitlement } from '@/domain/delivery/entitlement-repository';
@@ -20,6 +22,7 @@ export function buildProduct(overrides: Partial<AdminProduct> = {}): AdminProduc
     description: '',
     kind: 'digital',
     priceCents: 100000,
+    categoryId: null,
     active: false,
     stock: 0,
     images: [],
@@ -62,6 +65,7 @@ export class InMemoryProductRepository implements ProductRepository {
       description: p.description,
       kind: p.kind,
       priceCents: p.priceCents,
+      categoryId: p.categoryId,
       active: p.active,
       stock: p.stock,
       images: p.images,
@@ -69,8 +73,10 @@ export class InMemoryProductRepository implements ProductRepository {
     };
   }
 
-  async listActive(): Promise<Product[]> {
-    return [...this.items.values()].filter((p) => p.active).map((p) => this.toPublic(p));
+  async listActive(filter?: { categoryId?: string }): Promise<Product[]> {
+    return [...this.items.values()]
+      .filter((p) => p.active && (!filter?.categoryId || p.categoryId === filter.categoryId))
+      .map((p) => this.toPublic(p));
   }
 
   async findActiveBySlug(slug: string): Promise<Product | null> {
@@ -108,6 +114,14 @@ export class InMemoryProductRepository implements ProductRepository {
 
   async setActive(id: string, active: boolean): Promise<void> {
     this.items.set(id, { ...this.items.get(id)!, active });
+  }
+
+  async setPrice(id: string, priceCents: number): Promise<void> {
+    this.items.set(id, { ...this.items.get(id)!, priceCents });
+  }
+
+  async setPrices(changes: { id: string; priceCents: number }[]): Promise<void> {
+    for (const { id, priceCents } of changes) await this.setPrice(id, priceCents);
   }
 
   async addImage(productId: string, storagePath: string): Promise<ProductImage> {
@@ -153,12 +167,57 @@ export class InMemoryProductRepository implements ProductRepository {
       description: input.description,
       kind: input.kind,
       priceCents: input.price,
+      categoryId: input.categoryId,
       stock: input.stock,
       weightG: input.weightG,
       lengthCm: input.lengthCm,
       widthCm: input.widthCm,
       heightCm: input.heightCm,
     };
+  }
+}
+
+/** Mirrors the DB: deleting a category leaves its products uncategorized. */
+export class InMemoryCategoryRepository implements CategoryRepository {
+  readonly items = new Map<string, Category>();
+
+  constructor(private readonly products?: InMemoryProductRepository) {}
+
+  private count(id: string): number {
+    return [...(this.products?.items.values() ?? [])].filter((p) => p.categoryId === id).length;
+  }
+
+  async listAll(): Promise<AdminCategory[]> {
+    return [...this.items.values()]
+      .map((c) => ({ ...c, productCount: this.count(c.id) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async findById(id: string): Promise<Category | null> {
+    return this.items.get(id) ?? null;
+  }
+
+  async slugTaken(slug: string, excludeId?: string): Promise<boolean> {
+    return [...this.items.values()].some((c) => c.slug === slug && c.id !== excludeId);
+  }
+
+  async create(fields: CategoryFields): Promise<Category> {
+    const category = { id: crypto.randomUUID(), ...fields };
+    this.items.set(category.id, category);
+    return category;
+  }
+
+  async update(id: string, fields: CategoryFields): Promise<Category> {
+    const updated = { ...this.items.get(id)!, ...fields };
+    this.items.set(id, updated);
+    return updated;
+  }
+
+  async delete(id: string): Promise<void> {
+    this.items.delete(id);
+    for (const p of this.products?.items.values() ?? []) {
+      if (p.categoryId === id) this.products!.items.set(p.id, { ...p, categoryId: null });
+    }
   }
 }
 

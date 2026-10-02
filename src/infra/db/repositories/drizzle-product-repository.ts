@@ -30,6 +30,7 @@ function toProduct(row: ProductRow & { images: ImageRow[] }): Product {
     description: row.description,
     kind: row.kind,
     priceCents: row.priceCents,
+    categoryId: row.categoryId,
     active: row.active,
     stock: row.stock,
     createdAt: row.createdAt,
@@ -56,6 +57,7 @@ function toRow(input: ProductInput): Omit<typeof products.$inferInsert, 'id' | '
     description: input.description,
     kind: input.kind,
     priceCents: input.price,
+    categoryId: input.categoryId,
     stock: input.stock,
     weightG: input.weightG,
     lengthCm: input.lengthCm,
@@ -70,9 +72,11 @@ export class DrizzleProductRepository implements ProductRepository {
 
   // ---- storefront ----
 
-  async listActive(): Promise<Product[]> {
+  async listActive(filter?: { categoryId?: string }): Promise<Product[]> {
     const rows = await this.db.query.products.findMany({
-      where: eq(products.active, true),
+      where: filter?.categoryId
+        ? and(eq(products.active, true), eq(products.categoryId, filter.categoryId))
+        : eq(products.active, true),
       orderBy: desc(products.createdAt),
       with: withImages,
     });
@@ -127,6 +131,19 @@ export class DrizzleProductRepository implements ProductRepository {
 
   async setActive(id: string, active: boolean): Promise<void> {
     await this.db.update(products).set({ active, updatedAt: new Date() }).where(eq(products.id, id));
+  }
+
+  async setPrice(id: string, priceCents: number): Promise<void> {
+    await this.db.update(products).set({ priceCents, updatedAt: new Date() }).where(eq(products.id, id));
+  }
+
+  async setPrices(changes: { id: string; priceCents: number }[]): Promise<void> {
+    const updatedAt = new Date();
+    await this.db.transaction(async (tx) => {
+      for (const { id, priceCents } of changes) {
+        await tx.update(products).set({ priceCents, updatedAt }).where(eq(products.id, id));
+      }
+    });
   }
 
   async addImage(productId: string, storagePath: string): Promise<ProductImage> {

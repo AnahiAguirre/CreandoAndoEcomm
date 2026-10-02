@@ -19,11 +19,19 @@ config({ path: '.env.local' });
 const url = process.env.DATABASE_URL_DIRECT;
 if (!url) throw new Error('DATABASE_URL_DIRECT is not set');
 
-type NewProduct = typeof schema.products.$inferInsert;
+type NewProduct = typeof schema.products.$inferInsert & { categorySlug?: string };
+
+/** The three sections of the home page; every product hangs from one of them. */
+const SAMPLE_CATEGORIES = [
+  { slug: 'rompecabezas', name: 'Rompecabezas' },
+  { slug: 'pistas-de-madera', name: 'Pistas de madera' },
+  { slug: 'imprimibles', name: 'Imprimibles' },
+];
 
 const SAMPLE_PRODUCTS: NewProduct[] = [
   {
     slug: 'cuaderno-para-colorear-animales',
+    categorySlug: 'imprimibles',
     name: 'Cuaderno para colorear: Animales',
     description: '20 láminas de animales en PDF listo para imprimir en A4.\nEntrega inmediata después del pago.',
     kind: 'digital',
@@ -32,6 +40,7 @@ const SAMPLE_PRODUCTS: NewProduct[] = [
   },
   {
     slug: 'cuaderno-para-colorear-dinosaurios',
+    categorySlug: 'imprimibles',
     name: 'Cuaderno para colorear: Dinosaurios',
     description: '16 láminas de dinosaurios en PDF, A4.',
     kind: 'digital',
@@ -40,6 +49,7 @@ const SAMPLE_PRODUCTS: NewProduct[] = [
   },
   {
     slug: 'rompecabezas-de-madera-granja',
+    categorySlug: 'rompecabezas',
     name: 'Rompecabezas de madera: Granja',
     description: 'Rompecabezas encastrable de 9 piezas, madera pintada a mano.',
     kind: 'physical',
@@ -65,7 +75,19 @@ async function main() {
   const sql = postgres(url!, { max: 1 });
   const db = drizzle(sql, { schema });
 
-  for (const product of SAMPLE_PRODUCTS) {
+  const categoryIds = new Map<string, string>();
+  for (const category of SAMPLE_CATEGORIES) {
+    const [row] = await db
+      .insert(schema.categories)
+      .values(category)
+      .onConflictDoUpdate({ target: schema.categories.slug, set: { name: category.name } })
+      .returning({ id: schema.categories.id });
+    categoryIds.set(category.slug, row.id);
+    console.log(`category  ${category.slug}`);
+  }
+
+  for (const { categorySlug, ...fields } of SAMPLE_PRODUCTS) {
+    const product = { ...fields, categoryId: categorySlug ? (categoryIds.get(categorySlug) ?? null) : null };
     const existing = await db.query.products.findFirst({ where: eq(schema.products.slug, product.slug) });
     if (existing) {
       await db.update(schema.products).set(product).where(eq(schema.products.id, existing.id));

@@ -4,6 +4,7 @@ import { productInputSchema } from '@/domain/catalog/product-input';
 import {
   CannotPublishError,
   CatalogAdmin,
+  InvalidPriceError,
   InvalidUploadError,
   SlugTakenError,
   UPLOAD_POLICY,
@@ -11,12 +12,13 @@ import {
 import { ProductNotFoundError } from '@/domain/catalog/use-cases/get-product-by-slug';
 import { BUCKETS } from '@/domain/storage/file-storage';
 
-import { buildFile, buildImage, buildProduct, FakeFileStorage, InMemoryProductRepository } from '../../../helpers/fakes';
+import { buildFile, buildImage, buildProduct, FakeFileStorage, InMemoryCategoryRepository, InMemoryProductRepository } from '../../../helpers/fakes';
 
 const input = (overrides: Record<string, unknown> = {}) =>
   productInputSchema.parse({ name: 'Cuaderno Animales', kind: 'digital', price: '2500', ...overrides });
 
 let repo: InMemoryProductRepository;
+let categories: InMemoryCategoryRepository;
 let storage: FakeFileStorage;
 let admin: CatalogAdmin;
 let ids: number;
@@ -25,7 +27,8 @@ beforeEach(() => {
   repo = new InMemoryProductRepository();
   storage = new FakeFileStorage();
   ids = 0;
-  admin = new CatalogAdmin(repo, storage, () => `rnd${++ids}`);
+  categories = new InMemoryCategoryRepository(repo);
+  admin = new CatalogAdmin(repo, categories, storage, () => `rnd${++ids}`);
 });
 
 describe('list / get', () => {
@@ -225,5 +228,62 @@ describe('remove image / file', () => {
     await admin.removeImage('nope');
     await admin.removeFile('nope');
     expect(storage.removed).toHaveLength(0);
+  });
+});
+
+describe('updatePrice', () => {
+  it('changes only the price', async () => {
+    repo.items.set('a', buildProduct({ id: 'a', name: 'Animales', priceCents: 100000 }));
+    await admin.updatePrice('a', 185050);
+    expect(repo.items.get('a')?.priceCents).toBe(185050);
+    expect(repo.items.get('a')?.name).toBe('Animales');
+  });
+
+  it('rejects unknown products and non-positive prices', async () => {
+    repo.items.set('a', buildProduct({ id: 'a' }));
+    await expect(admin.updatePrice('nope', 1000)).rejects.toBeInstanceOf(ProductNotFoundError);
+    await expect(admin.updatePrice('a', 0)).rejects.toBeInstanceOf(InvalidPriceError);
+    await expect(admin.updatePrice('a', 10.5)).rejects.toBeInstanceOf(InvalidPriceError);
+  });
+});
+
+describe('adjustPrices', () => {
+  beforeEach(() => {
+    repo.items.set('a', buildProduct({ id: 'a', priceCents: 100000 }));
+    repo.items.set('b', buildProduct({ id: 'b', priceCents: 123456 }));
+  });
+
+  it('raises every listed product and reports how many', async () => {
+    expect(await admin.adjustPrices(['a', 'b'], 10, 1000)).toBe(2);
+    expect(repo.items.get('a')?.priceCents).toBe(110000);
+    expect(repo.items.get('b')?.priceCents).toBe(136000);
+  });
+
+  it('lowers prices with a negative percentage', async () => {
+    await admin.adjustPrices(['a'], -15);
+    expect(repo.items.get('a')?.priceCents).toBe(85000);
+  });
+
+  it('ignores duplicate ids and leaves unlisted products alone', async () => {
+    expect(await admin.adjustPrices(['a', 'a'], 10)).toBe(1);
+    expect(repo.items.get('b')?.priceCents).toBe(123456);
+  });
+
+  it('rejects percentages out of range without touching anything', async () => {
+    await expect(admin.adjustPrices(['a'], -95)).rejects.toBeInstanceOf(InvalidPriceError);
+    await expect(admin.adjustPrices(['a'], 501)).rejects.toBeInstanceOf(InvalidPriceError);
+    await expect(admin.adjustPrices(['a'], Number.NaN)).rejects.toBeInstanceOf(InvalidPriceError);
+    expect(repo.items.get('a')?.priceCents).toBe(100000);
+  });
+
+  it('is all-or-nothing when one result would be zero', async () => {
+    repo.items.set('c', buildProduct({ id: 'c', priceCents: 1 }));
+    await expect(admin.adjustPrices(['a', 'c'], -50, 100)).rejects.toBeInstanceOf(InvalidPriceError);
+    expect(repo.items.get('a')?.priceCents).toBe(100000);
+  });
+
+  it('fails on an unknown id before changing anything', async () => {
+    await expect(admin.adjustPrices(['a', 'nope'], 10)).rejects.toBeInstanceOf(ProductNotFoundError);
+    expect(repo.items.get('a')?.priceCents).toBe(100000);
   });
 });
