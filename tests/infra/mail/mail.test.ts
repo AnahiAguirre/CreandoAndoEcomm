@@ -2,24 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConsoleMailSender } from '@/infra/mail/console-mail-sender';
 import { downloadReadyMail } from '@/infra/mail/templates/download-ready';
-import { magicLinkMail } from '@/infra/mail/templates/magic-link';
-
-describe('magicLinkMail', () => {
-  const url = 'http://localhost:3000/api/auth/magic-link/verify?token=abc&callbackURL=%2F';
-  const mail = magicLinkMail('vos@ejemplo.com', url);
-
-  it('addresses the recipient and includes the link in both bodies', () => {
-    expect(mail.to).toBe('vos@ejemplo.com');
-    expect(mail.text).toContain(url);
-    expect(mail.html).toContain(`href="${url}"`);
-  });
-
-  it('mentions the expiry so the user knows to act quickly', () => {
-    expect(mail.text).toMatch(/15 minutos/);
-    expect(mail.html).toMatch(/15 minutos/);
-  });
-});
-
 describe('downloadReadyMail', () => {
   const library = 'https://tienda.test/mis-descargas';
 

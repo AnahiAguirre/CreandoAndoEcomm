@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * The right to download a digital product's files. Keyed by EMAIL, not by
- * user id: sign-in is a magic link, so the email is the identity — and the
+ * user id: Google verifies the email at sign-in, so the email is the identity — and the
  * admin can grant a PDF to someone who hasn't created an account yet (a gift,
  * a sale closed over WhatsApp). It shows up the first time they sign in.
  */

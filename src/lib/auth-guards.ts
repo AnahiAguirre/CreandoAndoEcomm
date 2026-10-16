@@ -27,7 +27,9 @@ export async function requireUser(nextPath?: string): Promise<AuthUser> {
 }
 
 export async function requireAdmin(nextPath = '/admin'): Promise<AuthUser> {
-  const user = await requireUser(nextPath);
+  const user = await getCurrentUser();
+  // Admins have their own door (email + password), separate from the buyers' Google login.
+  if (!user) redirect(`/ingresar/admin?next=${encodeURIComponent(nextPath)}`);
   // Don't reveal the admin area exists: a plain user just lands on the shop.
   if (!isAdmin(user)) redirect('/');
   return user;

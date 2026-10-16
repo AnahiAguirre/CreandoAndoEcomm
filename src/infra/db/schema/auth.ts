@@ -1,8 +1,9 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 // Better Auth tables. Generated with `@better-auth/cli generate` for the
-// magicLink + admin plugins (usePlural: true), then hand-tuned: timestamps
+// admin plugin (usePlural: true; it was generated with magicLink too, which
+// adds no tables), then hand-tuned: timestamps
 // carry a timezone like the rest of the schema. If you add an auth plugin,
 // re-run the CLI and diff against this file.
 
@@ -49,6 +50,10 @@ export const accounts = pgTable(
   'accounts',
   {
     id: text('id').primaryKey(),
+    // Better Auth 1.7+: who vouches for `accountId`. `local:credential` for
+    // email + password, `local:oauth:<provider>` for OAuth without an issuer.
+    // Sign-in ignores an account whose issuer doesn't match.
+    issuer: text('issuer').notNull(),
     accountId: text('account_id').notNull(),
     providerId: text('provider_id').notNull(),
     userId: text('user_id')
@@ -66,7 +71,10 @@ export const accounts = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (t) => [index('accounts_user_id_idx').on(t.userId)],
+  (t) => [
+    index('accounts_user_id_idx').on(t.userId),
+    uniqueIndex('accounts_issuer_account_id_idx').on(t.issuer, t.accountId),
+  ],
 );
 
 export const verifications = pgTable(

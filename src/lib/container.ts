@@ -35,14 +35,21 @@ const mail: MailSender = env.RESEND_API_KEY
   : new ConsoleMailSender();
 
 if (!env.RESEND_API_KEY) {
-  console.warn('[mail] RESEND_API_KEY no está seteada: los mails (magic links incluidos) se imprimen en esta consola.');
+  console.warn('[mail] RESEND_API_KEY no está seteada: los mails se imprimen en esta consola.');
+}
+
+if (!env.GOOGLE_CLIENT_ID) {
+  console.warn('[auth] Sin GOOGLE_CLIENT_ID: los compradores todavía no pueden ingresar (los admins sí, en /ingresar/admin).');
 }
 
 export const auth = createAuth({
   db,
-  mail,
   baseURL: authBaseUrl,
   secret: env.BETTER_AUTH_SECRET,
+  google:
+    env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }
+      : undefined,
 });
 
 export const container = {

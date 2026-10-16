@@ -2,7 +2,7 @@ import type { MailMessage, MailSender } from '@/domain/notifications/mail-sender
 
 /**
  * Dev fallback when RESEND_API_KEY is not set: prints the mail to the server
- * console so the magic link can be copied from the terminal.
+ * console so its links can be copied from the terminal.
  */
 export class ConsoleMailSender implements MailSender {
   async send(message: MailMessage): Promise<void> {
