@@ -1,6 +1,5 @@
 'use client';
 
-import { magicLinkClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 /**
@@ -8,6 +7,4 @@ import { createAuthClient } from 'better-auth/react';
  * The admin plugin is deliberately NOT mounted here — role changes happen only
  * via scripts/promote-admin.ts, never from the browser.
  */
-export const authClient = createAuthClient({
-  plugins: [magicLinkClient()],
-});
+export const authClient = createAuthClient();

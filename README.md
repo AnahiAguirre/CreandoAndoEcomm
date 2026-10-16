@@ -4,7 +4,7 @@ Tienda propia para vender juguetes (físicos) e imprimibles para colorear en PDF
 
 ## Stack
 
-Next.js 16 (App Router) + TypeScript + Tailwind 4 · Drizzle ORM sobre Postgres (Supabase) · Better Auth (magic link + rol admin, sin RLS) · Supabase Storage · Mercado Pago Checkout Pro · Resend · Zod · Vitest.
+Next.js 16 (App Router) + TypeScript + Tailwind 4 · Drizzle ORM sobre Postgres (Supabase) · Better Auth (Google para compradores, email + contraseña para admins, sin RLS) · Supabase Storage · Mercado Pago Checkout Pro · Resend · Zod · Vitest.
 
 ## Arquitectura
 
@@ -32,7 +32,11 @@ Los archivos nunca pasan por el servidor: un Server Action firma un ticket de su
   - `Project Settings → Data API` → `Project URL`.
   - `Project Settings → API Keys` → la **secret key** (`sb_secret_…`) y la **publishable key** (`sb_publishable_…`).
   - `Storage`: creá `product-images` (**público**) y, para la fase 4, `product-files` (**privado**).
-- **Resend** (opcional en dev): [resend.com](https://resend.com), verificá un dominio y generá una API key. Sin `RESEND_API_KEY`, los magic links se imprimen en la consola del servidor.
+- **Resend** (opcional en dev): [resend.com](https://resend.com), verificá un dominio y generá una API key. Sin `RESEND_API_KEY`, los mails (ej. "ya podés descargarlo") se imprimen en la consola del servidor.
+- **Google Cloud** (login): en [console.cloud.google.com](https://console.cloud.google.com) creá un proyecto y:
+  1. `APIs y servicios → Pantalla de consentimiento de OAuth` (o `Google Auth Platform → Branding`): tipo **Externo**, nombre "CreandoAndo", tu email de soporte. Mientras esté en modo *Prueba* solo pueden entrar los usuarios de prueba que agregues; para abrirlo a cualquier comprador, **Publicar app** (con los permisos básicos `email`/`profile` no hace falta verificación de Google).
+  2. `Credenciales → Crear credenciales → ID de cliente de OAuth` → tipo **Aplicación web**. En *URIs de redireccionamiento autorizados* agregá `http://localhost:3000/api/auth/callback/google` y `https://<tu-dominio>/api/auth/callback/google`.
+  3. Copiá el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
 - **Mercado Pago** (fase 3): [Tus integraciones](https://www.mercadopago.com.ar/developers/panel) → app → **Access Token de prueba** (`TEST-…`) y la **Secret Key** de webhooks.
 
 ### 2. Variables de entorno
@@ -53,13 +57,18 @@ npm run db:seed       # opcional: productos de ejemplo
 
 ### 4. Primer admin
 
-No hay forma pública de volverse admin (a propósito). Iniciá sesión una vez con tu email en `/ingresar` y después:
+No hay forma pública de volverse admin (a propósito). Hay dos puertas de entrada:
+
+- **Compradores**: con Google en `/ingresar` (si `GOOGLE_CLIENT_ID` no está cargada, la página avisa que todavía no se puede).
+- **Admins**: con email y contraseña en `/ingresar/admin` (no está linkeada desde la tienda). No hay registro: la cuenta la crea este script, que imprime una contraseña aleatoria una sola vez:
 
 ```bash
-npm run admin:promote -- tu@email.com
+npm run admin:create -- tu@email.com
 ```
 
-Cerrá sesión y volvé a entrar para que el rol tome efecto (la sesión cachea el usuario 5 minutos).
+Correrlo de nuevo con el mismo email genera otra contraseña y cierra las sesiones abiertas. Si el email ya era de un comprador, ese mismo usuario pasa a ser admin.
+
+Para sacarle el rol a alguien, desde el SQL Editor de Supabase: `update users set role = 'user' where email = 'x@email.com';` (`npm run admin:promote -- email` hace lo inverso con un usuario que ya existe). El cambio de rol tarda hasta 5 minutos en notarse (la sesión cachea el usuario).
 
 ### 5. Correr en local
 
@@ -78,6 +87,7 @@ npm run dev
 | `npm run db:migrate` | Aplica las migraciones pendientes |
 | `npm run db:studio` | Abre Drizzle Studio contra la base |
 | `npm run db:seed` | Carga productos de ejemplo (idempotente) |
+| `npm run admin:create -- email@x.com` | Crea un admin con contraseña (o le resetea la contraseña) para `/ingresar/admin` |
 | `npm run admin:promote -- email@x.com` | Le da rol admin a un usuario existente |
 | `npm run storage:setup` | Crea los buckets `product-images` (público) y `product-files` (privado) si faltan; no toca los existentes |
 
@@ -88,7 +98,7 @@ El código se reconstruye por fases sobre el plan. Cada fase vive en su rama y s
 | Fase | Estado | Contenido |
 |---|---|---|
 | 1 · Fundaciones | ✅ verificada | Esqueleto `domain/infra/lib/app`, schema del catálogo, migración `0000_catalog`, cliente Postgres (pooler, `prepare:false`), catálogo público (`/` y `/producto/[slug]`), seed. |
-| 2 · Auth + admin | ✅ verificada | Better Auth (magic link + rol admin, migración `0001_auth`), `requireUser`/`requireAdmin`, `proxy.ts`, `/ingresar`, panel `/admin/productos` con ABM, uploads directos a Storage y reglas de publicación. Tests unitarios (Vitest). |
+| 2 · Auth + admin | ✅ verificada | Better Auth (Google para compradores y email + contraseña para admins — antes magic link —, migración `0001_auth`), `requireUser`/`requireAdmin`, `proxy.ts`, `/ingresar`, panel `/admin/productos` con ABM, uploads directos a Storage y reglas de publicación. Tests unitarios (Vitest). |
 | 3 · Pago (digitales) | ⏳ | Carrito, `computeOrderTotals()`, `/api/checkout`, webhook MP con firma e idempotencia. |
 | 4 · Entrega digital | 🟡 sin pagos | Entitlements por email (migración `0002_entitlements`), `/mis-descargas`, `GET /api/download/[fileId]` → signed URL de 60 s, mail "ya podés descargarlo". Por ahora el acceso se da a mano desde la ficha del producto en el admin; en la fase 3 el webhook llama al mismo `DigitalDelivery.grant()` con el `orderId`. |
 | 5–9 | ⏳ | Físicos + envío, cupones, dashboard, envío calculado, producción (ver plan). |

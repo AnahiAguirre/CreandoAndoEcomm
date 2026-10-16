@@ -22,6 +22,14 @@ const schema = z
     // so a preview can build before anyone knows its own address.
     BETTER_AUTH_URL: z.url().optional(),
 
+    // --- Google sign-in for buyers (Google Auth Platform → Clientes) ---
+    // Optional until the Google Cloud client exists: without it, only admins can sign in.
+    GOOGLE_CLIENT_ID: z
+      .string()
+      .endsWith('.apps.googleusercontent.com', 'Es el "ID de cliente" de Google Cloud')
+      .optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(10).optional(),
+
     // Set by Vercel at build and run time. Never set these by hand.
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
     VERCEL_URL: z.string().optional(),
@@ -33,6 +41,10 @@ const schema = z
   .refine((e) => !e.RESEND_API_KEY || e.MAIL_FROM, {
     path: ['MAIL_FROM'],
     message: 'MAIL_FROM es obligatorio cuando hay RESEND_API_KEY',
+  })
+  .refine((e) => !e.GOOGLE_CLIENT_ID === !e.GOOGLE_CLIENT_SECRET, {
+    path: ['GOOGLE_CLIENT_SECRET'],
+    message: 'GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET van juntas: completá las dos o ninguna',
   });
 // Deploy-time rule (fase 9): RESEND_API_KEY must be set on Vercel. Not enforced
 // here because `next build` runs with NODE_ENV=production locally too.
@@ -56,8 +68,11 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
+/** Whether buyers can sign in yet (the Google Cloud client is configured). */
+export const googleSignInEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+
 /**
- * Where this instance lives, for magic-link callbacks and cookies.
+ * Where this instance lives, for the Google OAuth callback and cookies.
  * `BETTER_AUTH_URL` wins when set (required once there's a custom domain);
  * otherwise Vercel's own URL is used, so a preview deploy works out of the box.
  */
