@@ -101,7 +101,7 @@ El código se reconstruye por fases sobre el plan. Cada fase vive en su rama y s
 |---|---|---|
 | 1 · Fundaciones | ✅ verificada | Esqueleto `domain/infra/lib/app`, schema del catálogo, migración `0000_catalog`, cliente Postgres (pooler, `prepare:false`), catálogo público (`/` y `/producto/[slug]`), seed. |
 | 2 · Auth + admin | ✅ verificada | Better Auth (Google para compradores y email + contraseña para admins — antes magic link —, migración `0001_auth`), `requireUser`/`requireAdmin`, `proxy.ts`, `/ingresar`, panel `/admin/productos` con ABM, uploads directos a Storage y reglas de publicación. Tests unitarios (Vitest). |
-| 3 · Pago (digitales) | ⏳ | Carrito, `computeOrderTotals()`, `/api/checkout`, webhook MP con firma e idempotencia. |
+| 3 · Carrito y pago | 🟡 carrito listo, sin pago | **Carrito** (físicos y digitales): vive en el navegador (`localStorage`, solo ids y cantidades); `/carrito` pide a la base los precios y el stock reales y corrige lo que haya cambiado (`reconcileCart` en `src/domain/cart`). Los botones de la home y la ficha agregan productos reales (la home los vincula por slug). **Falta**: `computeOrderTotals()`, `/api/checkout` (Mercado Pago) y el webhook con firma e idempotencia. |
 | 4 · Entrega digital | 🟡 sin pagos | Entitlements por email (migración `0002_entitlements`), `/mis-descargas`, `GET /api/download/[fileId]` → signed URL de 60 s, mail "ya podés descargarlo". Por ahora el acceso se da a mano desde la ficha del producto en el admin; en la fase 3 el webhook llama al mismo `DigitalDelivery.grant()` con el `orderId`. |
 | 5–9 | ⏳ | Físicos + envío, cupones, dashboard, envío calculado, producción (ver plan). |
 

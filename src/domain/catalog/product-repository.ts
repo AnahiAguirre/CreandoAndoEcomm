@@ -25,6 +25,8 @@ export interface ProductRepository {
   // --- storefront ---
   listActive(filter?: { categoryId?: string }): Promise<Product[]>;
   findActiveBySlug(slug: string): Promise<Product | null>;
+  /** Unknown and inactive ids are simply absent from the result. */
+  findActiveByIds(ids: string[]): Promise<Product[]>;
 
   // --- admin ---
   listAll(search?: string): Promise<AdminProduct[]>;

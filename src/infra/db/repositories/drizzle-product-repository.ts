@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, ne, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm';
 
 import type { Product, ProductFile, ProductImage } from '@/domain/catalog/product';
 import type { ProductInput } from '@/domain/catalog/product-input';
@@ -89,6 +89,15 @@ export class DrizzleProductRepository implements ProductRepository {
       with: withImages,
     });
     return row ? toProduct(row) : null;
+  }
+
+  async findActiveByIds(ids: string[]): Promise<Product[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db.query.products.findMany({
+      where: and(inArray(products.id, ids), eq(products.active, true)),
+      with: withImages,
+    });
+    return rows.map(toProduct);
   }
 
   // ---- admin ----

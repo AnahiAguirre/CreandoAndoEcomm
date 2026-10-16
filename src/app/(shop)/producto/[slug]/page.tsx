@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { Reveal } from '@/components/reveal';
 import { isDigital, isInStock } from '@/domain/catalog/product';
 import { ProductNotFoundError } from '@/domain/catalog/use-cases/get-product-by-slug';
@@ -80,14 +81,18 @@ export default async function ProductPage({ params }: Props) {
             <p className="mt-6 whitespace-pre-line leading-relaxed text-tinta-soft">{product.description}</p>
           )}
 
-          {/* El carrito llega en el próximo paso de la fase 3. */}
-          <button
-            type="button"
-            disabled
-            className="mt-8 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white opacity-40 sm:w-auto"
-          >
-            Agregar al carrito
-          </button>
+          <AddToCartButton
+            product={{
+              id: product.id,
+              slug: product.slug,
+              name: product.name,
+              kind: product.kind,
+              priceCents: product.priceCents,
+              stock: product.stock,
+              imageUrl: images[0]?.url ?? null,
+            }}
+            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rojo px-7 font-medium text-white transition-colors hover:bg-rojo-dark sm:w-auto"
+          />
         </Reveal>
       </div>
     </article>

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { CartLink } from '@/components/cart/cart-link';
 import { isAdmin } from '@/domain/auth/user';
 import { getCurrentUser } from '@/lib/auth-guards';
 
@@ -43,7 +44,8 @@ export async function SiteHeader() {
           ))}
         </div>
 
-        <div className="flex items-center justify-end gap-4 text-[15px] font-bold md:gap-5">
+        <div className="flex items-center justify-end gap-3 text-[15px] font-bold md:gap-5">
+          <CartLink className="text-tinta-medio transition-colors duration-300 ease-suave hover:text-tinta" />
           {user ? (
             <>
               <Link href="/mis-descargas" className={`${navLink} hidden md:inline`}>

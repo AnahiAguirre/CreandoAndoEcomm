@@ -1,3 +1,4 @@
+import { CartProvider } from '@/components/cart/cart-provider';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
 
@@ -7,10 +8,10 @@ import { SiteHeader } from '@/components/site-header';
  */
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <CartProvider>
       <SiteHeader />
       <main className="tienda">{children}</main>
       <SiteFooter />
-    </>
+    </CartProvider>
   );
 }
