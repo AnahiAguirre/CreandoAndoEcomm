@@ -19,7 +19,9 @@ tests/          tests unitarios (Vitest) del dominio y los helpers, con puertos 
 
 `src/lib/container.ts` es el único lugar que conecta una implementación de `infra/` con el puerto de `domain/` que le corresponde. Nada en `app/` importa una clase de `infra/` directamente.
 
-No hay RLS de Postgres: toda autorización pasa por `requireUser()`/`requireAdmin()` en `src/lib/auth-guards.ts`, llamado al principio de cada página/acción/ruta protegida. `src/proxy.ts` solo hace un chequeo optimista de cookie para `/admin/*`: **no es la barrera de seguridad**.
+La autorización no usa policies de RLS: toda pasa por `requireUser()`/`requireAdmin()` en `src/lib/auth-guards.ts`, llamado al principio de cada página/acción/ruta protegida. `src/proxy.ts` solo hace un chequeo optimista de cookie para `/admin/*`: **no es la barrera de seguridad**.
+
+RLS sí está **activado, sin ninguna policy**, en todas las tablas de `public` (migración `0005_enable_rls`). No es para autorizar: es para cerrar la Data API de Supabase (`/rest/v1`), porque la publishable key llega al navegador y con RLS apagado cualquiera podía leer y escribir usuarios, sesiones y hashes de contraseñas con ella. Sin policies, `anon`/`authenticated` no ven nada; la app se conecta como `postgres` (que ignora RLS) y no cambia. Toda tabla nueva tiene que llevar su `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` en la misma migración.
 
 Los archivos nunca pasan por el servidor: un Server Action firma un ticket de subida y el navegador sube directo a Supabase Storage (`CatalogAdmin.prepareUpload` → `uploadWithTicket` → `confirm*Upload`).
 
