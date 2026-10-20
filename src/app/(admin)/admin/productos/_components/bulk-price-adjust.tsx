@@ -20,17 +20,20 @@ export function BulkPriceAdjust({ productIds, filtered }: Props) {
   const [percent, setPercent] = useState('');
   const [roundTo, setRoundTo] = useState('100');
   const [pending, setPending] = useState(false);
+  // Asked inside the page, not with window.confirm(): embedded browsers and
+  // pop-up blockers silently answer "no" to native dialogs, so nothing happened.
+  const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const n = productIds.length;
   const value = Number(percent.replace(',', '.'));
   const valid = percent.trim() !== '' && Number.isFinite(value) && value !== 0;
 
-  async function apply() {
-    const verb = value > 0 ? 'subir' : 'bajar';
-    const scope = filtered ? `los ${n} productos de esta búsqueda` : `los ${n} productos`;
-    if (!window.confirm(`Vas a ${verb} ${Math.abs(value)}% el precio de ${scope}. ¿Continuar?`)) return;
+  const verb = value > 0 ? 'subir' : 'bajar';
+  const scope = filtered ? `los ${n} productos de esta búsqueda` : `los ${n} productos`;
 
+  async function apply() {
+    setConfirming(false);
     setPending(true);
     setMessage(null);
     const result = await adjustProductPrices({ ids: productIds, percent: value, roundTo: Number(roundTo) as 1 });
@@ -55,24 +58,50 @@ export function BulkPriceAdjust({ productIds, filtered }: Props) {
             placeholder="ej: 10 o -5"
             className="w-32"
             value={percent}
-            onChange={(e) => setPercent(e.target.value)}
+            onChange={(e) => {
+              setPercent(e.target.value);
+              setConfirming(false);
+            }}
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="bulk-round" className="text-sm font-medium">
             Redondear a
           </label>
-          <Select id="bulk-round" className="w-36" value={roundTo} onChange={(e) => setRoundTo(e.target.value)}>
+          <Select
+            id="bulk-round"
+            className="w-36"
+            value={roundTo}
+            onChange={(e) => {
+              setRoundTo(e.target.value);
+              setConfirming(false);
+            }}
+          >
             <option value="1">Sin redondeo</option>
             <option value="100">$1</option>
             <option value="1000">$10</option>
             <option value="10000">$100</option>
           </Select>
         </div>
-        <Button onClick={apply} disabled={pending || !valid || n === 0}>
-          {pending ? 'Aplicando…' : `Aplicar a ${n}`}
-        </Button>
+        {!confirming && (
+          <Button onClick={() => setConfirming(true)} disabled={pending || !valid || n === 0}>
+            {pending ? 'Aplicando…' : `Aplicar a ${n}`}
+          </Button>
+        )}
       </div>
+      {confirming && valid && (
+        <div role="alertdialog" aria-label="Confirmar cambio de precios" className="flex flex-wrap items-center gap-3 rounded-lg bg-amber-50 p-3">
+          <p className="text-sm font-medium">
+            Vas a {verb} {Math.abs(value)}% el precio de {scope}. ¿Continuar?
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={apply}>Sí, aplicar</Button>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
       <p className="text-xs text-neutral-500">
         {filtered
           ? 'Se aplica solo a los productos de la búsqueda actual.'
