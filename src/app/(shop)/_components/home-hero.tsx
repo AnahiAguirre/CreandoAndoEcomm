@@ -3,9 +3,13 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
-import { CartIcon } from './cart-icon';
+import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import type { CartProductPublic } from '@/components/cart/types';
+import { formatPrice } from '@/lib/format';
 
 interface Slide {
+  /** The catalog product this slide sells; the button adds it once it exists there. */
+  slug: string;
   img: string;
   alt: string;
   title: string;
@@ -19,6 +23,7 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
+    slug: 'pista-de-trenes-de-madera',
     img: '/home/pista-trenes.png',
     alt: 'Pista de trenes de madera en forma de ocho, con tren, figuras, árboles y señales',
     title: 'Pista de trenes didáctica',
@@ -28,6 +33,7 @@ const SLIDES: Slide[] = [
     dot: '#f7c81e',
   },
   {
+    slug: 'autopista-didactica',
     img: '/home/autopista.png',
     alt: 'Autopista de madera con tapete de ciudad, puente, autos, árboles y señales',
     title: 'Autopista didáctica',
@@ -37,6 +43,7 @@ const SLIDES: Slide[] = [
     dot: '#3b8fd9',
   },
   {
+    slug: 'rompecabezas-de-animales',
     img: '/home/rompecabezas-animales.png',
     alt: 'Rompecabezas de madera de animales: tigre, libélula y pez',
     title: 'Rompecabezas de animales',
@@ -125,7 +132,14 @@ function Controls({ slide, paused, onPrev, onNext, onPick }: ControlsProps) {
  * product's color, with the copy floating beside it. Autoplays, pauses on
  * hover, advances with the arrows or by picking a progress dot.
  */
-export function HomeHero() {
+interface HeroProps {
+  /** Catalog products by slug. A slide whose slug isn't here sends to the catalog instead. */
+  products: Record<string, CartProductPublic>;
+}
+
+const priceOf = (p: CartProductPublic | undefined) => (p ? formatPrice(p.priceCents) : 'Próximamente');
+
+export function HomeHero({ products }: HeroProps) {
   const [slide, setSlide] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [paused, setPaused] = useState(false);
@@ -198,16 +212,13 @@ export function HomeHero() {
         <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-azul">Colección de madera</span>
         <h1 className="flex min-h-[2.3em] items-center justify-center text-[28px] font-bold leading-[1.15]">{cur.title}</h1>
         <span className="text-sm text-tinta-soft">
-          Precio <span className="font-display ml-1.5 text-lg font-bold text-tinta">[PRECIO]</span>
+          Precio <span className="font-display ml-1.5 text-lg font-bold text-tinta">{priceOf(products[cur.slug])}</span>
         </span>
         <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-2">
-          {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
-          <button
-            type="button"
+          <AddToCartButton
+            product={products[cur.slug]}
             className="cart-btn flex h-12 min-w-[190px] flex-[1.4] items-center justify-center gap-2 rounded-full bg-azul px-4 text-[15px] font-bold text-white"
-          >
-            <CartIcon /> Agregar al carrito
-          </button>
+          />
           <a
             href={cur.href}
             className="ghost-btn flex h-12 min-w-[120px] flex-1 items-center justify-center whitespace-nowrap rounded-full border-[1.5px] border-ghost-borde px-4 text-[15px] font-bold text-azul"
@@ -276,13 +287,10 @@ export function HomeHero() {
               <h1 className="font-display text-[60px] font-bold leading-[1.02]">{s.title}</h1>
               <p className="max-w-[420px] text-lg leading-[1.55] text-tinta-calida">{s.desc}</p>
               <div className="mt-2 flex items-center gap-3.5">
-                {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
-                <button
-                  type="button"
+                <AddToCartButton
+                  product={products[s.slug]}
                   className="cart-btn flex h-[52px] items-center gap-2.5 rounded-full bg-azul px-[26px] font-bold text-white"
-                >
-                  <CartIcon /> Agregar al carrito
-                </button>
+                />
                 <a
                   href={s.href}
                   className="ghost-btn flex h-[52px] items-center gap-1.5 rounded-full border-[1.5px] border-ghost-borde px-[22px] font-bold text-azul"
@@ -291,7 +299,7 @@ export function HomeHero() {
                 </a>
               </div>
               <span className="text-[15px] text-tinta-soft">
-                Precio <span className="font-display ml-1.5 text-xl font-bold text-tinta">[PRECIO]</span>
+                Precio <span className="font-display ml-1.5 text-xl font-bold text-tinta">{priceOf(products[s.slug])}</span>
               </span>
             </div>
           );

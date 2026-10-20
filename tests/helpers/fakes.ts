@@ -84,6 +84,10 @@ export class InMemoryProductRepository implements ProductRepository {
     return p ? this.toPublic(p) : null;
   }
 
+  async findActiveByIds(ids: string[]): Promise<Product[]> {
+    return [...this.items.values()].filter((p) => p.active && ids.includes(p.id)).map((p) => this.toPublic(p));
+  }
+
   async listAll(search?: string): Promise<AdminProduct[]> {
     const all = [...this.items.values()];
     if (!search) return all;

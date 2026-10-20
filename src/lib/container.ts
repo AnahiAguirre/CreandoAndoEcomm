@@ -2,6 +2,7 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 
+import { GetCartProducts } from '@/domain/cart/use-cases/get-cart-products';
 import { CatalogAdmin } from '@/domain/catalog/use-cases/catalog-admin';
 import { CategoryAdmin, ListStorefrontCategories } from '@/domain/catalog/use-cases/category-admin';
 import { GetProductBySlug } from '@/domain/catalog/use-cases/get-product-by-slug';
@@ -62,6 +63,7 @@ export const container = {
     categories: new CategoryAdmin(categoryRepository),
     storefrontCategories: new ListStorefrontCategories(categoryRepository),
   },
+  cart: { products: new GetCartProducts(productRepository) },
   delivery: new DigitalDelivery(entitlementRepository, productRepository, fileStorage, mail, (to, productName) =>
     downloadReadyMail(to, productName, `${authBaseUrl}/mis-descargas`),
   ),

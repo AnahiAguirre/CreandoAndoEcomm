@@ -1,49 +1,54 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
-import { CartIcon } from './cart-icon';
+import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import type { CartProductPublic } from '@/components/cart/types';
+import { formatPrice } from '@/lib/format';
+
 import { DinoArt, FishArt } from './illustrations/line-art';
 
 interface PhotoCard {
   kind: 'photo';
+  /** The catalog product this card sells (its price and button come from there). */
+  slug: string;
   img: string;
   alt: string;
   title: string;
-  price: string;
 }
 
 interface DrawnCard {
   kind: 'drawn';
+  slug: string;
   bg: string;
   art: ReactNode;
   title: string;
-  price: string;
 }
 
 const CARDS: (PhotoCard | DrawnCard)[] = [
   {
     kind: 'photo',
+    slug: 'pista-de-trenes-de-madera',
     img: '/home/pista-trenes.png',
     alt: 'Pista de trenes de madera en forma de ocho, con tren, figuras, árboles y señales',
     title: 'Pista de trenes didáctica',
-    price: '[PRECIO]',
   },
   {
     kind: 'photo',
+    slug: 'autopista-didactica',
     img: '/home/autopista.png',
     alt: 'Autopista de madera con tapete de ciudad, puente, autos, árboles y señales',
     title: 'Autopista didáctica',
-    price: '[PRECIO]',
   },
   {
     kind: 'photo',
+    slug: 'rompecabezas-de-animales',
     img: '/home/rompecabezas-animales.png',
     alt: 'Rompecabezas de madera de animales: tigre, libélula y pez',
     title: 'Rompecabezas de animales',
-    price: '[PRECIO]',
   },
   {
     kind: 'drawn',
+    slug: 'cuaderno-para-colorear-animales',
     bg: 'bg-amarillo-soft',
     art: (
       <div className="flex h-[204px] w-[150px] rotate-3 items-center justify-center rounded-md bg-white shadow-[0_20px_40px_-20px_rgb(26_23_20/0.45)]">
@@ -51,10 +56,10 @@ const CARDS: (PhotoCard | DrawnCard)[] = [
       </div>
     ),
     title: 'Cuaderno para colorear: Animales',
-    price: '$2.500',
   },
   {
     kind: 'drawn',
+    slug: 'cuaderno-para-colorear-dinosaurios',
     bg: 'bg-verde-soft',
     art: (
       <div className="flex h-[204px] w-[150px] -rotate-3 items-center justify-center rounded-md bg-white shadow-[0_20px_40px_-20px_rgb(26_23_20/0.45)]">
@@ -62,7 +67,6 @@ const CARDS: (PhotoCard | DrawnCard)[] = [
       </div>
     ),
     title: 'Cuaderno para colorear: Dinosaurios',
-    price: '$2.200',
   },
 ];
 
@@ -74,7 +78,12 @@ const card =
  * its stage sticks, so scrolling down slides the row sideways; on a phone it
  * is a plain swipeable carousel.
  */
-export function FavoritesRail() {
+interface Props {
+  /** Catalog products by slug. A card whose slug isn't here sends to the catalog instead. */
+  products: Record<string, CartProductPublic>;
+}
+
+export function FavoritesRail({ products }: Props) {
   return (
     <section id="elegidos" className="catalog-rail relative scroll-mt-16 bg-elegidos-fondo md:h-[1300px]">
       <div className="flex flex-col justify-center gap-9 overflow-hidden py-16 md:sticky md:top-16 md:h-[calc(100svh-4rem)] md:max-h-[760px] md:py-0">
@@ -103,14 +112,14 @@ export function FavoritesRail() {
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5 px-5 pb-5 pt-[18px]">
                   <span className="text-base font-bold md:text-[17px]">{c.title}</span>
-                  <span className="text-tinta-medio md:text-[16px]">{c.price}</span>
-                  {/* Todavía no hace nada — no hay carrito hasta la fase 3 — pero ya se ve y anda al tacto. */}
-                  <button
-                    type="button"
+                  <span className="text-tinta-medio md:text-[16px]">
+                    {products[c.slug] ? formatPrice(products[c.slug].priceCents) : 'Próximamente'}
+                  </span>
+                  <AddToCartButton
+                    product={products[c.slug]}
                     className="cart-btn-suave mt-auto flex min-h-11 items-center justify-center gap-2 rounded-full bg-accion-suave text-[15px] font-bold text-tinta"
-                  >
-                    <CartIcon className="size-[18px]" /> Agregar al carrito
-                  </button>
+                    iconClassName="size-[18px]"
+                  />
                 </div>
               </div>
             ))}

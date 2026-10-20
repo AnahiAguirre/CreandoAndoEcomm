@@ -19,7 +19,9 @@ tests/          tests unitarios (Vitest) del dominio y los helpers, con puertos 
 
 `src/lib/container.ts` es el único lugar que conecta una implementación de `infra/` con el puerto de `domain/` que le corresponde. Nada en `app/` importa una clase de `infra/` directamente.
 
-No hay RLS de Postgres: toda autorización pasa por `requireUser()`/`requireAdmin()` en `src/lib/auth-guards.ts`, llamado al principio de cada página/acción/ruta protegida. `src/proxy.ts` solo hace un chequeo optimista de cookie para `/admin/*`: **no es la barrera de seguridad**.
+La autorización no usa policies de RLS: toda pasa por `requireUser()`/`requireAdmin()` en `src/lib/auth-guards.ts`, llamado al principio de cada página/acción/ruta protegida. `src/proxy.ts` solo hace un chequeo optimista de cookie para `/admin/*`: **no es la barrera de seguridad**.
+
+RLS sí está **activado, sin ninguna policy**, en todas las tablas de `public` (migración `0005_enable_rls`). No es para autorizar: es para cerrar la Data API de Supabase (`/rest/v1`), porque la publishable key llega al navegador y con RLS apagado cualquiera podía leer y escribir usuarios, sesiones y hashes de contraseñas con ella. Sin policies, `anon`/`authenticated` no ven nada; la app se conecta como `postgres` (que ignora RLS) y no cambia. Toda tabla nueva tiene que llevar su `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` en la misma migración.
 
 Los archivos nunca pasan por el servidor: un Server Action firma un ticket de subida y el navegador sube directo a Supabase Storage (`CatalogAdmin.prepareUpload` → `uploadWithTicket` → `confirm*Upload`).
 
@@ -99,7 +101,7 @@ El código se reconstruye por fases sobre el plan. Cada fase vive en su rama y s
 |---|---|---|
 | 1 · Fundaciones | ✅ verificada | Esqueleto `domain/infra/lib/app`, schema del catálogo, migración `0000_catalog`, cliente Postgres (pooler, `prepare:false`), catálogo público (`/` y `/producto/[slug]`), seed. |
 | 2 · Auth + admin | ✅ verificada | Better Auth (Google para compradores y email + contraseña para admins — antes magic link —, migración `0001_auth`), `requireUser`/`requireAdmin`, `proxy.ts`, `/ingresar`, panel `/admin/productos` con ABM, uploads directos a Storage y reglas de publicación. Tests unitarios (Vitest). |
-| 3 · Pago (digitales) | ⏳ | Carrito, `computeOrderTotals()`, `/api/checkout`, webhook MP con firma e idempotencia. |
+| 3 · Carrito y pago | 🟡 carrito listo, sin pago | **Carrito** (físicos y digitales): vive en el navegador (`localStorage`, solo ids y cantidades); `/carrito` pide a la base los precios y el stock reales y corrige lo que haya cambiado (`reconcileCart` en `src/domain/cart`). Los botones de la home y la ficha agregan productos reales (la home los vincula por slug). **Falta**: `computeOrderTotals()`, `/api/checkout` (Mercado Pago) y el webhook con firma e idempotencia. |
 | 4 · Entrega digital | 🟡 sin pagos | Entitlements por email (migración `0002_entitlements`), `/mis-descargas`, `GET /api/download/[fileId]` → signed URL de 60 s, mail "ya podés descargarlo". Por ahora el acceso se da a mano desde la ficha del producto en el admin; en la fase 3 el webhook llama al mismo `DigitalDelivery.grant()` con el `orderId`. |
 | 5–9 | ⏳ | Físicos + envío, cupones, dashboard, envío calculado, producción (ver plan). |
 

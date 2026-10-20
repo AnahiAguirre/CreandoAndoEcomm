@@ -1,3 +1,6 @@
+import type { CartProductPublic } from '@/components/cart/types';
+import { container } from '@/lib/container';
+
 import { AssembleScene } from './_components/assemble-scene';
 import { BenefitsStrip } from './_components/benefits-strip';
 import { CategoryCards } from './_components/category-cards';
@@ -13,20 +16,29 @@ import { TrackScene } from './_components/track-scene';
 /**
  * The home is a fixed, designed page: its copy, photos and illustrations come
  * from the approved design, not from the catalog. Its "Ver detalle" and
- * "Elegí…" actions are same-page anchors, exactly as the design has them —
- * once real rompecabezas/pistas products exist, these can link to their pages.
+ * "Elegí…" actions are same-page anchors, exactly as the design has them.
+ * Only the prices and "Agregar al carrito" buttons read the catalog, by slug.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  // The home's art and copy are fixed, but what its buttons sell is the real catalog.
+  const products = await container.catalog.list.execute();
+  const bySlug: Record<string, CartProductPublic> = Object.fromEntries(
+    products.map((p) => [
+      p.slug,
+      { id: p.id, slug: p.slug, name: p.name, kind: p.kind, priceCents: p.priceCents, stock: p.stock, imageUrl: null },
+    ]),
+  );
+
   return (
     <>
-      <HomeHero />
+      <HomeHero products={bySlug} />
       <CategoryCards />
       <AssembleScene />
       <TrackScene />
       <ColoringScene />
       <PrintablesFan />
       <Manifesto />
-      <FavoritesRail />
+      <FavoritesRail products={bySlug} />
       <BenefitsStrip />
       <ProductPicker />
       <ClosingCta />
