@@ -34,6 +34,12 @@ const schema = z
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
     VERCEL_URL: z.string().optional(),
 
+    // --- Mercado Pago (fase 3) — optional until configured: the shop works, paying says "muy pronto" ---
+    // Use the TEST-… credentials until you want to sell for real.
+    MP_ACCESS_TOKEN: z.string().min(10).optional(),
+    // Webhooks → clave secreta, in Tus integraciones. Signs the notifications we receive.
+    MP_WEBHOOK_SECRET: z.string().min(10).optional(),
+
     // --- mail (fase 2) — optional in dev: without a key, mails go to the console ---
     RESEND_API_KEY: z.string().startsWith('re_').optional(),
     MAIL_FROM: z.string().min(3).optional(),
@@ -41,6 +47,10 @@ const schema = z
   .refine((e) => !e.RESEND_API_KEY || e.MAIL_FROM, {
     path: ['MAIL_FROM'],
     message: 'MAIL_FROM es obligatorio cuando hay RESEND_API_KEY',
+  })
+  .refine((e) => !e.MP_ACCESS_TOKEN === !e.MP_WEBHOOK_SECRET, {
+    path: ['MP_WEBHOOK_SECRET'],
+    message: 'MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET van juntas: completá las dos o ninguna',
   })
   .refine((e) => !e.GOOGLE_CLIENT_ID === !e.GOOGLE_CLIENT_SECRET, {
     path: ['GOOGLE_CLIENT_SECRET'],
@@ -67,6 +77,9 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+/** Whether buyers can pay yet (Mercado Pago credentials are configured). */
+export const paymentsEnabled = Boolean(env.MP_ACCESS_TOKEN && env.MP_WEBHOOK_SECRET);
 
 /** Whether buyers can sign in yet (the Google Cloud client is configured). */
 export const googleSignInEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);

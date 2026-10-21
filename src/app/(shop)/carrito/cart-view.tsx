@@ -2,30 +2,22 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useCart } from '@/components/cart/cart-provider';
 import { getSnapshot } from '@/components/cart/cart-store';
 import type { CartProductPublic } from '@/components/cart/types';
+import { useHydrated } from '@/components/cart/use-hydrated';
 import { linesOf, maxQuantity, reconcileCart } from '@/domain/cart/cart';
 import { isDigital } from '@/domain/catalog/product';
 import { formatPrice } from '@/lib/format';
 
 import { loadCartProducts } from './actions';
 
-/** False while rendering on the server and during hydration; true afterwards. */
-const subscribeNever = () => () => {};
-const useHydrated = () =>
-  useSyncExternalStore(
-    subscribeNever,
-    () => true,
-    () => false,
-  );
-
 const stepper =
   'flex size-9 items-center justify-center rounded-full border border-borde-suave text-lg leading-none transition-colors hover:bg-arena disabled:pointer-events-none disabled:opacity-40';
 
-export function CartView() {
+export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
   const { lines, setQuantity, remove, replace } = useCart();
   const hydrated = useHydrated();
   const [loaded, setLoaded] = useState<{ key: string; products: CartProductPublic[] } | null>(null);
@@ -193,16 +185,25 @@ export function CartView() {
             <span>Total</span>
             <span>{formatPrice(summary.subtotalCents)}</span>
           </p>
-          <button
-            type="button"
-            disabled
-            className="mt-6 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white opacity-40"
-          >
-            Finalizar compra
-          </button>
-          <p className="mt-3 text-center text-xs text-tinta-medio">
-            Muy pronto vas a poder pagar con Mercado Pago.
-          </p>
+          {checkoutEnabled ? (
+            <Link
+              href="/checkout"
+              className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-rojo px-7 font-medium text-white transition-colors hover:bg-rojo-dark hover:text-white"
+            >
+              Finalizar compra
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled
+                className="mt-6 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white opacity-40"
+              >
+                Finalizar compra
+              </button>
+              <p className="mt-3 text-center text-xs text-tinta-medio">Muy pronto vas a poder pagar con Mercado Pago.</p>
+            </>
+          )}
         </aside>
       </div>
     </>

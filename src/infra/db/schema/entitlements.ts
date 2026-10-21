@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { index, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 
+import { orders } from './orders';
 import { products } from './products';
 
 // Who may download which digital product. Keyed by (normalized) email — see
@@ -14,8 +15,7 @@ export const entitlements = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     // The paid order behind it. Null = granted by hand from the admin.
-    // Becomes a foreign key to `orders` when that table exists (fase 3).
-    orderId: uuid('order_id'),
+    orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

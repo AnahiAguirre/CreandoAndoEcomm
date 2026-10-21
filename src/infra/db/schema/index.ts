@@ -2,4 +2,5 @@
 // Add one file per bounded context and re-export it below.
 export * from './auth';
 export * from './entitlements';
+export * from './orders';
 export * from './products';

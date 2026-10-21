@@ -6,6 +6,16 @@ import type { AdminProduct, NewProductFile, ProductRepository } from '@/domain/c
 import type { DeliverableFile, Entitlement, LibraryItem } from '@/domain/delivery/entitlement';
 import type { EntitlementRepository, NewEntitlement } from '@/domain/delivery/entitlement-repository';
 import type { MailMessage, MailSender } from '@/domain/notifications/mail-sender';
+import type { NewOrder, Order, OrderStatus, ShippingMethod } from '@/domain/orders/order';
+import type {
+  Agency,
+  GatewayPayment,
+  MarkPaidResult,
+  OrderRepository,
+  PaymentGateway,
+  ShippingQuote,
+  ShippingQuoter,
+} from '@/domain/orders/ports';
 import type { Bucket, FileStorage, SignedDownloadOptions, SignedUpload } from '@/domain/storage/file-storage';
 
 // ---------- builders ----------
@@ -316,5 +326,94 @@ export class InMemoryEntitlementRepository implements EntitlementRepository {
       if (f) return { id: f.id, productId: p.id, storagePath: f.storagePath, filename: f.filename };
     }
     return null;
+  }
+}
+
+// ---------- orders, payments, shipping ----------
+
+/** Takes physical stock off the product fake, like the SQL transaction does. */
+export class InMemoryOrderRepository implements OrderRepository {
+  readonly items = new Map<string, Order>();
+
+  constructor(private readonly products: InMemoryProductRepository) {}
+
+  async create(input: NewOrder): Promise<Order> {
+    const order: Order = {
+      ...input,
+      id: nextId(),
+      status: 'pending',
+      mpPaymentId: null,
+      needsStockReview: false,
+      createdAt: new Date(),
+      paidAt: null,
+    };
+    this.items.set(order.id, order);
+    return order;
+  }
+
+  async findById(id: string): Promise<Order | null> {
+    return this.items.get(id) ?? null;
+  }
+
+  async listForUser(userId: string): Promise<Order[]> {
+    return [...this.items.values()].filter((o) => o.userId === userId);
+  }
+
+  async listAll(): Promise<Order[]> {
+    return [...this.items.values()];
+  }
+
+  async markPaid(id: string, mpPaymentId: string): Promise<MarkPaidResult> {
+    const order = this.items.get(id)!;
+    if (order.status === 'paid') return { order, changed: false };
+    order.status = 'paid';
+    order.mpPaymentId = mpPaymentId;
+    order.paidAt = new Date();
+    for (const item of order.items) {
+      if (item.kind !== 'physical' || !item.productId) continue;
+      const product = this.products.items.get(item.productId);
+      if (product && product.stock >= item.quantity) product.stock -= item.quantity;
+      else order.needsStockReview = true;
+    }
+    return { order, changed: true };
+  }
+
+  async markUnpaid(id: string, status: Extract<OrderStatus, 'rejected' | 'cancelled'>, mpPaymentId: string): Promise<void> {
+    const order = this.items.get(id);
+    if (order && order.status === 'pending') {
+      order.status = status;
+      order.mpPaymentId = mpPaymentId;
+    }
+  }
+}
+
+export class FakePaymentGateway implements PaymentGateway {
+  readonly checkouts: Order[] = [];
+  readonly payments = new Map<string, GatewayPayment>();
+
+  async createCheckout(order: Order): Promise<{ redirectUrl: string }> {
+    this.checkouts.push(order);
+    return { redirectUrl: `https://mp.test/checkout/${order.id}` };
+  }
+
+  async getPayment(paymentId: string): Promise<GatewayPayment | null> {
+    return this.payments.get(paymentId) ?? null;
+  }
+
+  async findPaymentByOrder(orderId: string): Promise<GatewayPayment | null> {
+    return [...this.payments.values()].find((p) => p.orderId === orderId) ?? null;
+  }
+}
+
+export class FakeShippingQuoter implements ShippingQuoter {
+  readonly quotes: { postalCode: string; method: ShippingMethod; weightG: number }[] = [];
+
+  async quote(input: { postalCode: string; method: ShippingMethod; parcel: { weightG: number } }): Promise<ShippingQuote> {
+    this.quotes.push({ postalCode: input.postalCode, method: input.method, weightG: input.parcel.weightG });
+    return { priceCents: input.method === 'sucursal' ? 350000 : 500000, label: 'Envío (simulado)', etaDays: 4 };
+  }
+
+  async agencies(): Promise<Agency[]> {
+    return [{ id: 'ag-1', name: 'Sucursal Centro', address: 'Av. Siempre Viva 123' }];
   }
 }

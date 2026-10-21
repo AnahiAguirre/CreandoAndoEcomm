@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/auth-guards';
 const NAV = [
   { href: '/admin/productos', label: 'Productos' },
   { href: '/admin/categorias', label: 'Categorías' },
+  { href: '/admin/pedidos', label: 'Pedidos' },
 ];
 
 /**
