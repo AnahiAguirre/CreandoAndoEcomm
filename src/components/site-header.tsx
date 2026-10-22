@@ -48,6 +48,9 @@ export async function SiteHeader() {
           <CartLink className="text-tinta-medio transition-colors duration-300 ease-suave hover:text-tinta" />
           {user ? (
             <>
+              <Link href="/mis-pedidos" className={`${navLink} hidden md:inline`}>
+                Mis pedidos
+              </Link>
               <Link href="/mis-descargas" className={`${navLink} hidden md:inline`}>
                 Mis descargas
               </Link>
@@ -68,10 +71,15 @@ export async function SiteHeader() {
 
       <nav aria-label="Secciones" className="no-scrollbar h-12 overflow-x-auto md:hidden">
         <ul className="flex h-12 w-max items-center gap-2 px-4">
-          {/* On a phone the top row has no room for them, so "Mis descargas" and "Admin" ride here. */}
+          {/* On a phone the top row has no room for them, so "Mis pedidos", "Mis descargas" and "Admin" ride here. */}
           {[
             ...NAV_LINKS,
-            ...(user ? [{ href: '/mis-descargas', label: 'Mis descargas' }] : []),
+            ...(user
+              ? [
+                  { href: '/mis-pedidos', label: 'Mis pedidos' },
+                  { href: '/mis-descargas', label: 'Mis descargas' },
+                ]
+              : []),
             ...(user && isAdmin(user) ? [{ href: '/admin', label: 'Admin' }] : []),
           ].map((l) => (
             <li key={l.href}>

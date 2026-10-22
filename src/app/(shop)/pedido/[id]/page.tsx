@@ -46,6 +46,9 @@ export default async function OrderPage({ params, searchParams }: Props) {
     <section className="mx-auto max-w-3xl px-4 py-12 md:py-20">
       <Status order={order} />
       <Detail order={order} />
+      <Link href="/mis-pedidos" className="mt-6 inline-block text-sm font-semibold underline">
+        Ver todos mis pedidos
+      </Link>
     </section>
   );
 }
