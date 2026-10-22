@@ -61,7 +61,9 @@ export class MercadoPagoGateway implements PaymentGateway {
       body: {
         items,
         external_reference: order.id,
-        payer: { email: order.email },
+        // No `payer`: Checkout Pro asks the buyer for it. Pre-filling our user's email made test
+        // payments fail (a real account's email clashes with the test buyer) and adds nothing:
+        // the order is matched by `external_reference`, and the PDFs go to the order's own email.
         back_urls: { success: back, failure: back, pending: back },
         ...(isHttps ? { auto_return: 'approved', notification_url: `${this.baseUrl}/api/webhooks/mercadopago` } : {}),
         // One shot: approved or rejected right away, no "pending" limbo for cards.
