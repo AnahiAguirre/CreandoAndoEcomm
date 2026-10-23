@@ -429,6 +429,17 @@ body {
 [data-play] .crayon-4 { animation-delay: 2s; }
 [data-play] .crayon-5 { animation-delay: 2.45s; }
 
+/* Imprimibles (abanico): flor, pez y dinosaurio se pintan de a una zona, una lámina tras otra. */
+[data-play] .fan-crayon-0 { animation-delay: 0.30s; }
+[data-play] .fan-crayon-1 { animation-delay: 0.64s; }
+[data-play] .fan-crayon-2 { animation-delay: 0.98s; }
+[data-play] .fan-crayon-3 { animation-delay: 1.32s; }
+[data-play] .fan-crayon-4 { animation-delay: 1.66s; }
+[data-play] .fan-crayon-5 { animation-delay: 2.00s; }
+[data-play] .fan-crayon-6 { animation-delay: 2.34s; }
+[data-play] .fan-crayon-7 { animation-delay: 2.68s; }
+[data-play] .fan-crayon-8 { animation-delay: 3.02s; }
+
 /* Antes de llegar, todo espera en su primer cuadro. */
 [data-play='idle'] .scene-caption,
 [data-play='idle'] .puzzle-piece,
