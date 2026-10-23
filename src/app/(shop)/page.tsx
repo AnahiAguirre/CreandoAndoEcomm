@@ -3,14 +3,11 @@ import { container } from '@/lib/container';
 
 import { AssembleScene } from './_components/assemble-scene';
 import { BenefitsStrip } from './_components/benefits-strip';
-import { CategoryCards } from './_components/category-cards';
 import { ClosingCta } from './_components/closing-cta';
-import { ColoringScene } from './_components/coloring-scene';
 import { FavoritesRail } from './_components/favorites-rail';
 import { HomeHero } from './_components/home-hero';
 import { Manifesto } from './_components/manifesto';
 import { PrintablesFan } from './_components/printables-fan';
-import { ProductPicker } from './_components/product-picker';
 import { TrackScene } from './_components/track-scene';
 
 /**
@@ -32,15 +29,12 @@ export default async function HomePage() {
   return (
     <>
       <HomeHero products={bySlug} />
-      <CategoryCards />
       <AssembleScene />
       <TrackScene />
-      <ColoringScene />
       <PrintablesFan />
       <Manifesto />
       <FavoritesRail products={bySlug} />
       <BenefitsStrip />
-      <ProductPicker />
       <ClosingCta />
     </>
   );

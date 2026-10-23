@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -62,9 +63,9 @@ export function StickyScene({ id, className, eyebrow, captions, cta, children, p
               {caption}
             </h2>
           ))}
-          <a href={cta.href} className={`${pillButton} self-start text-[17px] font-bold`}>
+          <Link href={cta.href} className={`${pillButton} self-start text-[17px] font-bold`}>
             {cta.label}
-          </a>
+          </Link>
         </Block>
         <Block className="flex justify-center">{children}</Block>
       </div>

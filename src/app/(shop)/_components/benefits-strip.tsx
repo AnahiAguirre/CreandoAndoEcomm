@@ -29,7 +29,7 @@ const BENEFITS: Benefit[] = [
       </>
     ),
     title: 'Envío a domicilio',
-    detail: '[Plazo y zonas de envío]',
+    detail: 'A todo el país, por Correo Argentino',
   },
   {
     icon: (

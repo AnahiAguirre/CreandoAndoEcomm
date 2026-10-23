@@ -1,6 +1,8 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { CATALOG_LINKS } from './catalog-links';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import type { CartProductPublic } from '@/components/cart/types';
 import { formatPrice } from '@/lib/format';
@@ -85,16 +87,16 @@ interface Props {
 
 export function FavoritesRail({ products }: Props) {
   return (
-    <section id="elegidos" className="catalog-rail relative scroll-mt-16 bg-elegidos-fondo md:h-[1300px]">
+    <section id="elegidos" className="catalog-rail relative scroll-mt-16 bg-arena md:h-[1300px]">
       <div className="flex flex-col justify-center gap-9 overflow-hidden py-16 md:sticky md:top-16 md:h-[calc(100svh-4rem)] md:max-h-[760px] md:py-0">
         <div className="flex items-end justify-between gap-4 px-4 md:px-[120px]">
           <div>
             <h2 className="text-4xl font-bold md:text-[40px]">Los más elegidos</h2>
             <p className="mt-2 text-lg text-tinta-calida md:text-[17px]">Favoritos para jugar, armar y pintar todos los días.</p>
           </div>
-          <a href="#elegidos" className="shrink-0 text-base font-bold md:text-[16px]">
+          <Link href={CATALOG_LINKS.todo} className="shrink-0 text-base font-bold md:text-[16px]">
             Ver todo el catálogo <span aria-hidden="true">›</span>
-          </a>
+          </Link>
         </div>
 
         <div className="no-scrollbar snap-x snap-mandatory overflow-x-auto md:overflow-visible">
@@ -124,8 +126,8 @@ export function FavoritesRail({ products }: Props) {
               </div>
             ))}
 
-            <a
-              href="#elegidos"
+            <Link
+              href={CATALOG_LINKS.todo}
               className="flex h-[440px] w-[280px] shrink-0 flex-col justify-between rounded-[18px] bg-tinta p-8 text-white transition-[transform,box-shadow] duration-[600ms] ease-suave hover:-translate-y-1.5 hover:text-white hover:shadow-[0_30px_60px_-36px_rgb(26_23_20/0.55)] md:w-[300px]"
             >
               <span className="font-display text-[32px] font-bold leading-[1.1]">
@@ -148,7 +150,7 @@ export function FavoritesRail({ products }: Props) {
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
               </span>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

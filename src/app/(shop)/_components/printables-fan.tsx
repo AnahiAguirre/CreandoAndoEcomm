@@ -1,14 +1,9 @@
 import Link from 'next/link';
 
+import { CATALOG_LINKS } from './catalog-links';
 import { PaintedDino, PaintedFish, PaintedFlower } from './illustrations/painted-sheets';
 import { pillButton } from './pill-button';
 import { PlayOnView } from './play-on-view';
-
-/**
- * Where the section sends the shopper: the catalog filtered to the printables.
- * It's the category's slug in the admin; if it is ever renamed there, this link breaks.
- */
-const PRINTABLES_HREF = '/catalogo?categoria=imprimibles';
 
 // Centered with margins, not a transform, so .fan-page can animate from `none`.
 const sheet =
@@ -21,7 +16,10 @@ const sheet =
  */
 export function PrintablesFan() {
   return (
-    <section className="relative isolate flex flex-col items-center overflow-hidden bg-linear-to-b from-amarillo-crema to-hero-fondo px-4 py-24 md:h-[880px] md:pb-0 md:pt-[100px]">
+    <section
+      id="imprimibles"
+      className="relative isolate flex scroll-mt-16 flex-col items-center overflow-hidden bg-arena px-4 py-24 md:h-[880px] md:pb-0 md:pt-[100px]"
+    >
       {/* Soft color spots behind the sheets (decoration only). */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-24 top-40 size-72 rounded-full bg-amarillo/30 blur-3xl md:size-96" />
@@ -31,7 +29,7 @@ export function PrintablesFan() {
       </div>
 
       <p className="scroll-rise text-xs font-semibold uppercase tracking-[0.14em] text-tinta-soft md:text-[15px]">
-        Imprimibles en PDF
+        03 · Pintar · Imprimibles en PDF
       </p>
       <h2 className="scroll-rise mt-3 text-center text-5xl font-extrabold leading-none tracking-[-0.045em] md:text-[80px]">
         Imprimí. Pintá. Repetí.
@@ -41,7 +39,7 @@ export function PrintablesFan() {
       </p>
 
       <Link
-        href={PRINTABLES_HREF}
+        href={CATALOG_LINKS.imprimibles}
         aria-label="Ver los imprimibles para colorear"
         className="group mt-14 block w-full max-w-[900px] rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tinta"
       >
@@ -62,7 +60,7 @@ export function PrintablesFan() {
         </PlayOnView>
       </Link>
 
-      <Link href={PRINTABLES_HREF} className={`${pillButton} mt-6`}>
+      <Link href={CATALOG_LINKS.imprimibles} className={`${pillButton} mt-6`}>
         Ver imprimibles <span aria-hidden="true">&nbsp;›</span>
       </Link>
     </section>

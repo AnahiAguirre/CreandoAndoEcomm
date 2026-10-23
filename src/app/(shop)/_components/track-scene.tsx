@@ -1,3 +1,4 @@
+import { CATALOG_LINKS } from './catalog-links';
 import { Stage } from './illustrations/stage';
 import { TrainTrack } from './illustrations/train-track';
 import { StickyScene } from './sticky-scene';
@@ -9,7 +10,7 @@ export function TrackScene() {
       id="pistas"
       className="track-scene bg-white"
       play="view"
-      eyebrow="Pistas de tren"
+      eyebrow="02 · Recorrer"
       captions={[
         'Tramos de madera que encastran.',
         'Subidas, bajadas, puentes.',
@@ -17,7 +18,7 @@ export function TrackScene() {
           Cada día, <span className="text-azul">un recorrido nuevo.</span>
         </>,
       ]}
-      cta={{ label: 'Elegí tu pista', href: '#elegidos' }}
+      cta={{ label: 'Elegí tu pista', href: CATALOG_LINKS.pistas }}
     >
       <Stage width={600} height={560} className="[--s:0.55] sm:[--s:0.75] md:[--s:1]">
         <TrainTrack />
