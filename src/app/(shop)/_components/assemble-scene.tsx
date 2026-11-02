@@ -1,3 +1,4 @@
+import { CATALOG_LINKS } from './catalog-links';
 import { CarPuzzle } from './illustrations/car-puzzle';
 import { Stage } from './illustrations/stage';
 import { StickyScene } from './sticky-scene';
@@ -9,7 +10,7 @@ export function AssembleScene() {
       id="armar"
       className="assemble-scene bg-arena"
       play="view"
-      eyebrow="Juguete de madera"
+      eyebrow="01 · Armar"
       captions={[
         'Piezas grandes y gruesas.',
         'Colores vivos sobre madera.',
@@ -17,7 +18,7 @@ export function AssembleScene() {
           Se arma, se desarma, <span className="text-rojo-vivo">se vuelve a armar.</span>
         </>,
       ]}
-      cta={{ label: 'Elegí tu rompecabezas', href: '#elegidos' }}
+      cta={{ label: 'Elegí tu rompecabezas', href: CATALOG_LINKS.rompecabezas }}
     >
       <Stage width={600} height={620} className="[--s:0.5] sm:[--s:0.7] md:[--s:0.9]">
         <CarPuzzle />

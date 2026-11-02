@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+import { CATALOG_LINKS } from './catalog-links';
 import { pillButton } from './pill-button';
 
 export function ClosingCta() {
@@ -6,9 +9,9 @@ export function ClosingCta() {
       <h2 className="scroll-zoom text-6xl font-bold leading-none md:text-[88px]">A jugar.</h2>
       <p className="scroll-rise-late text-lg text-tinta-muted md:text-xl">Juguetes de madera e imprimibles para colorear.</p>
       <div className="scroll-rise-late flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-base font-bold md:text-[17px]">
-        <a href="#elegidos" className={`${pillButton} font-bold`}>
+        <Link href={CATALOG_LINKS.todo} className={`${pillButton} font-bold`}>
           Ver catálogo
-        </a>
+        </Link>
         <a href="#top" className="font-bold text-link-oscuro transition-opacity duration-300 ease-suave hover:opacity-70">
           Volver arriba <span aria-hidden="true">›</span>
         </a>
