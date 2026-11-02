@@ -48,7 +48,7 @@ const BENEFITS: Benefit[] = [
 export function BenefitsStrip() {
   return (
     <section className="border-y border-borde-suave bg-white px-4 py-8">
-      <Reveal className="mx-auto grid max-w-[75rem] grid-cols-1 gap-6 sm:grid-cols-3">
+      <Reveal repeat className="mx-auto grid max-w-[75rem] grid-cols-1 gap-6 sm:grid-cols-3">
         {BENEFITS.map((b) => (
           <div key={b.title} className="flex items-center gap-3.5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-icono-azul-fondo text-azul">

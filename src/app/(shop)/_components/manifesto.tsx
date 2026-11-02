@@ -15,7 +15,7 @@ export function Manifesto() {
   return (
     <section id="detalles" className="scroll-mt-16 bg-white px-4 py-24 md:py-32">
       <div className="mx-auto max-w-[70rem]">
-        <Reveal>
+        <Reveal repeat>
           <p className="text-center text-3xl font-bold leading-[1.15] tracking-[-0.035em] md:text-5xl">
             Pensados para jugar sin pantallas.
           </p>
@@ -23,7 +23,7 @@ export function Manifesto() {
 
         <div className="mt-16 grid grid-cols-2 gap-6 gap-y-12 border-t border-arena-dark pt-14 md:grid-cols-4">
           {FIGURES.map((f) => (
-            <Reveal key={f.label} className="flex flex-col gap-2">
+            <Reveal repeat key={f.label} className="flex flex-col gap-2">
               {/* The number itself is drawn by CSS (.count-up); screen readers get it here. */}
               <span className="sr-only">{f.count}</span>
               <span
@@ -34,7 +34,7 @@ export function Manifesto() {
               <span className={figureLabel}>{f.label}</span>
             </Reveal>
           ))}
-          <Reveal className="flex flex-col gap-2">
+          <Reveal repeat className="flex flex-col gap-2">
             <span className={`${figure} text-amarillo-dark`}>A4</span>
             <span className={figureLabel}>PDF listo para imprimir en casa</span>
           </Reveal>

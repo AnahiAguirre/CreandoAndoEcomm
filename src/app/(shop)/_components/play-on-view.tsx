@@ -8,12 +8,17 @@ interface Props {
 }
 
 /**
- * A block whose animations play once, on their own, the first time it comes
- * into view. It drives `data-play`: `idle` (hold the first frame) once hydrated,
- * `running` when half of it is on screen. Wrap each drawing on its own, not the
- * whole section: on a phone things stack, and a section-wide trigger would play
- * the lower drawings before anyone scrolls down to them. Before hydration there
- * is no attribute at all, so without JS the drawing just shows its finished state.
+ * A block whose animations play by themselves every time it comes into view,
+ * going down the page or coming back up. It drives `data-play`:
+ *   - no attribute: out of view (and before hydration), the drawing shows its
+ *     finished state, so without JS nothing is lost;
+ *   - `idle`: it just peeked in, the first frame is held;
+ *   - `running`: half of it is on screen, the animation plays.
+ * Leaving the screen removes the attribute, which throws the animation away; that
+ * is what makes it start from the beginning the next time (pausing alone would
+ * resume it where it stopped). Wrap each drawing on its own, not the whole
+ * section: on a phone things stack, and a section-wide trigger would play the
+ * lower drawings before anyone scrolls down to them.
  */
 export function PlayOnView({ className, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
@@ -22,14 +27,28 @@ export function PlayOnView({ className, children }: Props) {
     const block = ref.current;
     if (!block) return;
 
-    block.dataset.play = 'idle';
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        block.dataset.play = 'running';
-        observer.disconnect();
+      (entries) => {
+        // Several can be queued after a fast scroll; only the latest says where it is now.
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        const state = block.dataset.play;
+        if (entry.intersectionRatio === 0) {
+          // Fully out of view: forget the animation so it can start over.
+          delete block.dataset.play;
+        } else if (entry.intersectionRatio >= 0.5) {
+          if (state === 'running') return;
+          if (!state) {
+            // Entered in one jump (an anchor link): show the first frame, then play.
+            block.dataset.play = 'idle';
+            void block.offsetWidth;
+          }
+          block.dataset.play = 'running';
+        } else if (!state) {
+          block.dataset.play = 'idle';
+        }
       },
-      { threshold: 0.5 },
+      { threshold: [0, 0.5] },
     );
     observer.observe(block);
     return () => observer.disconnect();
