@@ -20,13 +20,15 @@ describe('FakeShippingQuoter', () => {
     expect(pickup.priceCents).toBeLessThan(home.priceCents);
   });
 
-  it('always says it is simulated, so nobody mistakes it for a real price', async () => {
-    expect((await quoter.quote({ postalCode: '1425', method: 'domicilio', parcel: parcel(1) })).label).toContain('simulado');
+  it('always flags itself as simulated, so nobody mistakes it for a real price', async () => {
+    const quote = await quoter.quote({ postalCode: '1425', method: 'domicilio', parcel: parcel(1) });
+    expect(quote.simulated).toBe(true);
+    expect(quote.label).toContain('simulado');
   });
 
   it('lists branches with stable ids per postal code', async () => {
-    const first = await quoter.agencies('1425');
-    const again = await quoter.agencies('1425');
+    const first = await quoter.agencies({ provinceCode: 'C', postalCode: '1425' });
+    const again = await quoter.agencies({ provinceCode: 'C', postalCode: '1425' });
     expect(first).toHaveLength(3);
     expect(first.map((a) => a.id)).toEqual(again.map((a) => a.id));
   });

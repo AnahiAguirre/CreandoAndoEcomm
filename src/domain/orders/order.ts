@@ -11,18 +11,72 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const SHIPPING_METHODS = ['domicilio', 'sucursal'] as const;
 export type ShippingMethod = (typeof SHIPPING_METHODS)[number];
 
+/** The box an order ships as: what the quote was based on and what MiCorreo is told. */
+export interface Parcel {
+  weightG: number;
+  lengthCm: number;
+  widthCm: number;
+  heightCm: number;
+}
+
+/** Argentine provinces with the one-letter code Correo Argentino uses (ISO 3166-2:AR). */
+export const PROVINCES = [
+  { code: 'C', name: 'Ciudad Autónoma de Buenos Aires' },
+  { code: 'B', name: 'Buenos Aires' },
+  { code: 'K', name: 'Catamarca' },
+  { code: 'H', name: 'Chaco' },
+  { code: 'U', name: 'Chubut' },
+  { code: 'X', name: 'Córdoba' },
+  { code: 'W', name: 'Corrientes' },
+  { code: 'E', name: 'Entre Ríos' },
+  { code: 'P', name: 'Formosa' },
+  { code: 'Y', name: 'Jujuy' },
+  { code: 'L', name: 'La Pampa' },
+  { code: 'F', name: 'La Rioja' },
+  { code: 'M', name: 'Mendoza' },
+  { code: 'N', name: 'Misiones' },
+  { code: 'Q', name: 'Neuquén' },
+  { code: 'R', name: 'Río Negro' },
+  { code: 'A', name: 'Salta' },
+  { code: 'J', name: 'San Juan' },
+  { code: 'D', name: 'San Luis' },
+  { code: 'Z', name: 'Santa Cruz' },
+  { code: 'S', name: 'Santa Fe' },
+  { code: 'G', name: 'Santiago del Estero' },
+  { code: 'V', name: 'Tierra del Fuego' },
+  { code: 'T', name: 'Tucumán' },
+] as const;
+export type ProvinceCode = (typeof PROVINCES)[number]['code'];
+const PROVINCE_CODES = PROVINCES.map((p) => p.code) as [ProvinceCode, ...ProvinceCode[]];
+export const provinceCodeSchema = z.enum(PROVINCE_CODES, { error: 'Elegí la provincia.' });
+
+/** What happened when the shipment was registered with the carrier. */
+export interface ShipmentState {
+  /** `manual`: no carrier credentials, the admin ships it by hand. */
+  status: 'created' | 'failed' | 'manual';
+  error?: string;
+  at?: string;
+}
+
 /** Where a physical order goes. `null` on an order = digital only, nothing to ship. */
 export interface ShippingDetails {
   method: ShippingMethod;
   recipient: string;
   phone: string;
   postalCode: string;
-  /** Street address (method `domicilio`). */
+  /** Street address as text (method `domicilio`). */
   address: string | null;
   /** Chosen branch, e.g. "Sucursal Centro — Av. Siempre Viva 123" (method `sucursal`). */
   agency: string | null;
-  /** What the buyer was shown when quoting, e.g. "Envío a domicilio (simulado)". */
+  /** What the buyer was shown when quoting, e.g. "Correo Argentino Clásico". */
   quoteLabel: string;
+  // The fields below do not exist on orders made before the carrier integration.
+  provinceCode?: ProvinceCode;
+  street?: { name: string; number: string; floor: string | null; apartment: string | null; city: string };
+  agencyCode?: string;
+  /** The box that was quoted, so the shipment is registered with the same one the buyer paid for. */
+  parcel?: Parcel;
+  shipment?: ShipmentState;
 }
 
 /** Name, kind and price are copied from the catalog at purchase time: later edits must not rewrite history. */
@@ -118,6 +172,8 @@ export const postalCodeSchema = z
   .toUpperCase()
   .regex(/^([0-9]{4}|[A-Z][0-9]{4}[A-Z]{3})$/, 'Código postal inválido (ej. 1425 o C1425ABC).');
 
+const text = (max: number) => z.string().trim().max(max);
+
 export const shippingInputSchema = z
   .object({
     method: z.enum(SHIPPING_METHODS),
@@ -126,13 +182,22 @@ export const shippingInputSchema = z
       .string()
       .trim()
       .regex(/^[0-9+()\-\s]{6,20}$/, 'Teléfono inválido.'),
+    provinceCode: provinceCodeSchema,
     postalCode: postalCodeSchema,
-    address: z.string().trim().max(200).optional(),
-    agencyId: z.string().trim().max(60).optional(),
+    // Home delivery: the carrier wants the address in pieces.
+    streetName: text(100).optional(),
+    streetNumber: text(10).optional(),
+    floor: text(10).optional(),
+    apartment: text(10).optional(),
+    city: text(80).optional(),
+    // Pickup: the carrier's branch code.
+    agencyId: text(60).optional(),
   })
   .superRefine((v, ctx) => {
-    if (v.method === 'domicilio' && !v.address) {
-      ctx.addIssue({ code: 'custom', path: ['address'], message: 'Escribí la dirección de entrega.' });
+    if (v.method === 'domicilio') {
+      if (!v.streetName) ctx.addIssue({ code: 'custom', path: ['streetName'], message: 'Escribí la calle.' });
+      if (!v.streetNumber) ctx.addIssue({ code: 'custom', path: ['streetNumber'], message: 'Escribí la altura.' });
+      if (!v.city) ctx.addIssue({ code: 'custom', path: ['city'], message: 'Escribí la localidad.' });
     }
     if (v.method === 'sucursal' && !v.agencyId) {
       ctx.addIssue({ code: 'custom', path: ['agencyId'], message: 'Elegí una sucursal.' });

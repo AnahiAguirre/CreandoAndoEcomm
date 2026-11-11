@@ -53,7 +53,16 @@ describe('computeOrderTotals', () => {
 });
 
 describe('shippingInputSchema', () => {
-  const valid = { method: 'domicilio', recipient: 'Ana Pérez', phone: '11 5555-1234', postalCode: '1425', address: 'Av. Santa Fe 1234' };
+  const valid = {
+    method: 'domicilio',
+    recipient: 'Ana Pérez',
+    phone: '11 5555-1234',
+    provinceCode: 'C',
+    postalCode: '1425',
+    streetName: 'Av. Santa Fe',
+    streetNumber: '1234',
+    city: 'Palermo',
+  };
 
   it('accepts a home delivery with address', () => {
     expect(shippingInputSchema.safeParse(valid).success).toBe(true);
@@ -67,10 +76,19 @@ describe('shippingInputSchema', () => {
     expect(shippingInputSchema.safeParse({ ...valid, postalCode }).success).toBe(false);
   });
 
-  it('requires the address for home delivery and a branch for pickup', () => {
-    expect(shippingInputSchema.safeParse({ ...valid, address: undefined }).success).toBe(false);
-    expect(shippingInputSchema.safeParse({ ...valid, method: 'sucursal', address: undefined }).success).toBe(false);
-    expect(shippingInputSchema.safeParse({ ...valid, method: 'sucursal', address: undefined, agencyId: 'a1' }).success).toBe(true);
+  it.each(['streetName', 'streetNumber', 'city'])('requires %s for home delivery', (field) => {
+    expect(shippingInputSchema.safeParse({ ...valid, [field]: undefined }).success).toBe(false);
+  });
+
+  it('requires a branch for pickup, and then no street', () => {
+    const pickup = { ...valid, method: 'sucursal', streetName: undefined, streetNumber: undefined, city: undefined };
+    expect(shippingInputSchema.safeParse(pickup).success).toBe(false);
+    expect(shippingInputSchema.safeParse({ ...pickup, agencyId: 'a1' }).success).toBe(true);
+  });
+
+  it('requires a real province, also for pickup', () => {
+    expect(shippingInputSchema.safeParse({ ...valid, provinceCode: undefined }).success).toBe(false);
+    expect(shippingInputSchema.safeParse({ ...valid, provinceCode: 'Q1' }).success).toBe(false);
   });
 
   it('rejects a junk phone', () => {

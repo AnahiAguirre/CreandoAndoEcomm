@@ -9,12 +9,19 @@ import {
   type OrderItem,
   type ShippingDetails,
   type ShippingInput,
+  type ProvinceCode,
   type ShippingMethod,
   ShippingRequiredError,
   shippingInputSchema,
 } from '../order';
 import { parcelFor } from '../parcel';
-import type { Agency, OrderRepository, PaymentGateway, ShippingQuote, ShippingQuoter } from '../ports';
+import type { Agency, OrderRepository, Parcel, PaymentGateway, ShippingQuote, ShippingQuoter } from '../ports';
+
+/** "Av. Santa Fe 1234, 2º B, Palermo" for people (the order page, the admin). */
+export function addressText(street: NonNullable<ShippingDetails['street']>): string {
+  const flat = [street.floor && `piso ${street.floor}`, street.apartment && `depto ${street.apartment}`].filter(Boolean);
+  return [`${street.name} ${street.number}`, ...flat, street.city].join(', ');
+}
 
 export class UnknownAgencyError extends DomainError {
   constructor() {
@@ -65,8 +72,8 @@ export class CreateCheckout {
     return this.shippingQuoter.quote({ postalCode, method, parcel });
   }
 
-  agencies(postalCode: string): Promise<Agency[]> {
-    return this.shippingQuoter.agencies(postalCode);
+  agencies(provinceCode: ProvinceCode, postalCode: string): Promise<Agency[]> {
+    return this.shippingQuoter.agencies({ provinceCode, postalCode });
   }
 
   async start(
@@ -85,7 +92,7 @@ export class CreateCheckout {
       if (!shippingInput) throw new ShippingRequiredError();
       const input = shippingInputSchema.parse(shippingInput);
       const quote = await this.quoteShipping(lines, input.postalCode, input.method);
-      shipping = await this.shippingDetails(input, quote);
+      shipping = await this.shippingDetails(input, quote, await this.parcelOf(lines));
       shippingCents = quote.priceCents;
     }
 
@@ -112,22 +119,38 @@ export class CreateCheckout {
     }
   }
 
-  private async shippingDetails(input: ShippingInput, quote: ShippingQuote): Promise<ShippingDetails> {
+  private async shippingDetails(input: ShippingInput, quote: ShippingQuote, parcel: Parcel): Promise<ShippingDetails> {
     let agency: string | null = null;
+    let agencyCode: string | undefined;
     if (input.method === 'sucursal') {
-      const agencies = await this.shippingQuoter.agencies(input.postalCode);
+      const agencies = await this.agencies(input.provinceCode, input.postalCode);
       const chosen = agencies.find((a) => a.id === input.agencyId);
       if (!chosen) throw new UnknownAgencyError();
       agency = `${chosen.name} — ${chosen.address}`;
+      agencyCode = chosen.id;
     }
+    const home = input.method === 'domicilio';
+    const street = home
+      ? {
+          name: input.streetName!,
+          number: input.streetNumber!,
+          floor: input.floor || null,
+          apartment: input.apartment || null,
+          city: input.city!,
+        }
+      : undefined;
     return {
       method: input.method,
       recipient: input.recipient,
       phone: input.phone,
       postalCode: input.postalCode,
-      address: input.method === 'domicilio' ? (input.address ?? null) : null,
+      address: street ? addressText(street) : null,
       agency,
       quoteLabel: quote.label,
+      provinceCode: input.provinceCode,
+      street,
+      agencyCode,
+      parcel,
     };
   }
 

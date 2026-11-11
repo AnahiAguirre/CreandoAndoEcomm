@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, ne, sql } from 'drizzle-orm';
 
-import type { NewOrder, Order, OrderItem, OrderStatus } from '@/domain/orders/order';
+import type { NewOrder, Order, OrderItem, OrderStatus, ShipmentState } from '@/domain/orders/order';
 import type { MarkPaidResult, OrderRepository } from '@/domain/orders/ports';
 
 import type { Db } from '../client';
@@ -117,5 +117,20 @@ export class DrizzleOrderRepository implements OrderRepository {
       .update(orders)
       .set({ status, mpPaymentId })
       .where(and(eq(orders.id, id), eq(orders.status, 'pending')));
+  }
+
+  async setShipment(id: string, shipment: ShipmentState): Promise<void> {
+    // Done in SQL on the one key so a concurrent write to the rest of `shipping` is never lost,
+    // and a shipment that is already `created` is never overwritten by a late failure.
+    await this.db
+      .update(orders)
+      .set({ shipping: sql`jsonb_set(${orders.shipping}, '{shipment}', ${JSON.stringify(shipment)}::jsonb)` })
+      .where(
+        and(
+          eq(orders.id, id),
+          sql`${orders.shipping} is not null`,
+          sql`coalesce(${orders.shipping}->'shipment'->>'status', '') <> 'created'`,
+        ),
+      );
   }
 }

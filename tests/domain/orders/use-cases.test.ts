@@ -2,18 +2,30 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CartChangedError, ShippingRequiredError } from '@/domain/orders/order';
 import { ConfirmPayment } from '@/domain/orders/use-cases/confirm-payment';
+import { ShipOrder } from '@/domain/orders/use-cases/ship-order';
 import { CreateCheckout, DigitalNotReadyError, UnknownAgencyError } from '@/domain/orders/use-cases/create-checkout';
 
 import {
   buildFile,
   buildProduct,
   FakePaymentGateway,
+  FakeShipmentCreator,
   FakeShippingQuoter,
   InMemoryOrderRepository,
   InMemoryProductRepository,
 } from '../../helpers/fakes';
 
-const shipping = { method: 'domicilio', recipient: 'Ana Pérez', phone: '11 5555-1234', postalCode: '1425', address: 'Av. Santa Fe 1234' };
+const shipping = {
+  method: 'domicilio',
+  recipient: 'Ana Pérez',
+  phone: '11 5555-1234',
+  provinceCode: 'C',
+  postalCode: '1425',
+  streetName: 'Av. Santa Fe',
+  streetNumber: '1234',
+  apartment: 'B',
+  city: 'Palermo',
+};
 
 function setup() {
   const toy = buildProduct({ id: 'toy', slug: 'pista', name: 'Pista', kind: 'physical', priceCents: 1850000, stock: 5, active: true });
@@ -30,6 +42,8 @@ function setup() {
   const orders = new InMemoryOrderRepository(products);
   const gateway = new FakePaymentGateway();
   const quoter = new FakeShippingQuoter();
+  const shipments = new FakeShipmentCreator();
+  const shipOrder = new ShipOrder(orders, shipments);
   const granted: { productId: string; email: string; orderId: string | null }[] = [];
   const delivery = {
     async grant(productId: string, email: string, orderId: string | null) {
@@ -41,9 +55,11 @@ function setup() {
     orders,
     gateway,
     quoter,
+    shipments,
+    shipOrder,
     granted,
     checkout: new CreateCheckout(products, orders, gateway, quoter),
-    confirm: new ConfirmPayment(orders, gateway, delivery),
+    confirm: new ConfirmPayment(orders, gateway, delivery, shipOrder),
   };
 }
 
@@ -71,6 +87,10 @@ describe('CreateCheckout.start', () => {
     expect(order.shippingCents).toBe(500000);
     expect(order.totalCents).toBe(2 * 1850000 + 500000);
     expect(order.shipping?.recipient).toBe('Ana Pérez');
+    expect(order.shipping?.address).toBe('Av. Santa Fe 1234, depto B, Palermo');
+    expect(order.shipping?.street).toMatchObject({ name: 'Av. Santa Fe', number: '1234', apartment: 'B', city: 'Palermo' });
+    expect(order.shipping?.provinceCode).toBe('C');
+    expect(order.shipping?.parcel?.weightG).toBeGreaterThan(0);
     expect(t.quoter.quotes).toHaveLength(1);
   });
 
@@ -88,8 +108,17 @@ describe('CreateCheckout.start', () => {
     );
   });
 
+  it('keeps the carrier code of the chosen branch', async () => {
+    const pickup = { ...shipping, method: 'sucursal', agencyId: 'ag-1' };
+    const { orderId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 1 }], pickup);
+    const order = (await t.orders.findById(orderId))!;
+    expect(order.shipping?.agencyCode).toBe('ag-1');
+    expect(order.shipping?.agency).toContain('Sucursal Centro');
+    expect(order.shipping?.address).toBeNull();
+  });
+
   it('refuses a branch that is not in the quoted list', async () => {
-    const pickup = { ...shipping, method: 'sucursal', address: undefined, agencyId: 'otra' };
+    const pickup = { ...shipping, method: 'sucursal', agencyId: 'otra' };
     await expect(t.checkout.start(buyer, [{ productId: 'toy', quantity: 1 }], pickup)).rejects.toBeInstanceOf(
       UnknownAgencyError,
     );
@@ -178,6 +207,41 @@ describe('ConfirmPayment', () => {
     t.gateway.payments.set('pay-2', { id: 'pay-2', status: 'rejected', orderId, amountCents: 1 });
     await t.confirm.fromPaymentId('pay-2');
     expect((await t.orders.findById(orderId))!.status).toBe('paid');
+  });
+
+  it('registers the shipment of a paid physical order, once', async () => {
+    pay('approved');
+    await t.confirm.fromPaymentId('pay-1');
+    await t.confirm.fromPaymentId('pay-1');
+    expect(t.shipments.shipped).toEqual([orderId]);
+    expect((await t.orders.findById(orderId))!.shipping?.shipment?.status).toBe('created');
+  });
+
+  it('a carrier failure never undoes the payment: it is stored for a retry', async () => {
+    t.shipments.fail = true;
+    pay('approved');
+    const outcome = await t.confirm.fromPaymentId('pay-1');
+    const order = (await t.orders.findById(orderId))!;
+    expect(outcome.kind).toBe('paid');
+    expect(order.status).toBe('paid');
+    expect(order.shipping?.shipment).toMatchObject({ status: 'failed', error: 'MiCorreo no respondió' });
+    expect(t.granted).toHaveLength(1);
+
+    t.shipments.fail = false;
+    await t.shipOrder.retry(orderId);
+    expect((await t.orders.findById(orderId))!.shipping?.shipment?.status).toBe('created');
+    expect(t.shipments.shipped).toEqual([orderId]);
+  });
+
+  it('a digital-only order has nothing to ship', async () => {
+    const { orderId: digitalId } = await t.checkout.start(buyer, [{ productId: 'pdf', quantity: 1 }], undefined);
+    t.gateway.payments.set('pay-d', { id: 'pay-d', status: 'approved', orderId: digitalId, amountCents: 250000 });
+    await t.confirm.fromPaymentId('pay-d');
+    expect(t.shipments.shipped).toEqual([]);
+  });
+
+  it('retry refuses an order that is not paid', async () => {
+    await expect(t.shipOrder.retry(orderId)).rejects.toThrow();
   });
 
   it('pending stays pending', async () => {

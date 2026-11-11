@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 
 import { Badge } from '@/components/ui/badge';
-import type { OrderStatus } from '@/domain/orders/order';
+import { Button } from '@/components/ui/button';
+import type { OrderStatus, ShipmentState } from '@/domain/orders/order';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
+
+import { retryShipment } from './actions';
 
 export const metadata: Metadata = { title: 'Pedidos' };
 export const dynamic = 'force-dynamic';
@@ -13,6 +16,12 @@ const STATUS: Record<OrderStatus, { label: string; tone: 'success' | 'warning' |
   pending: { label: 'Pendiente', tone: 'warning' },
   rejected: { label: 'Rechazado', tone: 'neutral' },
   cancelled: { label: 'Cancelado', tone: 'neutral' },
+};
+
+const SHIPMENT: Record<ShipmentState['status'], { label: string; tone: 'success' | 'warning' | 'neutral' }> = {
+  created: { label: 'Envío cargado en MiCorreo', tone: 'success' },
+  failed: { label: 'Falló el alta en MiCorreo', tone: 'warning' },
+  manual: { label: 'Cargalo a mano en MiCorreo', tone: 'warning' },
 };
 
 const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' });
@@ -64,6 +73,21 @@ export default async function AdminOrdersPage() {
                     <p>
                       {order.shipping.address ?? order.shipping.agency} · CP {order.shipping.postalCode}
                     </p>
+                    {order.status === 'paid' && order.shipping.shipment && (
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <Badge tone={SHIPMENT[order.shipping.shipment.status].tone}>
+                          {SHIPMENT[order.shipping.shipment.status].label}
+                        </Badge>
+                        {order.shipping.shipment.error && <span className="text-amber-700">{order.shipping.shipment.error}</span>}
+                        {order.shipping.shipment.status !== 'created' && (
+                          <form action={retryShipment.bind(null, order.id)}>
+                            <Button type="submit" variant="secondary" size="sm">
+                              Reintentar alta
+                            </Button>
+                          </form>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 

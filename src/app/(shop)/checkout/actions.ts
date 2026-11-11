@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 import type { CartLine } from '@/domain/cart/cart';
-import { CartChangedError, postalCodeSchema, SHIPPING_METHODS } from '@/domain/orders/order';
+import { CartChangedError, postalCodeSchema, provinceCodeSchema, SHIPPING_METHODS } from '@/domain/orders/order';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
 import { DomainError } from '@/domain/shared/errors';
 import { requireUser } from '@/lib/auth-guards';
@@ -44,6 +44,7 @@ export async function previewCheckout(lines: CartLine[]) {
 
 const quoteSchema = z.object({
   lines: linesSchema,
+  provinceCode: provinceCodeSchema,
   postalCode: postalCodeSchema,
   method: z.enum(SHIPPING_METHODS),
 });
@@ -53,10 +54,10 @@ export async function quoteShipping(
 ): Promise<ActionResult<{ quote: ShippingQuote; agencies: Agency[] }>> {
   await requireUser('/checkout');
   try {
-    const { lines, postalCode, method } = quoteSchema.parse(request);
+    const { lines, provinceCode, postalCode, method } = quoteSchema.parse(request);
     const [quote, agencies] = await Promise.all([
       container.checkout.quoteShipping(lines, postalCode, method),
-      method === 'sucursal' ? container.checkout.agencies(postalCode) : Promise.resolve([]),
+      method === 'sucursal' ? container.checkout.agencies(provinceCode, postalCode) : Promise.resolve([]),
     ]);
     return { ok: true, data: { quote, agencies } };
   } catch (err) {

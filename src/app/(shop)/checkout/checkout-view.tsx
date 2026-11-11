@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/field';
 import type { CheckoutPreview } from '@/domain/orders/use-cases/create-checkout';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
-import type { ShippingMethod } from '@/domain/orders/order';
+import { PROVINCES, type ProvinceCode, type ShippingMethod } from '@/domain/orders/order';
 import { formatPrice } from '@/lib/format';
 
 import { previewCheckout, quoteShipping, startCheckout } from './actions';
@@ -21,7 +21,18 @@ interface Quoted {
   agencies: Agency[];
 }
 
-const EMPTY_FORM = { recipient: '', phone: '', postalCode: '', address: '', agencyId: '' };
+const EMPTY_FORM = {
+  recipient: '',
+  phone: '',
+  provinceCode: '',
+  postalCode: '',
+  streetName: '',
+  streetNumber: '',
+  floor: '',
+  apartment: '',
+  city: '',
+  agencyId: '',
+};
 
 export function CheckoutView() {
   const { lines } = useCart();
@@ -84,7 +95,7 @@ export function CheckoutView() {
   }
 
   const { hasPhysical } = preview;
-  const currentKey = `${form.postalCode.trim().toUpperCase()}|${method}|${linesKey}`;
+  const currentKey = `${form.provinceCode}|${form.postalCode.trim().toUpperCase()}|${method}|${linesKey}`;
   const quote = quoted?.forKey === currentKey ? quoted : null;
   const shippingCents = hasPhysical ? (quote?.quote.priceCents ?? 0) : 0;
   const total = preview.subtotalCents + shippingCents;
@@ -97,7 +108,7 @@ export function CheckoutView() {
     setBusy('quote');
     setError(null);
     setFieldErrors({});
-    const result = await quoteShipping({ lines, postalCode: form.postalCode, method });
+    const result = await quoteShipping({ lines, provinceCode: form.provinceCode as ProvinceCode, postalCode: form.postalCode, method });
     setBusy(null);
     if (!result.ok) {
       setError(result.error);
@@ -120,8 +131,13 @@ export function CheckoutView() {
             method,
             recipient: form.recipient,
             phone: form.phone,
+            provinceCode: form.provinceCode,
             postalCode: form.postalCode,
-            address: method === 'domicilio' ? form.address : undefined,
+            streetName: method === 'domicilio' ? form.streetName : undefined,
+            streetNumber: method === 'domicilio' ? form.streetNumber : undefined,
+            floor: method === 'domicilio' ? form.floor : undefined,
+            apartment: method === 'domicilio' ? form.apartment : undefined,
+            city: method === 'domicilio' ? form.city : undefined,
             agencyId: method === 'sucursal' ? form.agencyId : undefined,
           }
         : undefined,
@@ -142,10 +158,12 @@ export function CheckoutView() {
         {hasPhysical && (
           <fieldset className="flex flex-col gap-4 rounded-3xl border border-borde-suave bg-white p-6">
             <legend className="px-1 text-lg font-semibold">Envío</legend>
-            <p className="text-xs text-tinta-medio">
-              Los precios de envío son <strong>simulados</strong> por ahora: el envío real con Correo Argentino se suma más
-              adelante.
-            </p>
+            {quote?.quote.simulated && (
+              <p className="text-xs text-tinta-medio">
+                Los precios de envío son <strong>simulados</strong> por ahora: el envío real con Correo Argentino se suma más
+                adelante.
+              </p>
+            )}
 
             <div className="grid gap-3 sm:grid-cols-2">
               {(['domicilio', 'sucursal'] as const).map((m) => (
@@ -168,6 +186,16 @@ export function CheckoutView() {
               <Field label="Teléfono" htmlFor="phone" errors={fieldErrors.phone}>
                 <Input id="phone" value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" required />
               </Field>
+              <Field label="Provincia" htmlFor="provinceCode" errors={fieldErrors.provinceCode}>
+                <Select id="provinceCode" value={form.provinceCode} onChange={set('provinceCode')} required>
+                  <option value="">Elegí tu provincia…</option>
+                  {PROVINCES.map((p) => (
+                    <option key={p.code} value={p.code}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
               <Field label="Código postal" htmlFor="postalCode" errors={fieldErrors.postalCode} hint="Ej. 1425 o C1425ABC">
                 <Input
                   id="postalCode"
@@ -178,14 +206,28 @@ export function CheckoutView() {
                 />
               </Field>
               {method === 'domicilio' && (
-                <Field label="Dirección" htmlFor="address" errors={fieldErrors.address} hint="Calle, número, piso y localidad">
-                  <Input id="address" value={form.address} onChange={set('address')} autoComplete="street-address" required />
-                </Field>
+                <>
+                  <Field label="Calle" htmlFor="streetName" errors={fieldErrors.streetName}>
+                    <Input id="streetName" value={form.streetName} onChange={set('streetName')} autoComplete="address-line1" required />
+                  </Field>
+                  <Field label="Altura" htmlFor="streetNumber" errors={fieldErrors.streetNumber}>
+                    <Input id="streetNumber" value={form.streetNumber} onChange={set('streetNumber')} inputMode="numeric" required />
+                  </Field>
+                  <Field label="Piso (opcional)" htmlFor="floor" errors={fieldErrors.floor}>
+                    <Input id="floor" value={form.floor} onChange={set('floor')} />
+                  </Field>
+                  <Field label="Depto (opcional)" htmlFor="apartment" errors={fieldErrors.apartment}>
+                    <Input id="apartment" value={form.apartment} onChange={set('apartment')} />
+                  </Field>
+                  <Field label="Localidad" htmlFor="city" errors={fieldErrors.city}>
+                    <Input id="city" value={form.city} onChange={set('city')} autoComplete="address-level2" required />
+                  </Field>
+                </>
               )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" variant="secondary" onClick={onQuote} disabled={busy !== null || !form.postalCode}>
+              <Button type="button" variant="secondary" onClick={onQuote} disabled={busy !== null || !form.postalCode || !form.provinceCode}>
                 {busy === 'quote' ? 'Calculando…' : quote ? 'Recalcular envío' : 'Calcular envío'}
               </Button>
               {quote && (

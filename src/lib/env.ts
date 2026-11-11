@@ -40,6 +40,15 @@ const schema = z
     // Webhooks → clave secreta, in Tus integraciones. Signs the notifications we receive.
     MP_WEBHOOK_SECRET: z.string().min(10).optional(),
 
+    // --- Correo Argentino / MiCorreo — optional: without it the shipping price is simulated ---
+    CORREO_API_USER: z.string().min(1).optional(),
+    CORREO_API_PASSWORD: z.string().min(1).optional(),
+    // Printed once by `npm run correo:customer-id`.
+    CORREO_CUSTOMER_ID: z.string().min(1).optional(),
+    CORREO_ENV: z.enum(['test', 'prod']).default('test'),
+    // Where the parcels are sent from.
+    CORREO_ORIGIN_POSTAL_CODE: z.string().regex(/^[0-9]{4}$/, 'Son 4 dígitos, ej. 1165').default('1165'),
+
     // --- mail (fase 2) — optional in dev: without a key, mails go to the console ---
     RESEND_API_KEY: z.string().startsWith('re_').optional(),
     MAIL_FROM: z.string().min(3).optional(),
@@ -51,6 +60,10 @@ const schema = z
   .refine((e) => !e.MP_ACCESS_TOKEN === !e.MP_WEBHOOK_SECRET, {
     path: ['MP_WEBHOOK_SECRET'],
     message: 'MP_ACCESS_TOKEN y MP_WEBHOOK_SECRET van juntas: completá las dos o ninguna',
+  })
+  .refine((e) => [e.CORREO_API_USER, e.CORREO_API_PASSWORD, e.CORREO_CUSTOMER_ID].every(Boolean) || ![e.CORREO_API_USER, e.CORREO_API_PASSWORD, e.CORREO_CUSTOMER_ID].some(Boolean), {
+    path: ['CORREO_CUSTOMER_ID'],
+    message: 'CORREO_API_USER, CORREO_API_PASSWORD y CORREO_CUSTOMER_ID van juntas: completá las tres o ninguna',
   })
   .refine((e) => !e.GOOGLE_CLIENT_ID === !e.GOOGLE_CLIENT_SECRET, {
     path: ['GOOGLE_CLIENT_SECRET'],
@@ -80,6 +93,9 @@ export const env = parsed.data;
 
 /** Whether buyers can pay yet (Mercado Pago credentials are configured). */
 export const paymentsEnabled = Boolean(env.MP_ACCESS_TOKEN && env.MP_WEBHOOK_SECRET);
+
+/** Whether shipping is quoted and registered with the real Correo Argentino (otherwise it is simulated). */
+export const shippingEnabled = Boolean(env.CORREO_API_USER && env.CORREO_API_PASSWORD && env.CORREO_CUSTOMER_ID);
 
 /** Whether buyers can sign in yet (the Google Cloud client is configured). */
 export const googleSignInEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);

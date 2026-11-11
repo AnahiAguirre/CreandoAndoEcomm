@@ -6,16 +6,18 @@ import type { AdminProduct, NewProductFile, ProductRepository } from '@/domain/c
 import type { DeliverableFile, Entitlement, LibraryItem } from '@/domain/delivery/entitlement';
 import type { EntitlementRepository, NewEntitlement } from '@/domain/delivery/entitlement-repository';
 import type { MailMessage, MailSender } from '@/domain/notifications/mail-sender';
-import type { NewOrder, Order, OrderStatus, ShippingMethod } from '@/domain/orders/order';
+import type { NewOrder, Order, OrderStatus, ShipmentState, ShippingMethod } from '@/domain/orders/order';
 import type {
   Agency,
   GatewayPayment,
   MarkPaidResult,
   OrderRepository,
   PaymentGateway,
+  ShipmentCreator,
   ShippingQuote,
   ShippingQuoter,
 } from '@/domain/orders/ports';
+import { ShipmentFailedError } from '@/domain/orders/ports';
 import type { Bucket, FileStorage, SignedDownloadOptions, SignedUpload } from '@/domain/storage/file-storage';
 
 // ---------- builders ----------
@@ -378,6 +380,11 @@ export class InMemoryOrderRepository implements OrderRepository {
     return { order, changed: true };
   }
 
+  async setShipment(id: string, shipment: ShipmentState): Promise<void> {
+    const order = this.items.get(id);
+    if (order?.shipping && order.shipping.shipment?.status !== 'created') order.shipping.shipment = shipment;
+  }
+
   async markUnpaid(id: string, status: Extract<OrderStatus, 'rejected' | 'cancelled'>, mpPaymentId: string): Promise<void> {
     const order = this.items.get(id);
     if (order && order.status === 'pending') {
@@ -410,10 +417,22 @@ export class FakeShippingQuoter implements ShippingQuoter {
 
   async quote(input: { postalCode: string; method: ShippingMethod; parcel: { weightG: number } }): Promise<ShippingQuote> {
     this.quotes.push({ postalCode: input.postalCode, method: input.method, weightG: input.parcel.weightG });
-    return { priceCents: input.method === 'sucursal' ? 350000 : 500000, label: 'Envío (simulado)', etaDays: 4 };
+    return { priceCents: input.method === 'sucursal' ? 350000 : 500000, label: 'Envío (simulado)', etaDays: 4, simulated: true };
   }
 
   async agencies(): Promise<Agency[]> {
     return [{ id: 'ag-1', name: 'Sucursal Centro', address: 'Av. Siempre Viva 123' }];
+  }
+}
+
+/** Records what it was asked to ship; `fail` makes the next calls throw like the carrier being down. */
+export class FakeShipmentCreator implements ShipmentCreator {
+  readonly shipped: string[] = [];
+  fail = false;
+
+  async create(order: Order): Promise<'created'> {
+    if (this.fail) throw new ShipmentFailedError('MiCorreo no respondió');
+    this.shipped.push(order.id);
+    return 'created';
   }
 }

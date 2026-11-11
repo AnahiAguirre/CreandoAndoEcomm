@@ -11,6 +11,7 @@ import { DigitalDelivery } from '@/domain/delivery/use-cases/digital-delivery';
 import type { MailSender } from '@/domain/notifications/mail-sender';
 import type { PaymentGateway } from '@/domain/orders/ports';
 import { ConfirmPayment } from '@/domain/orders/use-cases/confirm-payment';
+import { ShipOrder } from '@/domain/orders/use-cases/ship-order';
 import { CreateCheckout } from '@/domain/orders/use-cases/create-checkout';
 import { createAuth } from '@/infra/auth/create-auth';
 import { db } from '@/infra/db/client';
@@ -24,11 +25,15 @@ import { downloadReadyMail } from '@/infra/mail/templates/download-ready';
 import { DisabledPaymentGateway } from '@/infra/payments/disabled-payment-gateway';
 import { MercadoPagoGateway } from '@/infra/payments/mercado-pago-gateway';
 import { verifyMercadoPagoSignature } from '@/infra/payments/webhook-signature';
+import { CorreoClient } from '@/infra/shipping/correo-argentino/client';
+import { CorreoQuoter } from '@/infra/shipping/correo-argentino/correo-quoter';
+import { CorreoShipmentCreator } from '@/infra/shipping/correo-argentino/correo-shipment-creator';
 import { FakeShippingQuoter } from '@/infra/shipping/fake-shipping-quoter';
+import { ManualShipmentCreator } from '@/infra/shipping/manual-shipment-creator';
 import { SupabaseAssetUrlResolver } from '@/infra/storage/supabase-asset-url-resolver';
 import { SupabaseFileStorage } from '@/infra/storage/supabase-file-storage';
 
-import { authBaseUrl, env } from './env';
+import { authBaseUrl, env, shippingEnabled } from './env';
 
 /**
  * Composition root. This is the ONLY file that wires an `infra/` implementation
@@ -56,8 +61,19 @@ if (!env.MP_ACCESS_TOKEN) {
   console.warn('[pagos] Sin MP_ACCESS_TOKEN: la tienda anda, pero todavía no se puede pagar.');
 }
 
-// Stand-in until the Correo Argentino credentials exist; the real quoter replaces this line only.
-const shippingQuoter = new FakeShippingQuoter();
+// Real Correo Argentino (MiCorreo) once its credentials are set; until then a stand-in quoter
+// with made-up prices, and paid orders are left for the admin to ship by hand.
+const correo = shippingEnabled
+  ? new CorreoClient({
+      env: env.CORREO_ENV,
+      user: env.CORREO_API_USER!,
+      password: env.CORREO_API_PASSWORD!,
+      customerId: env.CORREO_CUSTOMER_ID!,
+      originPostalCode: env.CORREO_ORIGIN_POSTAL_CODE,
+    })
+  : null;
+const shippingQuoter = correo ? new CorreoQuoter(correo) : new FakeShippingQuoter();
+const shipOrder = new ShipOrder(orderRepository, correo ? new CorreoShipmentCreator(correo) : new ManualShipmentCreator());
 
 const delivery = new DigitalDelivery(entitlementRepository, productRepository, fileStorage, mail, (to, productName) =>
   downloadReadyMail(to, productName, `${authBaseUrl}/mis-descargas`),
@@ -89,10 +105,11 @@ export const container = {
   },
   cart: { products: new GetCartProducts(productRepository) },
   delivery,
+  shipOrder,
   orders: orderRepository,
   checkout: new CreateCheckout(productRepository, orderRepository, paymentGateway, shippingQuoter),
   payments: {
-    confirm: new ConfirmPayment(orderRepository, paymentGateway, delivery),
+    confirm: new ConfirmPayment(orderRepository, paymentGateway, delivery, shipOrder),
     /** Mercado Pago's webhook signature, checked with our secret. `false` when payments aren't configured. */
     verifyWebhook: (input: { signatureHeader: string | null; requestId: string | null; dataId: string | null }) =>
       env.MP_WEBHOOK_SECRET ? verifyMercadoPagoSignature({ secret: env.MP_WEBHOOK_SECRET, ...input }) : false,

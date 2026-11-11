@@ -16,11 +16,11 @@ export class FakeShippingQuoter implements ShippingQuoter {
     const extraKg = Math.max(0, Math.ceil(parcel.weightG / 1000) - 1);
     const home = BASE_CENTS + extraKg * PER_EXTRA_KG_CENTS;
     return method === 'sucursal'
-      ? { priceCents: Math.round(home * (1 - PICKUP_DISCOUNT)), label: 'Retiro en sucursal (simulado)', etaDays: 5 }
-      : { priceCents: home, label: 'Envío a domicilio (simulado)', etaDays: 4 };
+      ? { priceCents: Math.round(home * (1 - PICKUP_DISCOUNT)), label: 'Retiro en sucursal (simulado)', etaDays: 5, simulated: true }
+      : { priceCents: home, label: 'Envío a domicilio (simulado)', etaDays: 4, simulated: true };
   }
 
-  async agencies(postalCode: string): Promise<Agency[]> {
+  async agencies({ postalCode }: Parameters<ShippingQuoter['agencies']>[0]): Promise<Agency[]> {
     return [
       { id: `${postalCode}-centro`, name: 'Sucursal Centro', address: 'Av. Siempre Viva 123' },
       { id: `${postalCode}-norte`, name: 'Sucursal Norte', address: 'Calle Falsa 456' },

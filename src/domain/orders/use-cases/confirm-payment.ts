@@ -1,5 +1,6 @@
 import type { Order } from '../order';
 import type { GatewayPayment, OrderRepository, PaymentGateway } from '../ports';
+import type { OrderShipper } from './ship-order';
 
 /** The one thing the payment flow needs from digital delivery: `DigitalDelivery.grant`. */
 export interface DigitalGranter {
@@ -25,6 +26,7 @@ export class ConfirmPayment {
     private readonly orders: OrderRepository,
     private readonly gateway: PaymentGateway,
     private readonly delivery: DigitalGranter,
+    private readonly shipper: OrderShipper,
   ) {}
 
   /** Webhook entry: only a payment id arrives, and even that is just a pointer. */
@@ -59,6 +61,7 @@ export class ConfirmPayment {
         // the order: if an earlier attempt died between "paid" and "granted", the
         // retry is what finishes the job.
         await this.deliverDigitals(paid);
+        await this.shipPhysicals(paid);
         return { kind: 'paid', order: paid };
       }
       case 'rejected':
@@ -69,6 +72,15 @@ export class ConfirmPayment {
       }
       default:
         return { kind: 'pending', order };
+    }
+  }
+
+  /** Same idea as the PDFs: runs every time and does nothing once the shipment has been dealt with. */
+  private async shipPhysicals(order: Order): Promise<void> {
+    try {
+      await this.shipper.ship(order);
+    } catch (err) {
+      console.error(`[orders] no se pudo registrar el envío del pedido ${order.id}:`, err);
     }
   }
 

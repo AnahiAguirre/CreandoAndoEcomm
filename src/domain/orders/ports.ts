@@ -1,7 +1,9 @@
 import { DomainError } from '@/domain/shared/errors';
 import type { Cents } from '@/domain/shared/money';
 
-import type { NewOrder, Order, OrderStatus, ShippingMethod } from './order';
+import type { NewOrder, Order, OrderStatus, Parcel, ProvinceCode, ShipmentState, ShippingMethod } from './order';
+
+export type { Parcel };
 
 // ---------- orders ----------
 
@@ -26,6 +28,8 @@ export interface OrderRepository {
   markPaid(id: string, mpPaymentId: string): Promise<MarkPaidResult>;
   /** Only moves a still-`pending` order (a paid one is never downgraded). */
   markUnpaid(id: string, status: Extract<OrderStatus, 'rejected' | 'cancelled'>, mpPaymentId: string): Promise<void>;
+  /** Records how registering the shipment went. A shipment already `created` is never overwritten. */
+  setShipment(id: string, shipment: ShipmentState): Promise<void>;
 }
 
 // ---------- payments ----------
@@ -57,26 +61,41 @@ export interface PaymentGateway {
 
 // ---------- shipping ----------
 
-export interface Parcel {
-  weightG: number;
-  lengthCm: number;
-  widthCm: number;
-  heightCm: number;
-}
-
 export interface ShippingQuote {
   priceCents: Cents;
   label: string;
   etaDays: number;
+  /** `true` for the stand-in quoter: the price is made up and the UI says so. */
+  simulated: boolean;
 }
 
 export interface Agency {
+  /** The carrier's branch code. */
   id: string;
   name: string;
   address: string;
 }
 
+/** The carrier could not be reached or refused: the buyer sees the message and can try again. */
+export class ShippingUnavailableError extends DomainError {
+  constructor(message = 'No pudimos calcular el envío ahora. Probá de nuevo en unos minutos.') {
+    super(message, 'SHIPPING_UNAVAILABLE');
+  }
+}
+
 export interface ShippingQuoter {
   quote(input: { postalCode: string; method: ShippingMethod; parcel: Parcel }): Promise<ShippingQuote>;
-  agencies(postalCode: string): Promise<Agency[]>;
+  /** Branches to pick up at, the ones closest to `postalCode` first. */
+  agencies(input: { provinceCode: ProvinceCode; postalCode: string }): Promise<Agency[]>;
+}
+
+export class ShipmentFailedError extends Error {}
+
+export interface ShipmentCreator {
+  /**
+   * Registers the shipment of a paid order with the carrier. Resolves `created`
+   * when it is in the carrier's system, `manual` when there is no carrier
+   * connection and someone has to do it by hand. Throws `ShipmentFailedError`.
+   */
+  create(order: Order): Promise<'created' | 'manual'>;
 }
