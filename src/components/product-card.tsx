@@ -31,7 +31,7 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
     <article className="flex h-full flex-col gap-3">
       <Link href={`/producto/${product.slug}`} className="group flex flex-1 flex-col gap-3 text-tinta hover:text-tinta">
         <span className="relative block aspect-square overflow-hidden rounded-2xl bg-arena">
-          {imageUrl && (
+          {imageUrl ? (
             <Image
               src={imageUrl}
               alt={product.name}
@@ -39,6 +39,9 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
               sizes={sizes}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
+          ) : (
+            // No photo loaded yet: the logo, faded, so the card never looks broken.
+            <Image src="/home/logo.jpeg" alt="" fill sizes={sizes} className="object-contain p-[22%] opacity-40 mix-blend-multiply" />
           )}
         </span>
         <span className="flex flex-col gap-1">

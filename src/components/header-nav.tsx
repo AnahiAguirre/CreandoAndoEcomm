@@ -60,7 +60,7 @@ function Links({
   });
 
   return variant === 'desktop' ? (
-    <div className="hidden items-center justify-center gap-7 text-[15px] font-semibold lg:flex">{items}</div>
+    <div className="hidden items-center justify-center gap-5 text-sm font-semibold lg:flex xl:gap-7 xl:text-[15px]">{items}</div>
   ) : (
     <ul ref={rowRef} className="flex h-12 w-max items-center gap-2 px-4">
       {items.map((item) => (
