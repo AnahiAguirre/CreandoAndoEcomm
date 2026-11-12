@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-/** A glimpse of who makes the toys, leading to the full story. */
+/** A glimpse of who is behind the shop, leading to the full story. */
 export function AboutTeaser() {
   return (
     <section className="bg-arena px-4 py-16 md:py-20">
@@ -12,11 +12,11 @@ export function AboutTeaser() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-soft md:text-sm">Quiénes somos</p>
           <h2 className="mt-3 font-display text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">
-            Hechos a mano, pieza por pieza.
+            Jugar también es crecer.
           </h2>
           <p className="mt-4 max-w-xl text-lg text-tinta-medio">
-            Somos un taller chico que hace juguetes de madera pintados a mano y láminas para colorear, para que jugar
-            sea tocar, armar e inventar.
+            Somos profesionales de la salud. Elegimos juguetes y propuestas que, además de divertir, estimulan la
+            motricidad, la atención y la imaginación de los chicos.
           </p>
           <Link href="/quienes-somos" className="mt-6 inline-block font-semibold text-azul hover:underline">
             Conocé nuestra historia <span aria-hidden="true">›</span>

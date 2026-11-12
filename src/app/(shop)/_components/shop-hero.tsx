@@ -45,7 +45,7 @@ export function ShopHero({ product, imageUrl }: Props) {
             Juguetes para jugar sin pantallas.
           </h1>
           <p className="mt-4 max-w-md text-lg text-tinta-medio">
-            Rompecabezas y pistas de madera pintados a mano, y láminas para colorear que te llegan al instante.
+            Juguetes de madera y láminas para colorear elegidos por profesionales de la salud: divierten y, además, estimulan el desarrollo.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href={CATALOG_LINKS.todo} className={pillButton}>

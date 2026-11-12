@@ -17,7 +17,7 @@ type Variant = 'desktop' | 'mobile';
 export function HeaderNav({ variant }: { variant: Variant }) {
   // useSearchParams needs a Suspense boundary; until it resolves the links render unmarked.
   return (
-    <Suspense fallback={<Links variant={variant} pathname="" categoria={null} />}>
+    <Suspense fallback={<Links variant={variant} pathname="" search="" />}>
       <CurrentLinks variant={variant} />
     </Suspense>
   );
@@ -25,7 +25,7 @@ export function HeaderNav({ variant }: { variant: Variant }) {
 
 function CurrentLinks({ variant }: { variant: Variant }) {
   const pathname = usePathname();
-  const categoria = useSearchParams().get('categoria');
+  const search = useSearchParams().toString();
   const row = useRef<HTMLUListElement>(null);
 
   // On a phone the pills scroll sideways: bring the current one into view, or it can sit off screen.
@@ -34,24 +34,24 @@ function CurrentLinks({ variant }: { variant: Variant }) {
     const list = row.current?.parentElement;
     if (!current || !list) return;
     list.scrollTo({ left: current.offsetLeft - (list.clientWidth - current.offsetWidth) / 2, behavior: 'smooth' });
-  }, [pathname, categoria]);
+  }, [pathname, search]);
 
-  return <Links variant={variant} pathname={pathname} categoria={categoria} rowRef={row} />;
+  return <Links variant={variant} pathname={pathname} search={search} rowRef={row} />;
 }
 
 function Links({
   variant,
   pathname,
-  categoria,
+  search,
   rowRef,
 }: {
   variant: Variant;
   pathname: string;
-  categoria: string | null;
+  search: string;
   rowRef?: RefObject<HTMLUListElement | null>;
 }) {
   const items = NAV_LINKS.map((l) => {
-    const current = isActiveLink(l.href, pathname, categoria) ? 'page' : undefined;
+    const current = isActiveLink(l.href, pathname, search) ? 'page' : undefined;
     return (
       <Link key={l.href} href={l.href} aria-current={current} className={variant === 'desktop' ? desktopLink : pill}>
         {l.label}

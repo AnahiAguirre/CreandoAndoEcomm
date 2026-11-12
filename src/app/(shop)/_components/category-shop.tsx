@@ -26,7 +26,7 @@ const CARDS: Card[] = [
   {
     key: 'rompecabezas',
     title: 'Rompecabezas',
-    detail: 'Piezas grandes de madera, fáciles de agarrar.',
+    detail: 'Atención y motricidad fina, con piezas grandes de madera.',
     cta: 'Ver rompecabezas',
     bg: 'bg-[#fbe9c9]',
     art: (
@@ -42,7 +42,7 @@ const CARDS: Card[] = [
   {
     key: 'pistas',
     title: 'Pistas de madera',
-    detail: 'Tramos que encastran para armar recorridos nuevos.',
+    detail: 'Coordinación e imaginación: recorridos para armar e inventar.',
     cta: 'Ver pistas',
     bg: 'bg-[#dcebf7]',
     art: (
@@ -58,7 +58,7 @@ const CARDS: Card[] = [
   {
     key: 'imprimibles',
     title: 'Imprimibles',
-    detail: 'Láminas en PDF para colorear. Te llegan al instante.',
+    detail: 'Trazo y creatividad, en láminas PDF que te llegan al instante.',
     cta: 'Ver imprimibles',
     bg: 'bg-[#e2f0dc]',
     art: (

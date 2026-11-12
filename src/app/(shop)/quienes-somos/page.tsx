@@ -6,18 +6,20 @@ import { CATALOG_LINKS } from '@/components/nav-links';
 
 export const metadata: Metadata = { title: 'Quiénes somos' };
 
-// PROVISIONAL copy: replace it with the shop's own story, values and contact.
-// The photos fall back to the home's drawings until real ones are in /public/quienes-somos.
+// We don't make the toys: we are health professionals who choose them for families.
+// Still to add: who we are (professions, names, photo), where, and how to reach us.
 const STORY = [
-  'CreandoAndo nació en un taller chico, con ganas de que los chicos jueguen con las manos: tocar, encastrar, armar, desarmar e inventar.',
-  'Cada juguete se corta, se lija y se pinta a mano, pieza por pieza. Por eso no hay dos exactamente iguales.',
-  'Las láminas para colorear las dibujamos nosotros, para imprimir en casa todas las veces que quieran.',
+  'Somos profesionales de la salud. En nuestro trabajo con chicos y familias vemos todos los días cuánto lugar ocupan las pantallas, y lo difícil que es encontrar alternativas que entusiasmen.',
+  'Sabemos que el juego es mucho más que entretenimiento: es la forma en que los chicos aprenden. Mientras arman, encastran, pintan o inventan, ejercitan la motricidad, la atención, el lenguaje y la manera de vincularse con otros.',
+  'Por eso creamos CreandoAndo. No fabricamos los juguetes: los elegimos uno por uno, con la mirada de nuestra profesión, para que además de divertir estimulen el desarrollo. Y para que en casa sea más fácil decirle que sí al juego.',
 ];
 
-const VALUES = [
-  { title: 'Hechos a mano', detail: 'Cortamos, lijamos y pintamos cada pieza en el taller.' },
-  { title: 'Sin pantallas', detail: 'Juguetes para jugar en la mesa, en el piso y en familia.' },
-  { title: 'Pensados para durar', detail: 'Madera resistente y piezas grandes, fáciles de agarrar.' },
+/** What playing with what we choose works on. Each one is a reason it was picked. */
+const AREAS = [
+  { title: 'Motricidad fina y coordinación', detail: 'Encastrar, agarrar piezas, trazar y pintar.' },
+  { title: 'Atención y resolución de problemas', detail: 'Rompecabezas y recorridos que invitan a pensar, probar y volver a intentar.' },
+  { title: 'Lenguaje e imaginación', detail: 'Juego simbólico para inventar historias y ponerles palabras.' },
+  { title: 'Vínculo y juego compartido', detail: 'Propuestas para jugar en familia, en la mesa o en el piso, sin pantallas.' },
 ];
 
 const PHOTOS = [
@@ -34,7 +36,7 @@ export default function AboutPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-soft md:text-sm">Quiénes somos</p>
             <h1 className="mt-3 text-balance font-display text-4xl font-extrabold leading-[1.05] tracking-[-0.03em] md:text-5xl">
-              Juguetes hechos a mano, para jugar sin pantallas.
+              Jugar también es crecer.
             </h1>
             <div className="mt-6 flex max-w-xl flex-col gap-4 text-lg text-tinta-medio">
               {STORY.map((p) => (
@@ -50,9 +52,12 @@ export default function AboutPage() {
 
       <section className="bg-white px-4 py-14 md:py-20">
         <div className="mx-auto max-w-[75rem]">
-          <h2 className="font-display text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Cómo lo hacemos</h2>
-          <ul className="mt-8 grid gap-5 md:grid-cols-3">
-            {VALUES.map((v) => (
+          <h2 className="font-display text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Qué estimula el juego</h2>
+          <p className="mt-2 max-w-2xl text-tinta-medio">
+            Elegimos cada juguete y cada lámina por lo que aporta, además de lo divertido que es.
+          </p>
+          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {AREAS.map((v) => (
               <li key={v.title} className="rounded-3xl bg-arena p-6">
                 <h3 className="text-lg font-bold">{v.title}</h3>
                 <p className="mt-1 text-tinta-medio">{v.detail}</p>
@@ -72,7 +77,7 @@ export default function AboutPage() {
 
       <section className="flex flex-col items-center gap-5 bg-tinta px-4 py-16 text-center text-white md:py-20">
         <h2 className="font-display text-3xl font-extrabold md:text-4xl">¿Lo querés en tu casa?</h2>
-        <p className="max-w-md text-tinta-muted">Retiro gratis o envío a todo el país. Los imprimibles te llegan al instante.</p>
+        <p className="max-w-md text-tinta-muted">Juguetes y láminas elegidos por profesionales. Retiro gratis o envío a todo el país.</p>
         <Link
           href={CATALOG_LINKS.todo}
           className="inline-flex items-center rounded-full bg-azul px-[26px] py-[13px] font-medium text-white transition-colors duration-300 ease-suave hover:bg-azul-dark hover:text-white"
