@@ -96,7 +96,6 @@ describe('CorreoQuoter', () => {
       priceCents: 650025,
       label: 'Clásico',
       etaDays: 6,
-      simulated: false,
     });
     expect((await quoter.quote({ postalCode: 'C1425ABC', method: 'sucursal', parcel })).priceCents).toBe(480000);
   });

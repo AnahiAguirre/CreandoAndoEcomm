@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 import type { CartLine } from '@/domain/cart/cart';
-import { CartChangedError, postalCodeSchema, provinceCodeSchema, SHIPPING_METHODS } from '@/domain/orders/order';
+import { CARRIER_METHODS, CartChangedError, postalCodeSchema, provinceCodeSchema } from '@/domain/orders/order';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
 import { DomainError } from '@/domain/shared/errors';
 import { requireUser } from '@/lib/auth-guards';
@@ -46,7 +46,7 @@ const quoteSchema = z.object({
   lines: linesSchema,
   provinceCode: provinceCodeSchema,
   postalCode: postalCodeSchema,
-  method: z.enum(SHIPPING_METHODS),
+  method: z.enum(CARRIER_METHODS),
 });
 
 export async function quoteShipping(

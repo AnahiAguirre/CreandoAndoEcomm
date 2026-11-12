@@ -8,8 +8,13 @@ import type { Cents } from '@/domain/shared/money';
 export const ORDER_STATUSES = ['pending', 'paid', 'rejected', 'cancelled'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-export const SHIPPING_METHODS = ['domicilio', 'sucursal'] as const;
+/** `retiro` = the buyer picks it up at the shop (free). The other two go by Correo Argentino. */
+export const SHIPPING_METHODS = ['retiro', 'domicilio', 'sucursal'] as const;
 export type ShippingMethod = (typeof SHIPPING_METHODS)[number];
+
+/** The methods a carrier quotes and delivers. */
+export const CARRIER_METHODS = ['domicilio', 'sucursal'] as const;
+export type CarrierMethod = (typeof CARRIER_METHODS)[number];
 
 /** The box an order ships as: what the quote was based on and what MiCorreo is told. */
 export interface Parcel {
@@ -182,8 +187,9 @@ export const shippingInputSchema = z
       .string()
       .trim()
       .regex(/^[0-9+()\-\s]{6,20}$/, 'Teléfono inválido.'),
-    provinceCode: provinceCodeSchema,
-    postalCode: postalCodeSchema,
+    // Not needed to pick it up at the shop.
+    provinceCode: provinceCodeSchema.optional(),
+    postalCode: postalCodeSchema.optional(),
     // Home delivery: the carrier wants the address in pieces.
     streetName: text(100).optional(),
     streetNumber: text(10).optional(),
@@ -194,6 +200,10 @@ export const shippingInputSchema = z
     agencyId: text(60).optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.method !== 'retiro') {
+      if (!v.provinceCode) ctx.addIssue({ code: 'custom', path: ['provinceCode'], message: 'Elegí la provincia.' });
+      if (!v.postalCode) ctx.addIssue({ code: 'custom', path: ['postalCode'], message: 'Escribí el código postal.' });
+    }
     if (v.method === 'domicilio') {
       if (!v.streetName) ctx.addIssue({ code: 'custom', path: ['streetName'], message: 'Escribí la calle.' });
       if (!v.streetNumber) ctx.addIssue({ code: 'custom', path: ['streetNumber'], message: 'Escribí la altura.' });

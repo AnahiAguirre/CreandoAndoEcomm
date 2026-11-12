@@ -86,6 +86,12 @@ describe('shippingInputSchema', () => {
     expect(shippingInputSchema.safeParse({ ...pickup, agencyId: 'a1' }).success).toBe(true);
   });
 
+  it('pickup at the shop needs only who collects it', () => {
+    const retiro = { method: 'retiro', recipient: 'Ana Pérez', phone: '11 5555-1234' };
+    expect(shippingInputSchema.safeParse(retiro).success).toBe(true);
+    expect(shippingInputSchema.safeParse({ ...retiro, phone: 'abc' }).success).toBe(false);
+  });
+
   it('requires a real province, also for pickup', () => {
     expect(shippingInputSchema.safeParse({ ...valid, provinceCode: undefined }).success).toBe(false);
     expect(shippingInputSchema.safeParse({ ...valid, provinceCode: 'Q1' }).success).toBe(false);

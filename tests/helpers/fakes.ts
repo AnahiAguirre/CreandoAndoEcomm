@@ -417,7 +417,7 @@ export class FakeShippingQuoter implements ShippingQuoter {
 
   async quote(input: { postalCode: string; method: ShippingMethod; parcel: { weightG: number } }): Promise<ShippingQuote> {
     this.quotes.push({ postalCode: input.postalCode, method: input.method, weightG: input.parcel.weightG });
-    return { priceCents: input.method === 'sucursal' ? 350000 : 500000, label: 'Envío (simulado)', etaDays: 4, simulated: true };
+    return { priceCents: input.method === 'sucursal' ? 350000 : 500000, label: 'Envío', etaDays: 4 };
   }
 
   async agencies(): Promise<Agency[]> {

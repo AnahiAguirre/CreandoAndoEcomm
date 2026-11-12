@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { OrderStatus, ShipmentState } from '@/domain/orders/order';
+import { PICKUP_LABEL } from '@/domain/orders/pickup';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
 
@@ -64,16 +65,22 @@ export default async function AdminOrdersPage() {
                 {order.shipping && (
                   <div className="mt-3 rounded-lg bg-neutral-50 p-3">
                     <p className="font-medium">
-                      {order.shipping.method === 'domicilio' ? 'Envío a domicilio' : 'Retiro en sucursal'} ·{' '}
-                      {formatPrice(order.shippingCents)} ({order.shipping.quoteLabel})
+                      {order.shipping.method === 'retiro'
+                        ? PICKUP_LABEL
+                        : `${order.shipping.method === 'domicilio' ? 'Envío a domicilio' : 'Retiro en sucursal'} · ${formatPrice(order.shippingCents)} (${order.shipping.quoteLabel})`}
                     </p>
                     <p>
                       {order.shipping.recipient} · {order.shipping.phone}
                     </p>
-                    <p>
-                      {order.shipping.address ?? order.shipping.agency} · CP {order.shipping.postalCode}
-                    </p>
-                    {order.status === 'paid' && order.shipping.shipment && (
+                    {order.shipping.method !== 'retiro' && (
+                      <p>
+                        {order.shipping.address ?? order.shipping.agency} · CP {order.shipping.postalCode}
+                      </p>
+                    )}
+                    {order.shipping.method !== 'retiro' && order.shippingCents === 0 && (
+                      <p className="text-amber-700">Falta coordinar y cobrar el costo del envío con el comprador.</p>
+                    )}
+                    {order.status === 'paid' && order.shipping.method !== 'retiro' && order.shipping.shipment && (
                       <div className="mt-2 flex flex-wrap items-center gap-3">
                         <Badge tone={SHIPMENT[order.shipping.shipment.status].tone}>
                           {SHIPMENT[order.shipping.shipment.status].label}

@@ -1,7 +1,7 @@
 import { DomainError } from '@/domain/shared/errors';
 import type { Cents } from '@/domain/shared/money';
 
-import type { NewOrder, Order, OrderStatus, Parcel, ProvinceCode, ShipmentState, ShippingMethod } from './order';
+import type { CarrierMethod, NewOrder, Order, OrderStatus, Parcel, ProvinceCode, ShipmentState } from './order';
 
 export type { Parcel };
 
@@ -64,9 +64,8 @@ export interface PaymentGateway {
 export interface ShippingQuote {
   priceCents: Cents;
   label: string;
+  /** 0 when the carrier does not say. */
   etaDays: number;
-  /** `true` for the stand-in quoter: the price is made up and the UI says so. */
-  simulated: boolean;
 }
 
 export interface Agency {
@@ -84,7 +83,7 @@ export class ShippingUnavailableError extends DomainError {
 }
 
 export interface ShippingQuoter {
-  quote(input: { postalCode: string; method: ShippingMethod; parcel: Parcel }): Promise<ShippingQuote>;
+  quote(input: { postalCode: string; method: CarrierMethod; parcel: Parcel }): Promise<ShippingQuote>;
   /** Branches to pick up at, the ones closest to `postalCode` first. */
   agencies(input: { provinceCode: ProvinceCode; postalCode: string }): Promise<Agency[]>;
 }

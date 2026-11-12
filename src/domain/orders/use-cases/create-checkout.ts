@@ -9,12 +9,13 @@ import {
   type OrderItem,
   type ShippingDetails,
   type ShippingInput,
+  type CarrierMethod,
   type ProvinceCode,
-  type ShippingMethod,
   ShippingRequiredError,
   shippingInputSchema,
 } from '../order';
 import { parcelFor } from '../parcel';
+import { PICKUP_LABEL } from '../pickup';
 import type { Agency, OrderRepository, Parcel, PaymentGateway, ShippingQuote, ShippingQuoter } from '../ports';
 
 /** "Av. Santa Fe 1234, 2º B, Palermo" for people (the order page, the admin). */
@@ -67,7 +68,7 @@ export class CreateCheckout {
   }
 
   /** Shipping price for what is in the cart, to a postal code. Used by the "Calcular envío" button. */
-  async quoteShipping(lines: CartLine[], postalCode: string, method: ShippingMethod): Promise<ShippingQuote> {
+  async quoteShipping(lines: CartLine[], postalCode: string, method: CarrierMethod): Promise<ShippingQuote> {
     const parcel = await this.parcelOf(lines);
     return this.shippingQuoter.quote({ postalCode, method, parcel });
   }
@@ -91,9 +92,15 @@ export class CreateCheckout {
     if (hasPhysical) {
       if (!shippingInput) throw new ShippingRequiredError();
       const input = shippingInputSchema.parse(shippingInput);
-      const quote = await this.quoteShipping(lines, input.postalCode, input.method);
-      shipping = await this.shippingDetails(input, quote, await this.parcelOf(lines));
-      shippingCents = quote.priceCents;
+      if (input.method === 'retiro') {
+        shipping = this.pickupDetails(input);
+      } else {
+        const { provinceCode, postalCode } = input;
+        if (!provinceCode || !postalCode) throw new ShippingRequiredError();
+        const quote = await this.quoteShipping(lines, postalCode, input.method);
+        shipping = await this.shippingDetails({ ...input, provinceCode, postalCode }, quote, await this.parcelOf(lines));
+        shippingCents = quote.priceCents;
+      }
     }
 
     const totals = computeOrderTotals(lines, found, shippingCents);
@@ -119,7 +126,24 @@ export class CreateCheckout {
     }
   }
 
-  private async shippingDetails(input: ShippingInput, quote: ShippingQuote, parcel: Parcel): Promise<ShippingDetails> {
+  /** Free, no carrier: the buyer collects it at the shop. */
+  private pickupDetails(input: ShippingInput): ShippingDetails {
+    return {
+      method: 'retiro',
+      recipient: input.recipient,
+      phone: input.phone,
+      postalCode: '',
+      address: null,
+      agency: null,
+      quoteLabel: `${PICKUP_LABEL} (gratis)`,
+    };
+  }
+
+  private async shippingDetails(
+    input: ShippingInput & { provinceCode: ProvinceCode; postalCode: string },
+    quote: ShippingQuote,
+    parcel: Parcel,
+  ): Promise<ShippingDetails> {
     let agency: string | null = null;
     let agencyCode: string | undefined;
     if (input.method === 'sucursal') {

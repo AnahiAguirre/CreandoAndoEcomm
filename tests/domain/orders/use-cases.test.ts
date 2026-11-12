@@ -108,6 +108,16 @@ describe('CreateCheckout.start', () => {
     );
   });
 
+  it('pickup at the shop is free and never asks the carrier for anything', async () => {
+    const retiro = { method: 'retiro', recipient: 'Ana Pérez', phone: '11 5555-1234' };
+    const { orderId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 2 }], retiro);
+    const order = (await t.orders.findById(orderId))!;
+    expect(order.shippingCents).toBe(0);
+    expect(order.totalCents).toBe(2 * 1850000);
+    expect(order.shipping).toMatchObject({ method: 'retiro', recipient: 'Ana Pérez', address: null, agency: null });
+    expect(t.quoter.quotes).toHaveLength(0);
+  });
+
   it('keeps the carrier code of the chosen branch', async () => {
     const pickup = { ...shipping, method: 'sucursal', agencyId: 'ag-1' };
     const { orderId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 1 }], pickup);
@@ -231,6 +241,16 @@ describe('ConfirmPayment', () => {
     await t.shipOrder.retry(orderId);
     expect((await t.orders.findById(orderId))!.shipping?.shipment?.status).toBe('created');
     expect(t.shipments.shipped).toEqual([orderId]);
+  });
+
+  it('an order picked up at the shop is never sent to the carrier, not even by the admin button', async () => {
+    const retiro = { method: 'retiro', recipient: 'Ana Pérez', phone: '11 5555-1234' };
+    const { orderId: pickupId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 1 }], retiro);
+    t.gateway.payments.set('pay-r', { id: 'pay-r', status: 'approved', orderId: pickupId, amountCents: 1850000 });
+    await t.confirm.fromPaymentId('pay-r');
+    expect(t.shipments.shipped).toEqual([]);
+    expect((await t.orders.findById(pickupId))!.shipping?.shipment).toBeUndefined();
+    await expect(t.shipOrder.retry(pickupId)).rejects.toThrow();
   });
 
   it('a digital-only order has nothing to ship', async () => {

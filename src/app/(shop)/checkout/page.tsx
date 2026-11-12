@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { requireUser } from '@/lib/auth-guards';
-import { paymentsEnabled } from '@/lib/env';
+import { paymentsEnabled, shippingEnabled } from '@/lib/env';
 
 import { CheckoutView } from './checkout-view';
 
@@ -23,7 +23,7 @@ export default async function CheckoutPage() {
         .
       </p>
       {paymentsEnabled ? (
-        <CheckoutView />
+        <CheckoutView carrierQuotes={shippingEnabled} />
       ) : (
         <p className="mt-10 rounded-3xl border border-borde-suave bg-white p-10 text-center text-tinta-medio">
           Muy pronto vas a poder pagar con Mercado Pago.

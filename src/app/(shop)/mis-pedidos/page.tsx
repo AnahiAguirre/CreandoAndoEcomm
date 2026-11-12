@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/domain/orders/order';
+import { PICKUP_LABEL } from '@/domain/orders/pickup';
 import { requireUser } from '@/lib/auth-guards';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
@@ -86,8 +87,9 @@ export default async function MyOrdersPage() {
                   ))}
                   {order.shipping && (
                     <li className="text-tinta-medio">
-                      {order.shipping.method === 'domicilio' ? 'Envío a domicilio' : 'Retiro en sucursal'} ·{' '}
-                      {order.shipping.postalCode}
+                      {order.shipping.method === 'retiro'
+                        ? PICKUP_LABEL
+                        : `${order.shipping.method === 'domicilio' ? 'Envío a domicilio' : 'Retiro en sucursal'} · ${order.shipping.postalCode}`}
                     </li>
                   )}
                 </ul>

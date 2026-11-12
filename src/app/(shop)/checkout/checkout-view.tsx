@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/field';
 import type { CheckoutPreview } from '@/domain/orders/use-cases/create-checkout';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
-import { PROVINCES, type ProvinceCode, type ShippingMethod } from '@/domain/orders/order';
+import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pickup';
+import { type CarrierMethod, PROVINCES, type ProvinceCode, type ShippingMethod } from '@/domain/orders/order';
 import { formatPrice } from '@/lib/format';
 
 import { previewCheckout, quoteShipping, startCheckout } from './actions';
@@ -34,13 +35,23 @@ const EMPTY_FORM = {
   agencyId: '',
 };
 
-export function CheckoutView() {
+const METHOD_LABELS = {
+  retiro: `${PICKUP_LABEL} (gratis)`,
+  domicilio: 'Envío por Correo Argentino',
+  sucursal: 'Retiro en sucursal de Correo',
+} satisfies Record<ShippingMethod, string>;
+
+/**
+ * `carrierQuotes`: Correo Argentino is connected, so the price is quoted and branches can be
+ * chosen. Without it the carrier cost is agreed by message and nothing is added to the payment.
+ */
+export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
   const { lines } = useCart();
   const hydrated = useHydrated();
   const linesKey = JSON.stringify(lines);
 
   const [loaded, setLoaded] = useState<{ key: string; preview: CheckoutPreview | null } | null>(null);
-  const [method, setMethod] = useState<ShippingMethod>('domicilio');
+  const [method, setMethod] = useState<ShippingMethod>('retiro');
   const [form, setForm] = useState(EMPTY_FORM);
   const [quoted, setQuoted] = useState<Quoted | null>(null);
   const [busy, setBusy] = useState<'quote' | 'pay' | null>(null);
@@ -97,9 +108,14 @@ export function CheckoutView() {
   const { hasPhysical } = preview;
   const currentKey = `${form.provinceCode}|${form.postalCode.trim().toUpperCase()}|${method}|${linesKey}`;
   const quote = quoted?.forKey === currentKey ? quoted : null;
-  const shippingCents = hasPhysical ? (quote?.quote.priceCents ?? 0) : 0;
+  const methods: ShippingMethod[] = carrierQuotes ? ['retiro', 'domicilio', 'sucursal'] : ['retiro', 'domicilio'];
+  const shipsByCarrier = method !== 'retiro';
+  const needsQuote = carrierQuotes && shipsByCarrier;
+  const shippingCents = hasPhysical && needsQuote ? (quote?.quote.priceCents ?? 0) : 0;
   const total = preview.subtotalCents + shippingCents;
-  const canPay = busy === null && (!hasPhysical || (quote !== null && (method === 'domicilio' || form.agencyId !== '')));
+  const canPay =
+    busy === null &&
+    (!hasPhysical || !needsQuote || (quote !== null && (method === 'domicilio' || form.agencyId !== '')));
 
   const set = (field: keyof typeof EMPTY_FORM) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -108,7 +124,12 @@ export function CheckoutView() {
     setBusy('quote');
     setError(null);
     setFieldErrors({});
-    const result = await quoteShipping({ lines, provinceCode: form.provinceCode as ProvinceCode, postalCode: form.postalCode, method });
+    const result = await quoteShipping({
+      lines,
+      provinceCode: form.provinceCode as ProvinceCode,
+      postalCode: form.postalCode,
+      method: method as CarrierMethod,
+    });
     setBusy(null);
     if (!result.ok) {
       setError(result.error);
@@ -126,21 +147,23 @@ export function CheckoutView() {
     setFieldErrors({});
     const result = await startCheckout({
       lines,
-      shipping: hasPhysical
-        ? {
-            method,
-            recipient: form.recipient,
-            phone: form.phone,
-            provinceCode: form.provinceCode,
-            postalCode: form.postalCode,
-            streetName: method === 'domicilio' ? form.streetName : undefined,
-            streetNumber: method === 'domicilio' ? form.streetNumber : undefined,
-            floor: method === 'domicilio' ? form.floor : undefined,
-            apartment: method === 'domicilio' ? form.apartment : undefined,
-            city: method === 'domicilio' ? form.city : undefined,
-            agencyId: method === 'sucursal' ? form.agencyId : undefined,
-          }
-        : undefined,
+      shipping: !hasPhysical
+        ? undefined
+        : method === 'retiro'
+          ? { method, recipient: form.recipient, phone: form.phone }
+          : {
+              method,
+              recipient: form.recipient,
+              phone: form.phone,
+              provinceCode: form.provinceCode,
+              postalCode: form.postalCode,
+              streetName: method === 'domicilio' ? form.streetName : undefined,
+              streetNumber: method === 'domicilio' ? form.streetNumber : undefined,
+              floor: method === 'domicilio' ? form.floor : undefined,
+              apartment: method === 'domicilio' ? form.apartment : undefined,
+              city: method === 'domicilio' ? form.city : undefined,
+              agencyId: method === 'sucursal' ? form.agencyId : undefined,
+            },
     });
     if (!result.ok) {
       setBusy(null);
@@ -158,15 +181,8 @@ export function CheckoutView() {
         {hasPhysical && (
           <fieldset className="flex flex-col gap-4 rounded-3xl border border-borde-suave bg-white p-6">
             <legend className="px-1 text-lg font-semibold">Envío</legend>
-            {quote?.quote.simulated && (
-              <p className="text-xs text-tinta-medio">
-                Los precios de envío son <strong>simulados</strong> por ahora: el envío real con Correo Argentino se suma más
-                adelante.
-              </p>
-            )}
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(['domicilio', 'sucursal'] as const).map((m) => (
+            <div className={`grid gap-3 ${methods.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+              {methods.map((m) => (
                 <label
                   key={m}
                   className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 text-sm font-medium ${
@@ -174,10 +190,12 @@ export function CheckoutView() {
                   }`}
                 >
                   <input type="radio" name="method" checked={method === m} onChange={() => setMethod(m)} />
-                  {m === 'domicilio' ? 'A mi domicilio' : 'Retiro en sucursal'}
+                  {METHOD_LABELS[m]}
                 </label>
               ))}
             </div>
+
+            <p className="text-xs text-tinta-medio">{method === 'retiro' ? PICKUP_NOTE : !carrierQuotes ? CARRIER_COST_NOTE : null}</p>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nombre de quien recibe" htmlFor="recipient" errors={fieldErrors.recipient}>
@@ -186,6 +204,8 @@ export function CheckoutView() {
               <Field label="Teléfono" htmlFor="phone" errors={fieldErrors.phone}>
                 <Input id="phone" value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel" required />
               </Field>
+              {shipsByCarrier && (
+                <>
               <Field label="Provincia" htmlFor="provinceCode" errors={fieldErrors.provinceCode}>
                 <Select id="provinceCode" value={form.provinceCode} onChange={set('provinceCode')} required>
                   <option value="">Elegí tu provincia…</option>
@@ -205,6 +225,8 @@ export function CheckoutView() {
                   required
                 />
               </Field>
+                </>
+              )}
               {method === 'domicilio' && (
                 <>
                   <Field label="Calle" htmlFor="streetName" errors={fieldErrors.streetName}>
@@ -226,6 +248,7 @@ export function CheckoutView() {
               )}
             </div>
 
+            {needsQuote && (
             <div className="flex flex-wrap items-center gap-3">
               <Button type="button" variant="secondary" onClick={onQuote} disabled={busy !== null || !form.postalCode || !form.provinceCode}>
                 {busy === 'quote' ? 'Calculando…' : quote ? 'Recalcular envío' : 'Calcular envío'}
@@ -233,12 +256,15 @@ export function CheckoutView() {
               {quote && (
                 <p className="text-sm">
                   {quote.quote.label}: <strong>{formatPrice(quote.quote.priceCents)}</strong>{' '}
-                  <span className="text-tinta-medio">· llega en ~{quote.quote.etaDays} días</span>
+                  {quote.quote.etaDays > 0 && (
+                    <span className="text-tinta-medio">· llega en ~{quote.quote.etaDays} días</span>
+                  )}
                 </p>
               )}
             </div>
+            )}
 
-            {method === 'sucursal' && quote && (
+            {needsQuote && method === 'sucursal' && quote && (
               <Field label="Sucursal" htmlFor="agencyId" errors={fieldErrors.agencyId}>
                 <Select id="agencyId" value={form.agencyId} onChange={set('agencyId')} required>
                   <option value="">Elegí una sucursal…</option>
@@ -275,7 +301,15 @@ export function CheckoutView() {
           {hasPhysical && (
             <div className="flex justify-between">
               <dt className="text-tinta-medio">Envío</dt>
-              <dd className="font-semibold">{quote ? formatPrice(shippingCents) : 'Calculalo para ver el total'}</dd>
+              <dd className="font-semibold">
+                {method === 'retiro'
+                  ? 'Gratis'
+                  : !carrierQuotes
+                    ? 'A coordinar'
+                    : quote
+                      ? formatPrice(shippingCents)
+                      : 'Calculalo para ver el total'}
+              </dd>
             </div>
           )}
         </dl>

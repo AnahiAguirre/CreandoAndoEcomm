@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import type { Order } from '@/domain/orders/order';
+import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pickup';
 import { requireUser } from '@/lib/auth-guards';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
@@ -127,10 +128,21 @@ function Detail({ order }: { order: Order }) {
       {order.shipping && (
         <div className="mt-4 border-t border-borde-suave pt-4 text-tinta-medio">
           <p className="font-semibold text-tinta">
-            {order.shipping.method === 'domicilio' ? 'Se envía a' : 'Retiro en sucursal'}
+            {order.shipping.method === 'retiro'
+              ? PICKUP_LABEL
+              : order.shipping.method === 'domicilio'
+                ? 'Se envía a'
+                : 'Retiro en sucursal'}
           </p>
           <p>{order.shipping.recipient} · {order.shipping.phone}</p>
-          <p>{order.shipping.address ?? order.shipping.agency} (CP {order.shipping.postalCode})</p>
+          {order.shipping.method === 'retiro' ? (
+            <p>{PICKUP_NOTE}</p>
+          ) : (
+            <>
+              <p>{order.shipping.address ?? order.shipping.agency} (CP {order.shipping.postalCode})</p>
+              {order.shippingCents === 0 && <p>{CARRIER_COST_NOTE}</p>}
+            </>
+          )}
         </div>
       )}
     </div>

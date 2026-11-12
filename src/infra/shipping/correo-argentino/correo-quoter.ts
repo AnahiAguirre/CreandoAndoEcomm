@@ -1,4 +1,4 @@
-import type { ProvinceCode, ShippingMethod } from '@/domain/orders/order';
+import type { CarrierMethod, ProvinceCode } from '@/domain/orders/order';
 import {
   type Agency,
   type Parcel,
@@ -26,7 +26,7 @@ export class CorreoQuoter implements ShippingQuoter {
     parcel,
   }: {
     postalCode: string;
-    method: ShippingMethod;
+    method: CarrierMethod;
     parcel: Parcel;
   }): Promise<ShippingQuote> {
     if (parcel.weightG > MAX_WEIGHT_G || Math.max(parcel.lengthCm, parcel.widthCm, parcel.heightCm) > MAX_SIDE_CM) {
@@ -47,7 +47,6 @@ export class CorreoQuoter implements ShippingQuoter {
       priceCents: Math.round(cheapest.price * 100),
       label: cheapest.productName,
       etaDays: cheapest.deliveryTimeMax ?? 0,
-      simulated: false,
     };
   }
 

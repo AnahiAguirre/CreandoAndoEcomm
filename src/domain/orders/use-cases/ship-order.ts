@@ -27,14 +27,14 @@ export class ShipOrder implements OrderShipper {
 
   /** Automatic path: tries once, never throws, and leaves a mark (created, failed or manual). */
   async ship(order: Order): Promise<void> {
-    if (!order.shipping || order.status !== 'paid' || order.shipping.shipment) return;
+    if (!order.shipping || order.shipping.method === 'retiro' || order.status !== 'paid' || order.shipping.shipment) return;
     await this.attempt(order);
   }
 
   /** Admin button: tries again an order whose shipment failed or was left manual. */
   async retry(orderId: string): Promise<void> {
     const order = await this.orders.findById(orderId);
-    if (!order?.shipping || order.status !== 'paid') throw new NotShippableError();
+    if (!order?.shipping || order.shipping.method === 'retiro' || order.status !== 'paid') throw new NotShippableError();
     if (order.shipping.shipment?.status === 'created') return;
     await this.attempt(order);
   }

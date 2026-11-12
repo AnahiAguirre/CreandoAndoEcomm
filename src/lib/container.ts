@@ -28,8 +28,8 @@ import { verifyMercadoPagoSignature } from '@/infra/payments/webhook-signature';
 import { CorreoClient } from '@/infra/shipping/correo-argentino/client';
 import { CorreoQuoter } from '@/infra/shipping/correo-argentino/correo-quoter';
 import { CorreoShipmentCreator } from '@/infra/shipping/correo-argentino/correo-shipment-creator';
-import { FakeShippingQuoter } from '@/infra/shipping/fake-shipping-quoter';
 import { ManualShipmentCreator } from '@/infra/shipping/manual-shipment-creator';
+import { ManualShippingQuoter } from '@/infra/shipping/manual-shipping-quoter';
 import { SupabaseAssetUrlResolver } from '@/infra/storage/supabase-asset-url-resolver';
 import { SupabaseFileStorage } from '@/infra/storage/supabase-file-storage';
 
@@ -61,8 +61,8 @@ if (!env.MP_ACCESS_TOKEN) {
   console.warn('[pagos] Sin MP_ACCESS_TOKEN: la tienda anda, pero todavía no se puede pagar.');
 }
 
-// Real Correo Argentino (MiCorreo) once its credentials are set; until then a stand-in quoter
-// with made-up prices, and paid orders are left for the admin to ship by hand.
+// Real Correo Argentino (MiCorreo) once its credentials are set; until then the shipping cost
+// is agreed by message and paid orders are left for the admin to ship by hand.
 const correo = shippingEnabled
   ? new CorreoClient({
       env: env.CORREO_ENV,
@@ -72,7 +72,7 @@ const correo = shippingEnabled
       originPostalCode: env.CORREO_ORIGIN_POSTAL_CODE,
     })
   : null;
-const shippingQuoter = correo ? new CorreoQuoter(correo) : new FakeShippingQuoter();
+const shippingQuoter = correo ? new CorreoQuoter(correo) : new ManualShippingQuoter();
 const shipOrder = new ShipOrder(orderRepository, correo ? new CorreoShipmentCreator(correo) : new ManualShipmentCreator());
 
 const delivery = new DigitalDelivery(entitlementRepository, productRepository, fileStorage, mail, (to, productName) =>
