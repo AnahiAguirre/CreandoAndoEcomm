@@ -61,17 +61,17 @@ export function CategoryShop({ prices }: { prices: KindPrices }) {
   if (cards.length === 0) return null;
 
   return (
-    <section className="bg-white px-4 py-16 md:py-20">
+    <section className="bg-white px-4 py-10 md:py-12">
       <div className="mx-auto max-w-[75rem]">
         <h2 className="font-display text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Qué estás buscando</h2>
-        <ul className={`mt-8 grid gap-5 ${cards.length > 1 ? 'md:grid-cols-2' : ''}`}>
+        <ul className={`mt-6 grid gap-5 ${cards.length > 1 ? 'md:grid-cols-2' : ''}`}>
           {cards.map((c) => (
             <li key={c.key}>
               <Link
                 href={CATALOG_LINKS[c.key]}
                 className="group flex h-full flex-col overflow-hidden rounded-3xl border border-borde-suave bg-white text-tinta transition-shadow duration-300 hover:text-tinta hover:shadow-[0_24px_50px_-28px_rgb(26_23_20/0.4)]"
               >
-                <span className={`relative block aspect-[16/10] ${c.bg}`}>{c.art}</span>
+                <span className={`relative block aspect-[16/10] md:aspect-[2/1] ${c.bg}`}>{c.art}</span>
                 <span className="flex flex-1 flex-col gap-1 p-5">
                   <span className="text-xl font-bold">{c.title}</span>
                   <span className="text-sm text-tinta-medio">{c.detail}</span>

@@ -21,7 +21,7 @@ export function PrintablesFan({ fromPriceCents }: { fromPriceCents: Cents | null
   return (
     <section
       id="imprimibles"
-      className="relative isolate flex scroll-mt-16 flex-col items-center overflow-hidden bg-arena px-4 py-24 md:h-[880px] md:pb-0 md:pt-[100px]"
+      className="relative isolate flex scroll-mt-16 flex-col items-center overflow-hidden bg-arena px-4 py-24 md:h-[860px] md:pb-0 md:pt-[80px]"
     >
       {/* Soft color spots behind the sheets (decoration only). */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -41,10 +41,16 @@ export function PrintablesFan({ fromPriceCents }: { fromPriceCents: Cents | null
         Láminas listas para imprimir en A4. Te llegan por email apenas pagás.
       </p>
 
+      <Link href={CATALOG_LINKS.imprimibles} className={`${pillButton} mt-7`}>
+        Comprar imprimibles
+        {fromPriceCents !== null && <> · desde {formatPrice(fromPriceCents)}</>}
+        <span aria-hidden="true">&nbsp;›</span>
+      </Link>
+
       <Link
         href={CATALOG_LINKS.imprimibles}
         aria-label="Ver los imprimibles para colorear"
-        className="group mt-14 block w-full max-w-[900px] rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tinta"
+        className="group mt-10 block w-full max-w-[900px] rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tinta"
       >
         <PlayOnView className="relative h-[240px] transition-transform duration-500 ease-suave group-hover:-translate-y-2 md:h-[440px]">
           <div
@@ -63,11 +69,6 @@ export function PrintablesFan({ fromPriceCents }: { fromPriceCents: Cents | null
         </PlayOnView>
       </Link>
 
-      <Link href={CATALOG_LINKS.imprimibles} className={`${pillButton} mt-6`}>
-        Comprar imprimibles
-        {fromPriceCents !== null && <> · desde {formatPrice(fromPriceCents)}</>}
-        <span aria-hidden="true">&nbsp;›</span>
-      </Link>
     </section>
   );
 }
