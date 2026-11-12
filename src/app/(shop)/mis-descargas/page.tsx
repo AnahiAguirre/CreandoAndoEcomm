@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { CATALOG_LINKS } from '@/components/nav-links';
 import { requireUser } from '@/lib/auth-guards';
 import { container } from '@/lib/container';
 import { formatBytes } from '@/lib/utils';
@@ -30,7 +31,7 @@ export default async function MyDownloadsPage() {
             aviso.
           </p>
           <Link
-            href="/#imprimibles"
+            href={CATALOG_LINKS.imprimibles}
             className="mt-6 inline-flex h-11 items-center rounded-full bg-azul px-6 font-semibold text-white hover:text-white"
           >
             Ver imprimibles

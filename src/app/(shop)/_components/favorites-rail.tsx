@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { CATALOG_LINKS } from './catalog-links';
+import { CATALOG_LINKS } from '@/components/nav-links';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import type { CartProductPublic } from '@/components/cart/types';
 import { formatPrice } from '@/lib/format';

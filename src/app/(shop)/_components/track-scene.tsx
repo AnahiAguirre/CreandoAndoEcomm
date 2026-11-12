@@ -1,4 +1,4 @@
-import { CATALOG_LINKS } from './catalog-links';
+import { CATALOG_LINKS } from '@/components/nav-links';
 import { Stage } from './illustrations/stage';
 import { TrainTrack } from './illustrations/train-track';
 import { StickyScene } from './sticky-scene';

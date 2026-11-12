@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { CATALOG_LINKS } from './catalog-links';
+import { CATALOG_LINKS } from '@/components/nav-links';
 import { pillButton } from './pill-button';
 
 export function ClosingCta() {
