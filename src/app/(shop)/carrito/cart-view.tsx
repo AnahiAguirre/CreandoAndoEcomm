@@ -204,6 +204,12 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
               <p className="mt-3 text-center text-xs text-tinta-medio">Muy pronto vas a poder pagar con Mercado Pago.</p>
             </>
           )}
+          <Link
+            href="/catalogo"
+            className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-borde-suave px-7 font-medium text-tinta transition-colors hover:border-azul hover:text-azul"
+          >
+            <span aria-hidden="true">‹&nbsp;</span>Seguir comprando
+          </Link>
         </aside>
       </div>
     </>
