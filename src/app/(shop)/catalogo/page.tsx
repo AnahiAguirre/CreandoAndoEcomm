@@ -30,7 +30,7 @@ export default async function CatalogPage({ searchParams }: Props) {
   const everything = !selected && !toysOnly;
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+    <section className="mx-auto max-w-6xl px-4 py-6 md:py-8">
       <Reveal>
         <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-4xl">
           {selected?.name ?? (toysOnly ? 'Juguetes' : 'Catálogo')}
@@ -38,7 +38,7 @@ export default async function CatalogPage({ searchParams }: Props) {
       </Reveal>
 
       {categories.length > 0 && (
-        <nav aria-label="Categorías" className="mt-6 flex flex-wrap gap-2">
+        <nav aria-label="Categorías" className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/catalogo"
             aria-current={everything ? 'page' : undefined}
@@ -73,7 +73,7 @@ export default async function CatalogPage({ searchParams }: Props) {
             : 'Estamos preparando los primeros productos. ¡Volvé pronto!'}
         </p>
       ) : (
-        <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => {
             const cover = coverImage(p);
             return (

@@ -30,7 +30,7 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
   return (
     <article className="flex h-full flex-col gap-3">
       <Link href={`/producto/${product.slug}`} className="group flex flex-1 flex-col gap-3 text-tinta hover:text-tinta">
-        <span className="relative block aspect-square overflow-hidden rounded-2xl bg-arena">
+        <span className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-arena">
           {imageUrl ? (
             <Image
               src={imageUrl}
