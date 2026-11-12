@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromPrice, heroProduct, homeShowcase } from '@/domain/catalog/storefront';
+import { fromPrice, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
 
 import { buildProduct } from '../../helpers/fakes';
 
@@ -29,6 +29,16 @@ describe('homeShowcase', () => {
   it('has no hero when nothing is for sale', () => {
     expect(heroProduct([])).toBeUndefined();
     expect(heroProduct([buildProduct({ kind: 'physical', stock: 0 })])).toBeUndefined();
+  });
+});
+
+describe('heroToys', () => {
+  it('rotates only toys that can be bought, featured first', () => {
+    const pdf = buildProduct({ id: 'pdf', kind: 'digital', featured: true, createdAt: day(9) });
+    const soldOut = buildProduct({ id: 'soldout', kind: 'physical', stock: 0, createdAt: day(8) });
+    const car = buildProduct({ id: 'car', kind: 'physical', stock: 2, createdAt: day(7) });
+    const track = buildProduct({ id: 'track', kind: 'physical', stock: 1, featured: true, createdAt: day(1) });
+    expect(heroToys([pdf, soldOut, car, track]).map((p) => p.id)).toEqual(['track', 'car']);
   });
 });
 

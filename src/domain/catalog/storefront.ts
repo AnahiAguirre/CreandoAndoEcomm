@@ -1,6 +1,6 @@
 import type { Cents } from '@/domain/shared/money';
 
-import { isInStock, type Product } from './product';
+import { isDigital, isInStock, type Product } from './product';
 
 /**
  * What the home shows to sell: the products the admin marked as featured, and
@@ -18,6 +18,13 @@ export function homeShowcase(products: Product[], limit = 8): Product[] {
 /** The one product the home's first screen sells: the first of the showcase that can be bought. */
 export function heroProduct(products: Product[]): Product | undefined {
   return homeShowcase(products, products.length).find((p) => isInStock(p));
+}
+
+/** The toys the home's carousel rotates: physical, in stock, featured first. */
+export function heroToys(products: Product[], limit = 6): Product[] {
+  return homeShowcase(products, products.length)
+    .filter((p) => !isDigital(p) && isInStock(p))
+    .slice(0, limit);
 }
 
 /** "desde $X" for a category: the cheapest product in it that can be bought, or `null`. */
