@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: Props) {
               stock: product.stock,
               imageUrl: images[0]?.url ?? null,
             }}
-            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rojo px-7 font-medium text-white transition-colors hover:bg-rojo-dark sm:w-auto"
+            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-azul px-7 font-medium text-white transition-colors hover:bg-azul-dark hover:text-white sm:w-auto"
           />
         </Reveal>
       </div>

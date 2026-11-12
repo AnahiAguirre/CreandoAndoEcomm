@@ -1,7 +1,6 @@
-import { CATEGORY_SLUGS } from '@/components/nav-links';
 import { coverImage, type Product } from '@/domain/catalog/product';
 import { toCartProduct } from '@/components/product-card';
-import { fromPrice, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
+import { fromPriceOfKind, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
 import { container } from '@/lib/container';
 
 import { AboutTeaser } from './_components/about-teaser';
@@ -12,6 +11,7 @@ import { HowToBuy } from './_components/how-to-buy';
 import { PrintablesFan } from './_components/printables-fan';
 import { ProductShowcase } from './_components/product-showcase';
 import { ShopHero } from './_components/shop-hero';
+import { TrustLine } from './_components/trust-line';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,15 +32,10 @@ function imageOf(product: Product): string | null {
  * come from the catalog, so whatever the admin loads (and marks as featured) shows up here.
  */
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
-    container.catalog.list.execute(),
-    container.catalog.storefrontCategories.execute(),
-  ]);
-  const categoryId = (slug: string) => categories.find((c) => c.slug === slug)?.id;
+  const products = await container.catalog.list.execute();
   const prices = {
-    rompecabezas: fromPrice(products, categoryId(CATEGORY_SLUGS.rompecabezas)),
-    pistas: fromPrice(products, categoryId(CATEGORY_SLUGS.pistas)),
-    imprimibles: fromPrice(products, categoryId(CATEGORY_SLUGS.imprimibles)),
+    juguetes: fromPriceOfKind(products, 'physical'),
+    imprimibles: fromPriceOfKind(products, 'digital'),
   };
   const toys = heroToys(products);
   // Without a toy in stock there is nothing to rotate: a still hero that sells the catalog instead.
@@ -62,6 +57,9 @@ export default async function HomePage() {
       ) : (
         <ShopHero product={hero} imageUrl={hero ? imageOf(hero) : null} />
       )}
+      <div className="border-y border-borde-suave bg-white px-4 py-4">
+        <TrustLine className="mx-auto max-w-[75rem] justify-center md:justify-start" />
+      </div>
       <CategoryShop prices={prices} />
       <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p) }))} />
       <PrintablesFan fromPriceCents={prices.imprimibles} />

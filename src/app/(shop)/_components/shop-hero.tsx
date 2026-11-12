@@ -10,11 +10,9 @@ import { formatPrice } from '@/lib/format';
 import { pillButton } from './pill-button';
 
 const ghostButton =
-  'inline-flex items-center rounded-full border border-tinta/15 bg-white px-[26px] py-[13px] font-medium text-tinta transition-colors duration-300 ease-suave hover:border-azul hover:text-azul';
+  'inline-flex items-center rounded-full border-[1.5px] border-azul bg-white px-[26px] py-[13px] font-medium text-azul transition-colors duration-300 ease-suave hover:bg-ghost-fondo';
 const buyButton =
-  'inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-rojo px-6 font-semibold text-white transition-[background-color,transform] duration-300 ease-suave hover:bg-rojo-dark hover:text-white active:scale-[0.97]';
-
-const TRUST = ['Retiro gratis', 'Envíos a todo el país', 'Pagás con Mercado Pago'];
+  'inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-azul px-6 font-semibold text-white transition-[background-color,transform] duration-300 ease-suave hover:bg-azul-dark hover:text-white active:scale-[0.97]';
 
 interface Props {
   /** The product the first screen sells. Absent when nothing is for sale yet. */
@@ -55,16 +53,6 @@ export function ShopHero({ product, imageUrl }: Props) {
               Ver imprimibles
             </Link>
           </div>
-          <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-tinta-medio">
-            {TRUST.map((t) => (
-              <li key={t} className="flex items-center gap-1.5">
-                <span aria-hidden="true" className="text-verde">
-                  ✓
-                </span>
-                {t}
-              </li>
-            ))}
-          </ul>
         </div>
 
         {product && (

@@ -188,7 +188,7 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
           {checkoutEnabled ? (
             <Link
               href="/checkout"
-              className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-rojo px-7 font-medium text-white transition-colors hover:bg-rojo-dark hover:text-white"
+              className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-azul px-7 font-medium text-white transition-colors hover:bg-azul-dark hover:text-white"
             >
               Finalizar compra
             </Link>
@@ -197,7 +197,7 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
               <button
                 type="button"
                 disabled
-                className="mt-6 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white opacity-40"
+                className="mt-6 h-12 w-full rounded-full bg-azul px-7 font-medium text-white opacity-40"
               >
                 Finalizar compra
               </button>
@@ -206,7 +206,7 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
           )}
           <Link
             href="/catalogo"
-            className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-borde-suave px-7 font-medium text-tinta transition-colors hover:border-azul hover:text-azul"
+            className="mt-3 flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-azul px-7 font-medium text-azul transition-colors hover:bg-ghost-fondo"
           >
             <span aria-hidden="true">‹&nbsp;</span>Seguir comprando
           </Link>

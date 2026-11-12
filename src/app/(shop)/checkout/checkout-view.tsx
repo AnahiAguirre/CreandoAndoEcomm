@@ -327,7 +327,7 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
         <button
           type="submit"
           disabled={!canPay}
-          className="mt-6 h-12 w-full rounded-full bg-rojo px-7 font-medium text-white transition-colors hover:bg-rojo-dark disabled:pointer-events-none disabled:opacity-40"
+          className="mt-6 h-12 w-full rounded-full bg-azul px-7 font-medium text-white transition-colors hover:bg-azul-dark disabled:pointer-events-none disabled:opacity-40"
         >
           {busy === 'pay' ? 'Llevándote a Mercado Pago…' : 'Pagar con Mercado Pago'}
         </button>

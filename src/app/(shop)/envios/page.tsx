@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { CATALOG_LINKS } from '@/components/nav-links';
 import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pickup';
+import { WHATSAPP_DISPLAY, whatsappLink } from '@/lib/contact';
 import { shippingEnabled } from '@/lib/env';
 
 export const metadata: Metadata = { title: 'Envíos y retiro' };
@@ -47,6 +48,19 @@ export default function ShippingInfoPage() {
           </p>
         </article>
       </div>
+
+      <p className="mt-8 text-tinta-medio">
+        ¿Dudas sobre un envío o el retiro?{' '}
+        <a
+          href={whatsappLink('Hola, tengo una consulta sobre envíos y retiro.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-azul hover:underline"
+        >
+          Escribinos por WhatsApp al {WHATSAPP_DISPLAY}
+        </a>
+        .
+      </p>
 
       <Link
         href={CATALOG_LINKS.todo}

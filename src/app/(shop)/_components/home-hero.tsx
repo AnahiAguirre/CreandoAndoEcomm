@@ -25,10 +25,11 @@ const COLORS = [
   { blob: '#f6e1ec', dot: '#2e7d46' },
 ];
 
-const AUTOPLAY_MS = 3200;
+// Long enough to read the name, the description and the price before it moves on.
+const AUTOPLAY_MS = 6000;
 
-const buyNow = 'cart-btn flex items-center justify-center gap-2 rounded-full bg-rojo font-bold text-white';
-const detail = 'ghost-btn flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-ghost-borde font-bold text-azul';
+const buyNow = 'cart-btn flex items-center justify-center gap-2 rounded-full bg-azul font-bold text-white';
+const detail = 'ghost-btn flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-azul font-bold text-azul';
 
 interface DotsProps {
   count: number;

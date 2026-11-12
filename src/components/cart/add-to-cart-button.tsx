@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { isInStock } from '@/domain/catalog/product';
 
+import { CART_ADDED_EVENT, type CartAddedDetail } from './cart-toast';
 import { CartIcon } from './cart-icon';
 import { useCart } from './cart-provider';
 import type { CartProductPublic } from './types';
@@ -58,6 +59,7 @@ export function AddToCartButton({ product, className, iconClassName }: Props) {
   function onClick() {
     if (!product) return;
     add(product);
+    window.dispatchEvent(new CustomEvent<CartAddedDetail>(CART_ADDED_EVENT, { detail: { name: product.name } }));
     setFlash(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setFlash(false), FLASH_MS);

@@ -27,6 +27,12 @@ export function heroToys(products: Product[], limit = 6): Product[] {
     .slice(0, limit);
 }
 
+/** "desde $X" for toys or printables: the cheapest of that kind that can be bought, or `null`. */
+export function fromPriceOfKind(products: Product[], kind: 'physical' | 'digital'): Cents | null {
+  const prices = products.filter((p) => p.kind === kind && isInStock(p)).map((p) => p.priceCents);
+  return prices.length > 0 ? Math.min(...prices) : null;
+}
+
 /** "desde $X" for a category: the cheapest product in it that can be bought, or `null`. */
 export function fromPrice(products: Product[], categoryId: string | undefined): Cents | null {
   if (!categoryId) return null;

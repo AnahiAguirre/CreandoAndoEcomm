@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromPrice, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
+import { fromPrice, fromPriceOfKind, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
 
 import { buildProduct } from '../../helpers/fakes';
 
@@ -39,6 +39,22 @@ describe('heroToys', () => {
     const car = buildProduct({ id: 'car', kind: 'physical', stock: 2, createdAt: day(7) });
     const track = buildProduct({ id: 'track', kind: 'physical', stock: 1, featured: true, createdAt: day(1) });
     expect(heroToys([pdf, soldOut, car, track]).map((p) => p.id)).toEqual(['track', 'car']);
+  });
+});
+
+describe('fromPriceOfKind', () => {
+  const toy = buildProduct({ kind: 'physical', stock: 2, priceCents: 900000 });
+  const soldOutToy = buildProduct({ kind: 'physical', stock: 0, priceCents: 100 });
+  const pdf = buildProduct({ kind: 'digital', priceCents: 250000 });
+
+  it('is the cheapest of that kind that can be bought', () => {
+    expect(fromPriceOfKind([toy, soldOutToy, pdf], 'physical')).toBe(900000);
+    expect(fromPriceOfKind([toy, pdf], 'digital')).toBe(250000);
+  });
+
+  it('is null when there is nothing of that kind to buy', () => {
+    expect(fromPriceOfKind([soldOutToy], 'physical')).toBeNull();
+    expect(fromPriceOfKind([], 'digital')).toBeNull();
   });
 });
 

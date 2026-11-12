@@ -13,7 +13,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-rojo text-white hover:bg-rojo-dark',
+        primary: 'bg-azul text-white hover:bg-azul-dark',
         secondary: 'border border-madera-dark bg-crema text-tinta hover:bg-madera-soft',
         ghost: 'text-tinta hover:bg-madera-soft',
         link: 'text-azul underline-offset-4 hover:underline',

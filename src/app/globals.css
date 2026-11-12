@@ -196,8 +196,8 @@ body {
 
 .cart-btn:hover {
   transform: translateY(-2px);
-  background-color: var(--color-rojo-dark) !important;
-  box-shadow: 0 14px 26px -10px rgb(217 59 43 / 0.7);
+  background-color: var(--color-azul-dark) !important;
+  box-shadow: 0 14px 26px -10px rgb(45 111 176 / 0.85);
 }
 
 .cart-btn:active {

@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { WHATSAPP_DISPLAY, whatsappLink } from '@/lib/contact';
+
 const LINKS = [
   { href: '/catalogo', label: 'Catálogo' },
   { href: '/envios', label: 'Envíos y retiro' },
@@ -18,6 +20,14 @@ export function SiteFooter() {
               {l.label}
             </Link>
           ))}
+          <a
+            href={whatsappLink('Hola, tengo una consulta sobre CreandoAndo.')}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-tinta-soft hover:text-tinta"
+          >
+            WhatsApp {WHATSAPP_DISPLAY}
+          </a>
         </nav>
       </div>
     </footer>
