@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { Reveal } from '@/components/reveal';
-import { coverImage, isDigital, isInStock } from '@/domain/catalog/product';
+import { ProductCard } from '@/components/product-card';
+import { coverImage } from '@/domain/catalog/product';
 import { container } from '@/lib/container';
-import { formatPrice } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Catálogo' };
 export const dynamic = 'force-dynamic';
@@ -65,27 +64,11 @@ export default async function CatalogPage({ searchParams }: Props) {
             const cover = coverImage(p);
             return (
               <li key={p.id}>
-                <Link href={`/producto/${p.slug}`} className="group flex flex-col gap-3">
-                  <span className="relative block aspect-square overflow-hidden rounded-2xl bg-arena">
-                    {cover && (
-                      <Image
-                        src={container.assetUrls.publicImageUrl(cover.storagePath)}
-                        alt={p.name}
-                        fill
-                        sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    )}
-                  </span>
-                  <span className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
-                      {isDigital(p) ? 'Imprimible PDF' : 'Juguete de madera'}
-                    </span>
-                    <span className="font-semibold leading-snug text-tinta">{p.name}</span>
-                    <span className="font-bold">{formatPrice(p.priceCents)}</span>
-                    {!isInStock(p) && <span className="text-sm font-medium text-rojo">Sin stock</span>}
-                  </span>
-                </Link>
+                <ProductCard
+                  product={p}
+                  imageUrl={cover ? container.assetUrls.publicImageUrl(cover.storagePath) : null}
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                />
               </li>
             );
           })}

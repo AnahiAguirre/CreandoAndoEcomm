@@ -28,6 +28,8 @@ export interface Product {
   /** Optional: a product can live without a category. */
   categoryId: string | null;
   active: boolean;
+  /** Picked by the admin to be shown on the home. */
+  featured: boolean;
   /** Only meaningful for `physical` products; digital ones are always in stock. */
   stock: number;
   images: ProductImage[];

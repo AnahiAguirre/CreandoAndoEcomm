@@ -1,6 +1,9 @@
 import Link from 'next/link';
 
 import { CATALOG_LINKS } from '@/components/nav-links';
+import type { Cents } from '@/domain/shared/money';
+import { formatPrice } from '@/lib/format';
+
 import { PaintedDino, PaintedFish, PaintedFlower } from './illustrations/painted-sheets';
 import { pillButton } from './pill-button';
 import { PlayOnView } from './play-on-view';
@@ -12,9 +15,9 @@ const sheet =
 /**
  * Three coloring sheets stacked on arrival that open like a fan as they come into
  * view, and then get colored in by themselves, one area at a time. The whole fan
- * and the button below lead to the printables.
+ * and the button below lead to the printables, with the price they start at.
  */
-export function PrintablesFan() {
+export function PrintablesFan({ fromPriceCents }: { fromPriceCents: Cents | null }) {
   return (
     <section
       id="imprimibles"
@@ -29,13 +32,13 @@ export function PrintablesFan() {
       </div>
 
       <p className="scroll-rise text-xs font-semibold uppercase tracking-[0.14em] text-tinta-soft md:text-[15px]">
-        03 · Pintar · Imprimibles en PDF
+        Imprimibles en PDF
       </p>
       <h2 className="scroll-rise mt-3 text-center text-5xl font-extrabold leading-none tracking-[-0.045em] md:text-[80px]">
         Imprimí. Pintá. Repetí.
       </h2>
       <p className="scroll-rise mt-[18px] text-center text-lg text-tinta-medio md:text-[22px]">
-        PDF listo para imprimir en A4. Entrega inmediata después del pago.
+        Láminas listas para imprimir en A4. Te llegan por email apenas pagás.
       </p>
 
       <Link
@@ -61,7 +64,9 @@ export function PrintablesFan() {
       </Link>
 
       <Link href={CATALOG_LINKS.imprimibles} className={`${pillButton} mt-6`}>
-        Ver imprimibles <span aria-hidden="true">&nbsp;›</span>
+        Comprar imprimibles
+        {fromPriceCents !== null && <> · desde {formatPrice(fromPriceCents)}</>}
+        <span aria-hidden="true">&nbsp;›</span>
       </Link>
     </section>
   );

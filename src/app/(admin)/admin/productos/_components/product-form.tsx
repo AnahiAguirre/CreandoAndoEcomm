@@ -86,6 +86,21 @@ export function ProductForm({ action, product, categories, submitLabel }: Props)
         <Field label="Descripción" htmlFor="description" errors={errors.description} className="sm:col-span-2">
           <Textarea id="description" name="description" defaultValue={product?.description} />
         </Field>
+
+        <label className="flex items-start gap-3 text-sm sm:col-span-2">
+          <input
+            type="checkbox"
+            name="featured"
+            defaultChecked={product?.featured ?? false}
+            className="mt-0.5 size-4 accent-azul"
+          />
+          <span>
+            <span className="font-medium">Destacado en la página de inicio</span>
+            <span className="block text-neutral-500">
+              Los destacados se muestran primero. Si no marcás ninguno, aparecen los últimos que cargaste.
+            </span>
+          </span>
+        </label>
       </div>
 
       {kind === 'physical' && (

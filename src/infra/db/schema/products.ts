@@ -26,6 +26,8 @@ export const products = pgTable(
     // Deleting a category keeps its products; they just become uncategorized.
     categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
     active: boolean('active').notNull().default(false),
+    // Shown first on the home. With none marked, the home shows the newest.
+    featured: boolean('featured').notNull().default(false),
     // Physical products only. Digital ones keep 0 and are always sellable.
     stock: integer('stock').notNull().default(0),
     // Shipping dimensions (physical only), used by the ShippingProvider in fase 5/8.

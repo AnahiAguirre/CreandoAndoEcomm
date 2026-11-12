@@ -1,12 +1,19 @@
 /**
- * Where each category's products live. The slugs are the categories' slugs in the
- * admin: if one is renamed there, change it here and every link follows.
+ * The categories' slugs in the admin. If one is renamed there, change it here and
+ * every link and every "desde $X" on the site follows.
  */
+export const CATEGORY_SLUGS = {
+  rompecabezas: 'rompecabezas',
+  pistas: 'pistas-de-madera',
+  imprimibles: 'imprimibles',
+} as const;
+
+/** Where each category's products live. */
 export const CATALOG_LINKS = {
   todo: '/catalogo',
-  rompecabezas: '/catalogo?categoria=rompecabezas',
-  pistas: '/catalogo?categoria=pistas-de-madera',
-  imprimibles: '/catalogo?categoria=imprimibles',
+  rompecabezas: `/catalogo?categoria=${CATEGORY_SLUGS.rompecabezas}`,
+  pistas: `/catalogo?categoria=${CATEGORY_SLUGS.pistas}`,
+  imprimibles: `/catalogo?categoria=${CATEGORY_SLUGS.imprimibles}`,
 } as const;
 
 export interface NavLink {
@@ -21,6 +28,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { href: CATALOG_LINKS.imprimibles, label: 'Imprimibles' },
   { href: CATALOG_LINKS.todo, label: 'Ver todo' },
   { href: '/envios', label: 'Envíos y retiro' },
+  { href: '/quienes-somos', label: 'Quiénes somos' },
 ];
 
 /**

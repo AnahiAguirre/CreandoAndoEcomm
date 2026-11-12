@@ -1,40 +1,55 @@
-import type { CartProductPublic } from '@/components/cart/types';
+import { CATEGORY_SLUGS } from '@/components/nav-links';
+import { coverImage, type Product } from '@/domain/catalog/product';
+import { fromPrice, heroProduct, homeShowcase } from '@/domain/catalog/storefront';
 import { container } from '@/lib/container';
 
-import { AssembleScene } from './_components/assemble-scene';
-import { BenefitsStrip } from './_components/benefits-strip';
+import { AboutTeaser } from './_components/about-teaser';
+import { CategoryShop } from './_components/category-shop';
 import { ClosingCta } from './_components/closing-cta';
-import { FavoritesRail } from './_components/favorites-rail';
-import { HomeHero } from './_components/home-hero';
-import { Manifesto } from './_components/manifesto';
+import { HowToBuy } from './_components/how-to-buy';
 import { PrintablesFan } from './_components/printables-fan';
-import { TrackScene } from './_components/track-scene';
+import { ProductShowcase } from './_components/product-showcase';
+import { ShopHero } from './_components/shop-hero';
+
+export const dynamic = 'force-dynamic';
+
+/** The home's own drawings, for a product that has no photo in the catalog yet. */
+const HOME_ART: Record<string, string> = {
+  'pista-de-trenes-de-madera': '/home/pista-trenes.png',
+  'autopista-didactica': '/home/autopista.png',
+  'rompecabezas-de-animales': '/home/rompecabezas-animales.png',
+};
+
+function imageOf(product: Product): string | null {
+  const cover = coverImage(product);
+  return cover ? container.assetUrls.publicImageUrl(cover.storagePath) : (HOME_ART[product.slug] ?? null);
+}
 
 /**
- * The home is a fixed, designed page: its copy, photos and illustrations come
- * from the approved design, not from the catalog. Its "Ver detalle" and
- * "Elegí…" actions are same-page anchors, exactly as the design has them.
- * Only the prices and "Agregar al carrito" buttons read the catalog, by slug.
+ * The home sells: every section ends in a way to buy. Products, prices and photos
+ * come from the catalog, so whatever the admin loads (and marks as featured) shows up here.
  */
 export default async function HomePage() {
-  // The home's art and copy are fixed, but what its buttons sell is the real catalog.
-  const products = await container.catalog.list.execute();
-  const bySlug: Record<string, CartProductPublic> = Object.fromEntries(
-    products.map((p) => [
-      p.slug,
-      { id: p.id, slug: p.slug, name: p.name, kind: p.kind, priceCents: p.priceCents, stock: p.stock, imageUrl: null },
-    ]),
-  );
+  const [products, categories] = await Promise.all([
+    container.catalog.list.execute(),
+    container.catalog.storefrontCategories.execute(),
+  ]);
+  const categoryId = (slug: string) => categories.find((c) => c.slug === slug)?.id;
+  const prices = {
+    rompecabezas: fromPrice(products, categoryId(CATEGORY_SLUGS.rompecabezas)),
+    pistas: fromPrice(products, categoryId(CATEGORY_SLUGS.pistas)),
+    imprimibles: fromPrice(products, categoryId(CATEGORY_SLUGS.imprimibles)),
+  };
+  const hero = heroProduct(products);
 
   return (
     <>
-      <HomeHero products={bySlug} />
-      <AssembleScene />
-      <TrackScene />
-      <PrintablesFan />
-      <Manifesto />
-      <FavoritesRail products={bySlug} />
-      <BenefitsStrip />
+      <ShopHero product={hero} imageUrl={hero ? imageOf(hero) : null} />
+      <CategoryShop prices={prices} />
+      <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p) }))} />
+      <PrintablesFan fromPriceCents={prices.imprimibles} />
+      <HowToBuy />
+      <AboutTeaser />
       <ClosingCta />
     </>
   );

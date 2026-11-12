@@ -33,6 +33,8 @@ export const productInputSchema = z
       .default('')
       .transform((v) => v || null),
     stock: z.coerce.number().int().min(0).default(0),
+    // A checkbox: the form sends "on" when ticked and nothing at all when not.
+    featured: z.preprocess((v) => v === 'on' || v === true || v === 'true', z.boolean()),
     weightG: optionalPositiveInt(),
     lengthCm: optionalPositiveInt(),
     widthCm: optionalPositiveInt(),
