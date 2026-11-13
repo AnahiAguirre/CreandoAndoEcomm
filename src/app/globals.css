@@ -25,6 +25,12 @@
 
   /* Home: fondos de sección y de tarjeta, y textos secundarios. */
   --color-amarillo-crema: #fdf3dc;
+  /* Paleta de la tienda, pensada desde la psicología del color:
+     - fondo: blanco cálido (crema muy clara), natural como la madera; descansa la vista.
+     - salvia: verde suave del menú; calma, salud y crecimiento.
+     El azul (confianza) queda para los botones y el amarillo (alegría) para detalles chicos. */
+  --color-fondo: #fdfbf6;
+  --color-salvia: #e9f0e2;
   --color-tinta-calida: #5a524b;
   --color-tinta-medio: #4a443f;
   --color-tinta-muted: #b9b1a8;
@@ -36,7 +42,6 @@
 
   /* Bordes y fondos neutros del catálogo y el header. */
   --color-borde-suave: #ece6dd;
-  --color-hero-fondo: #fffdf9;
   --color-elegidos-fondo: #f7f3ec;
   --color-ghost-borde: #cfdcea;
   --color-ghost-fondo: #eef4fb;
@@ -72,7 +77,7 @@ html {
 }
 
 body {
-  background: var(--color-crema);
+  background: var(--color-fondo);
   color: var(--color-tinta);
   -webkit-font-smoothing: antialiased;
 }
@@ -205,25 +210,6 @@ body {
 }
 
 @supports (animation-timeline: view()) {
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(48px);
-    }
-  }
-
-  .scroll-rise {
-    animation: rise linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 90%;
-  }
-
-  .scroll-rise-late {
-    animation: rise linear both;
-    animation-timeline: view();
-    animation-range: entry 20% cover 35%;
-  }
-
   /* Las hojas se centran con margen, así que la pila es simplemente sin transform. */
   @keyframes fan {
     from {
@@ -235,19 +221,6 @@ body {
     animation: fan linear both;
     animation-timeline: view();
     animation-range: entry 40% cover 55%;
-  }
-
-  @keyframes zoom-in {
-    from {
-      transform: scale(0.9);
-      opacity: 0.4;
-    }
-  }
-
-  .scroll-zoom {
-    animation: zoom-in linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 40%;
   }
 }
 
@@ -283,10 +256,85 @@ body {
   animation-play-state: paused;
 }
 
+/* El trencito del pie: cruza la vía de punta a punta y vuelve a empezar; las ruedas
+   hacen un saltito mínimo sobre los durmientes. */
+@keyframes train-ride {
+  from {
+    transform: translateX(-160px);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@keyframes train-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+.train-ride {
+  animation: train-ride 24s linear infinite;
+}
+
+
+.train-bob {
+  animation: train-bob 0.45s ease-in-out infinite;
+}
+
+/* La vía sólo se ve alrededor del tren: una ventana (máscara) que viaja con él, con la
+   misma duración y ritmo. Se funde larga atrás y aparece corta adelante. --behind es
+   cuánto queda visible detrás de la cola del tren. */
+.track-reveal {
+  --window: 420px;
+  --behind: 230px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 40%, #000 82%, transparent 100%);
+  -webkit-mask-size: var(--window) 100%;
+  mask-size: var(--window) 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: track-reveal 24s linear infinite;
+}
+
+.track-reveal-md {
+  --window: 520px;
+  --behind: 260px;
+}
+
+@keyframes track-reveal {
+  from {
+    -webkit-mask-position: calc(-160px - var(--behind)) 0;
+    mask-position: calc(-160px - var(--behind)) 0;
+  }
+  to {
+    -webkit-mask-position: calc(100vw - var(--behind)) 0;
+    mask-position: calc(100vw - var(--behind)) 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .scroll-rise,
-  .scroll-rise-late,
-  .scroll-zoom,
+  /* Quieto, a la vista, en vez de cruzar la pantalla. */
+  .train-ride {
+    animation: none !important;
+    transform: translateX(8vw);
+  }
+
+  .train-bob {
+    animation: none !important;
+  }
+
+  /* Con el tren quieto, la vía se ve entera. */
+  .track-reveal {
+    animation: none !important;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
   .crayon,
   .fan-page {
     animation: none !important;

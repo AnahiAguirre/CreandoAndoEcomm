@@ -2,7 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { PaintedFlower } from '@/components/illustrations/painted-sheets';
 import type { CartProductPublic } from '@/components/cart/types';
+import { softCard } from '@/components/ui/soft-card';
 import { isDigital, isInStock, type Product } from '@/domain/catalog/product';
 import { formatPrice } from '@/lib/format';
 
@@ -28,7 +30,7 @@ interface Props {
  */
 export function ProductCard({ product, imageUrl, sizes }: Props) {
   return (
-    <article className="flex h-full flex-col gap-3">
+    <article className={`flex h-full flex-col gap-3 p-3 ${softCard}`}>
       <Link href={`/producto/${product.slug}`} className="group flex flex-1 flex-col gap-3 text-tinta hover:text-tinta">
         <span className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-arena">
           {imageUrl ? (
@@ -39,6 +41,13 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
               sizes={sizes}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
+          ) : isDigital(product) ? (
+            // A printable with no photo yet: a colored-in sheet, so it still reads as a product.
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex aspect-[3/4] h-[78%] items-center justify-center rounded-md bg-white shadow-[0_14px_30px_-18px_rgb(26_23_20/0.45)]">
+                <PaintedFlower className="w-[70%]" firstTurn={0} />
+              </span>
+            </span>
           ) : (
             // No photo loaded yet: the logo, faded, so the card never looks broken.
             <Image src="/home/logo.jpeg" alt="" fill sizes={sizes} className="object-contain p-[22%] opacity-40 mix-blend-multiply" />

@@ -3,15 +3,14 @@ import { toCartProduct } from '@/components/product-card';
 import { fromPriceOfKind, heroProduct, heroToys, homeShowcase } from '@/domain/catalog/storefront';
 import { container } from '@/lib/container';
 
-import { AboutTeaser } from './_components/about-teaser';
+import { BenefitsRow } from './_components/benefits-row';
 import { CategoryShop } from './_components/category-shop';
-import { ClosingCta } from './_components/closing-cta';
+import { ClosingAbout } from './_components/closing-about';
 import { HomeHero } from './_components/home-hero';
 import { HowToBuy } from './_components/how-to-buy';
 import { PrintablesFan } from './_components/printables-fan';
 import { ProductShowcase } from './_components/product-showcase';
 import { ShopHero } from './_components/shop-hero';
-import { TrustLine } from './_components/trust-line';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,15 +56,12 @@ export default async function HomePage() {
       ) : (
         <ShopHero product={hero} imageUrl={hero ? imageOf(hero) : null} />
       )}
-      <div className="border-y border-borde-suave bg-white px-4 py-4">
-        <TrustLine className="mx-auto max-w-[75rem] justify-center md:justify-start" />
-      </div>
+      <BenefitsRow />
       <CategoryShop prices={prices} />
       <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p) }))} />
       <PrintablesFan fromPriceCents={prices.imprimibles} />
       <HowToBuy />
-      <AboutTeaser />
-      <ClosingCta />
+      <ClosingAbout />
     </>
   );
 }

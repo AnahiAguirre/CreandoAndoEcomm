@@ -6,10 +6,11 @@ import { type RefObject, Suspense, useEffect, useRef } from 'react';
 
 import { isActiveLink, NAV_LINKS } from './nav-links';
 
-const desktopLink =
-  'text-tinta-medio underline-offset-[10px] transition-colors duration-300 ease-suave hover:text-tinta aria-[current=page]:text-tinta aria-[current=page]:underline aria-[current=page]:decoration-azul aria-[current=page]:decoration-2';
-const pill =
-  'flex h-9 items-center whitespace-nowrap rounded-full bg-arena px-4 text-sm font-semibold text-tinta-medio transition-colors duration-300 ease-suave hover:bg-azul hover:text-white aria-[current=page]:bg-tinta aria-[current=page]:text-white';
+// Quiet buttons: a thin outline, no fill; soft yellow fills them on hover and stays on the current page.
+const outlined =
+  'rounded-full border border-tinta/15 text-tinta-medio transition-colors duration-300 ease-suave hover:border-amarillo/60 hover:bg-amarillo/30 hover:text-tinta aria-[current=page]:border-amarillo/60 aria-[current=page]:bg-amarillo/30 aria-[current=page]:text-tinta';
+const desktopLink = `${outlined} px-3.5 py-1`;
+const pill = `${outlined} flex h-9 items-center whitespace-nowrap px-4 text-sm font-semibold`;
 
 type Variant = 'desktop' | 'mobile';
 
@@ -60,7 +61,7 @@ function Links({
   });
 
   return variant === 'desktop' ? (
-    <div className="hidden items-center justify-center gap-5 text-sm font-semibold lg:flex xl:gap-7 xl:text-[15px]">{items}</div>
+    <div className="hidden items-center justify-center gap-1 text-sm font-semibold lg:flex xl:gap-2 xl:text-[15px]">{items}</div>
   ) : (
     <ul ref={rowRef} className="flex h-12 w-max items-center gap-2 px-4">
       {items.map((item) => (

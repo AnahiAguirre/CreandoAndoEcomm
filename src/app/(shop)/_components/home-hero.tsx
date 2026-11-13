@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import { BuyNowButton } from '@/components/cart/buy-now-button';
+import { TrainTrack } from '@/components/train-track';
 import type { CartProductPublic } from '@/components/cart/types';
 import { formatPrice } from '@/lib/format';
+
 
 /** One toy of the carousel, from the catalog. */
 export interface HeroSlide {
@@ -149,8 +151,10 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden bg-hero-fondo md:h-[660px]"
+      className="relative overflow-hidden pb-10 md:h-[680px] md:pb-0"
     >
+      {/* The bottom edge of the hero is the little train's track. */}
+      <TrainTrack size="sm" className="absolute inset-x-0 bottom-0 z-10" />
       {/* Mobile: a simple stacked carousel — same state, no blob or Ken Burns.
           The buttons are the call to action, so they land on the first screen. */}
       <div className="flex flex-col items-center gap-3 px-4 pb-8 pt-4 text-center md:hidden">
@@ -169,12 +173,10 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
         >
           <Image src={cur.img} alt={cur.product.name} fill sizes="28rem" className="object-contain" priority />
         </div>
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-azul">
-          Elegidos por profesionales de la salud
-        </span>
-        <h1 className="flex min-h-[2.3em] items-center justify-center text-[28px] font-bold leading-[1.15]">
+        <h1 className="flex items-center justify-center text-[28px] font-bold leading-[1.15]">
           {cur.product.name}
         </h1>
+        <p className="line-clamp-2 max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
         <span className="text-sm text-tinta-soft">
           Precio <span className="font-display ml-1.5 text-lg font-bold text-tinta">{formatPrice(cur.product.priceCents)}</span>
         </span>
@@ -185,7 +187,6 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
           </Link>
         </div>
         {rotates && <ProgressDots count={count} slide={slide} onPick={pick} />}
-        <p className="line-clamp-3 max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
       </div>
 
       {/* Desktop: copy and controls on the left, the toy on its color shape on the right. */}
@@ -206,9 +207,6 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
                     transform: on ? 'translateY(0)' : prev ? 'translateY(-28px)' : 'translateY(28px)',
                   }}
                 >
-                  <span className="text-[13px] font-extrabold uppercase tracking-[0.16em] text-azul">
-                    Elegidos por profesionales de la salud
-                  </span>
                   <h1 className="line-clamp-3 font-display text-[40px] font-bold leading-[1.06] xl:text-[52px]">
                     {s.product.name}
                   </h1>

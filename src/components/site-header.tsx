@@ -14,10 +14,11 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
 
   return (
-    // Sticky and translucent, 64px, like the approved design. Below `lg` the
-    // menu links become a row of pills under the logo (3rem more; the
-    // anchors make room for it with scroll-padding-top in globals.css).
-    <header className="sticky top-0 z-50 border-b border-borde-suave bg-white/90 backdrop-blur-[16px] backdrop-saturate-[1.8]">
+    // Sticky and translucent, 64px, in sage; a hairline and a soft shadow set it apart
+    // from the lighter page below.
+    // Below `lg` the menu links become a row of pills under the logo (3rem more;
+    // the anchors make room for it with scroll-padding-top in globals.css).
+    <header className="sticky top-0 z-50 bg-salvia/95 shadow-[0_1px_0_rgb(26_23_20/0.07),0_6px_18px_-14px_rgb(26_23_20/0.25)] backdrop-blur-[16px] backdrop-saturate-[1.8]">
       <nav aria-label="Principal" className="mx-auto flex h-16 max-w-[75rem] items-center justify-between px-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
         <Link href="/" className="flex items-center gap-2 text-tinta hover:text-tinta">
           {/* The logo is a JPEG on white; multiply drops that white square so
@@ -51,6 +52,9 @@ export async function SiteHeader() {
       <nav aria-label="Secciones" className="no-scrollbar h-12 overflow-x-auto lg:hidden">
         <HeaderNav variant="mobile" />
       </nav>
+      {/* Hints that the row of pills scrolls sideways. */}
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-12 w-12 bg-gradient-to-l from-salvia to-transparent lg:hidden" />
+
     </header>
   );
 }

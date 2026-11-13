@@ -1,8 +1,11 @@
 import Link from 'next/link';
 
 import { CATALOG_LINKS } from '@/components/nav-links';
+import { Reveal } from '@/components/reveal';
+import { softCard } from '@/components/ui/soft-card';
 
 import { pillButton } from './pill-button';
+import { SectionHeading, sectionSpacing } from './section-heading';
 
 const STEPS = [
   { title: 'Elegí', detail: 'Juguetes de madera o imprimibles.\nLos sumás al carrito desde acá o desde el catálogo.' },
@@ -13,18 +16,19 @@ const STEPS = [
 /** The doubts before paying, answered in three steps, ending in the button to start. */
 export function HowToBuy() {
   return (
-    <section className="bg-white px-4 py-16 md:py-20">
+    <section className={sectionSpacing}>
       <div className="mx-auto max-w-[75rem]">
-        <h2 className="font-display text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Cómo comprar</h2>
+        <SectionHeading eyebrow="Fácil y seguro" title="Cómo comprar" />
         <ol className="mt-8 grid gap-5 md:grid-cols-3">
+          {/* The steps come in one after the other, every time the section comes into view. */}
           {STEPS.map((s, i) => (
-            <li key={s.title} className="rounded-3xl bg-arena p-6">
+            <Reveal as="li" key={s.title} repeat delay={i * 250} className={`${softCard} p-6`}>
               <span className="flex size-10 items-center justify-center rounded-full bg-azul font-bold text-white">
                 {i + 1}
               </span>
               <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
               <p className="mt-1 whitespace-pre-line text-tinta-medio">{s.detail}</p>
-            </li>
+            </Reveal>
           ))}
         </ol>
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
