@@ -34,12 +34,11 @@ const detail = 'ghost-btn flex items-center justify-center gap-1.5 whitespace-no
 interface DotsProps {
   count: number;
   slide: number;
-  paused: boolean;
   onPick: (i: number) => void;
 }
 
 /** One bar per toy; the active one grows and fills up while its slide is on screen. */
-function ProgressDots({ count, slide, paused, onPick }: DotsProps) {
+function ProgressDots({ count, slide, onPick }: DotsProps) {
   return (
     <div className="flex items-center">
       {Array.from({ length: count }, (_, i) => (
@@ -57,7 +56,7 @@ function ProgressDots({ count, slide, paused, onPick }: DotsProps) {
           >
             <span
               className="absolute left-0 top-0 h-1.5 w-0 rounded-full bg-azul"
-              style={{ animation: i === slide && !paused ? `progress-bar ${AUTOPLAY_MS}ms linear forwards` : 'none' }}
+              style={{ animation: i === slide ? `progress-bar ${AUTOPLAY_MS}ms linear forwards` : 'none' }}
             />
           </span>
         </button>
@@ -74,7 +73,7 @@ interface ControlsProps extends DotsProps {
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Desktop: prev/next arrows, the "01 / 03" counter, and the progress bars. */
-function Controls({ count, slide, paused, onPrev, onNext, onPick }: ControlsProps) {
+function Controls({ count, slide, onPrev, onNext, onPick }: ControlsProps) {
   const arrow = 'nav-btn flex size-11 items-center justify-center rounded-full border border-control-borde bg-white text-tinta';
   return (
     <div className="flex items-center gap-4">
@@ -91,7 +90,7 @@ function Controls({ count, slide, paused, onPrev, onNext, onPick }: ControlsProp
       <span className="font-display ml-1.5 min-w-[52px] text-[15px] font-semibold text-tinta-soft">
         {pad(slide + 1)} / {pad(count)}
       </span>
-      <ProgressDots count={count} slide={slide} paused={paused} onPick={onPick} />
+      <ProgressDots count={count} slide={slide} onPick={onPick} />
     </div>
   );
 }
@@ -99,13 +98,13 @@ function Controls({ count, slide, paused, onPrev, onNext, onPick }: ControlsProp
 /**
  * Hero carousel: the toys of the catalog take turns over a soft shape that
  * morphs and picks up each one's color, with its name, price and "Comprar
- * ahora" beside it. Autoplays, pauses on hover, advances with the arrows,
- * a progress bar or a swipe. With a single toy it simply stays.
+ * ahora" beside it. Autoplays from the moment the page opens (it does not wait
+ * for the mouse to move away: the cursor usually rests on it), and also advances
+ * with the arrows, a progress bar or a swipe. With a single toy it simply stays.
  */
 export function HomeHero({ slides }: { slides: HeroSlide[] }) {
   const [slide, setSlide] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
-  const [paused, setPaused] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchX = useRef<number | null>(null);
   const count = slides.length;
@@ -136,13 +135,13 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
 
   useEffect(() => {
     if (timer.current) clearInterval(timer.current);
-    if (!paused) restart();
+    restart();
     return () => {
       if (timer.current) clearInterval(timer.current);
     };
-    // `restart` only reads `count`, which is fixed for the life of the page.
+    // Starts once: `restart` only reads `count`, which is fixed for the life of the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paused]);
+  }, []);
 
   const cur = slides[slide];
   const color = COLORS[slide % COLORS.length];
@@ -151,10 +150,6 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
     <section
       id="top"
       className="relative overflow-hidden bg-hero-fondo md:h-[660px]"
-      // Only a real mouse pauses: a tap fires a synthetic mouseenter with no
-      // matching leave, which would freeze autoplay on a phone for good.
-      onPointerEnter={(e) => e.pointerType === 'mouse' && setPaused(true)}
-      onPointerLeave={(e) => e.pointerType === 'mouse' && setPaused(false)}
     >
       {/* Mobile: a simple stacked carousel — same state, no blob or Ken Burns.
           The buttons are the call to action, so they land on the first screen. */}
@@ -189,7 +184,7 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
             Ver detalle <span aria-hidden="true">&nbsp;›</span>
           </Link>
         </div>
-        {rotates && <ProgressDots count={count} slide={slide} paused={paused} onPick={pick} />}
+        {rotates && <ProgressDots count={count} slide={slide} onPick={pick} />}
         <p className="line-clamp-3 max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
       </div>
 
@@ -235,7 +230,7 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
             })}
           </div>
           {rotates && (
-            <Controls count={count} slide={slide} paused={paused} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
+            <Controls count={count} slide={slide} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
           )}
         </div>
 

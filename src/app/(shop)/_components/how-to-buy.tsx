@@ -5,8 +5,8 @@ import { CATALOG_LINKS } from '@/components/nav-links';
 import { pillButton } from './pill-button';
 
 const STEPS = [
-  { title: 'Elegí', detail: 'Juguetes de madera o imprimibles. Los sumás al carrito desde acá o desde el catálogo.' },
-  { title: 'Pagá con Mercado Pago', detail: 'Tarjeta, débito o dinero en cuenta. Compra segura.' },
+  { title: 'Elegí', detail: 'Juguetes de madera o imprimibles.\nLos sumás al carrito desde acá o desde el catálogo.' },
+  { title: 'Pagá con Mercado Pago', detail: 'Tarjeta, débito o dinero en cuenta.\nCompra segura.' },
   { title: 'Recibilo', detail: 'Los imprimibles te llegan al instante por email. Los juguetes los retirás gratis o te los mandamos.' },
 ];
 
@@ -23,7 +23,7 @@ export function HowToBuy() {
                 {i + 1}
               </span>
               <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
-              <p className="mt-1 text-tinta-medio">{s.detail}</p>
+              <p className="mt-1 whitespace-pre-line text-tinta-medio">{s.detail}</p>
             </li>
           ))}
         </ol>
