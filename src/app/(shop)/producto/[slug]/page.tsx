@@ -50,8 +50,10 @@ export default async function ProductPage({ params }: Props) {
         </Link>
       </Reveal>
 
-      <div className="mt-6 grid gap-10 md:grid-cols-2 md:gap-14">
-        <Reveal>
+      {/* grid-cols-1 (minmax(0,1fr)), not the implicit auto column: otherwise the
+          strip of thumbnails sets the column's width and the page gets wider than a phone. */}
+      <div className="mt-6 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-14">
+        <Reveal className="min-w-0">
           <ProductGallery images={images} productName={product.name} />
         </Reveal>
 
