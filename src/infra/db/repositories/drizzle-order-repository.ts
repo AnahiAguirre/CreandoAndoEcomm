@@ -1,10 +1,11 @@
 import { and, desc, eq, gte, ne, sql } from 'drizzle-orm';
 
+import type { BuyerHistory } from '@/domain/coupons/coupon';
 import type { NewOrder, Order, OrderItem, OrderStatus, ShipmentState } from '@/domain/orders/order';
 import type { MarkPaidResult, OrderRepository } from '@/domain/orders/ports';
 
 import type { Db } from '../client';
-import { orderItems, orders, products } from '../schema';
+import { coupons, orderItems, orders, products } from '../schema';
 
 type OrderRow = typeof orders.$inferSelect;
 type ItemRow = typeof orderItems.$inferSelect;
@@ -28,6 +29,8 @@ function toOrder(row: OrderRow & { items: ItemRow[] }): Order {
     items: row.items.map(toItem),
     subtotalCents: row.subtotalCents,
     shippingCents: row.shippingCents,
+    discountCents: row.discountCents,
+    couponCode: row.couponCode,
     totalCents: row.totalCents,
     shipping: row.shipping,
     mpPaymentId: row.mpPaymentId,
@@ -51,6 +54,8 @@ export class DrizzleOrderRepository implements OrderRepository {
           email: input.email,
           subtotalCents: input.subtotalCents,
           shippingCents: input.shippingCents,
+          discountCents: input.discountCents,
+          couponCode: input.couponCode,
           totalCents: input.totalCents,
           shipping: input.shipping,
         })
@@ -87,8 +92,16 @@ export class DrizzleOrderRepository implements OrderRepository {
         .update(orders)
         .set({ status: 'paid', mpPaymentId, paidAt: new Date() })
         .where(and(eq(orders.id, id), ne(orders.status, 'paid')))
-        .returning({ id: orders.id });
+        .returning({ id: orders.id, couponCode: orders.couponCode });
       if (!flipped) return false;
+
+      // A coupon counts one use per PAID order, here, so a retried webhook never counts twice.
+      if (flipped.couponCode) {
+        await tx
+          .update(coupons)
+          .set({ usedCount: sql`${coupons.usedCount} + 1` })
+          .where(eq(coupons.code, flipped.couponCode));
+      }
 
       const lines = await tx.select().from(orderItems).where(eq(orderItems.orderId, id));
       let short = false;
@@ -117,6 +130,17 @@ export class DrizzleOrderRepository implements OrderRepository {
       .update(orders)
       .set({ status, mpPaymentId })
       .where(and(eq(orders.id, id), eq(orders.status, 'pending')));
+  }
+
+  async buyerHistory(email: string, couponCode: string): Promise<BuyerHistory> {
+    const [row] = await this.db
+      .select({
+        paidOrders: sql<number>`count(*)::int`,
+        paidOrdersWithThisCoupon: sql<number>`(count(*) filter (where ${orders.couponCode} = ${couponCode}))::int`,
+      })
+      .from(orders)
+      .where(and(eq(orders.email, email), eq(orders.status, 'paid')));
+    return { paidOrders: row?.paidOrders ?? 0, paidOrdersWithThisCoupon: row?.paidOrdersWithThisCoupon ?? 0 };
   }
 
   async setShipment(id: string, shipment: ShipmentState): Promise<void> {

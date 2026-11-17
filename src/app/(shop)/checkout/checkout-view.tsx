@@ -13,7 +13,9 @@ import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pi
 import { type CarrierMethod, PROVINCES, type ProvinceCode, type ShippingMethod } from '@/domain/orders/order';
 import { formatPrice } from '@/lib/format';
 
-import { previewCheckout, quoteShipping, startCheckout } from './actions';
+import type { AppliedCoupon } from '@/domain/coupons/coupon';
+
+import { applyCoupon, previewCheckout, quoteShipping, startCheckout } from './actions';
 
 interface Quoted {
   /** What the quote is valid for: if any of these change, it must be asked again. */
@@ -54,7 +56,11 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
   const [method, setMethod] = useState<ShippingMethod>('retiro');
   const [form, setForm] = useState(EMPTY_FORM);
   const [quoted, setQuoted] = useState<Quoted | null>(null);
-  const [busy, setBusy] = useState<'quote' | 'pay' | null>(null);
+  const [busy, setBusy] = useState<'quote' | 'pay' | 'coupon' | null>(null);
+  const [couponText, setCouponText] = useState('');
+  /** The accepted coupon and the cart it was priced for: if the cart changes, it is asked again. */
+  const [coupon, setCoupon] = useState<{ forLines: string; applied: AppliedCoupon } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
@@ -112,7 +118,9 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
   const shipsByCarrier = method !== 'retiro';
   const needsQuote = carrierQuotes && shipsByCarrier;
   const shippingCents = hasPhysical && needsQuote ? (quote?.quote.priceCents ?? 0) : 0;
-  const total = preview.subtotalCents + shippingCents;
+  const applied = coupon?.forLines === linesKey ? coupon.applied : null;
+  const discountCents = applied?.discountCents ?? 0;
+  const total = preview.subtotalCents - discountCents + shippingCents;
   const canPay =
     busy === null &&
     (!hasPhysical || !needsQuote || (quote !== null && (method === 'domicilio' || form.agencyId !== '')));
@@ -140,6 +148,20 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
     setForm((f) => ({ ...f, agencyId: '' }));
   }
 
+  async function onApplyCoupon() {
+    setBusy('coupon');
+    setCouponError(null);
+    const result = await applyCoupon({ lines, code: couponText });
+    setBusy(null);
+    if (!result.ok) {
+      setCoupon(null);
+      setCouponError(result.error);
+      return;
+    }
+    setCoupon({ forLines: linesKey, applied: result.data });
+    setCouponText('');
+  }
+
   async function onPay(e: FormEvent) {
     e.preventDefault();
     setBusy('pay');
@@ -164,6 +186,7 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
               city: method === 'domicilio' ? form.city : undefined,
               agencyId: method === 'sucursal' ? form.agencyId : undefined,
             },
+      couponCode: applied?.code,
     });
     if (!result.ok) {
       setBusy(null);
@@ -298,6 +321,12 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
             <dt className="text-tinta-medio">Subtotal</dt>
             <dd className="font-semibold">{formatPrice(preview.subtotalCents)}</dd>
           </div>
+          {applied && (
+            <div className="flex justify-between text-verde">
+              <dt>Cupón {applied.code}</dt>
+              <dd className="font-semibold">− {formatPrice(applied.discountCents)}</dd>
+            </div>
+          )}
           {hasPhysical && (
             <div className="flex justify-between">
               <dt className="text-tinta-medio">Envío</dt>
@@ -313,6 +342,59 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
             </div>
           )}
         </dl>
+        <div className="mt-4 border-t border-borde-suave pt-4">
+          {applied ? (
+            <p className="flex items-center justify-between gap-3 text-sm">
+              <span>
+                <strong>{applied.code}</strong> · {applied.label}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCoupon(null)}
+                className="text-tinta-medio underline hover:text-tinta"
+              >
+                Quitar
+              </button>
+            </p>
+          ) : (
+            <>
+              <label htmlFor="coupon" className="text-sm font-medium">
+                ¿Tenés un cupón?
+              </label>
+              <div className="mt-2 flex gap-2">
+                <Input
+                  id="coupon"
+                  value={couponText}
+                  onChange={(e) => setCouponText(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Enter here applies the coupon; it must not submit the payment form.
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (couponText.trim()) void onApplyCoupon();
+                    }
+                  }}
+                  placeholder="Código"
+                  autoComplete="off"
+                  className="uppercase"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onApplyCoupon}
+                  disabled={busy !== null || !couponText.trim()}
+                >
+                  {busy === 'coupon' ? 'Aplicando…' : 'Aplicar'}
+                </Button>
+              </div>
+              {couponError && (
+                <p role="alert" className="mt-2 text-sm text-red-600">
+                  {couponError}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
         <p className="mt-4 flex justify-between border-t border-borde-suave pt-4 text-lg font-bold">
           <span>Total</span>
           <span>{formatPrice(total)}</span>

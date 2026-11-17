@@ -3,6 +3,8 @@ import type { ProductInput } from '@/domain/catalog/product-input';
 import type { AdminCategory, Category } from '@/domain/catalog/category';
 import type { CategoryFields, CategoryRepository } from '@/domain/catalog/category-repository';
 import type { AdminProduct, NewProductFile, ProductRepository } from '@/domain/catalog/product-repository';
+import type { BuyerHistory, Coupon, CouponFields } from '@/domain/coupons/coupon';
+import type { CouponRepository } from '@/domain/coupons/coupon-repository';
 import type { DeliverableFile, Entitlement, LibraryItem } from '@/domain/delivery/entitlement';
 import type { EntitlementRepository, NewEntitlement } from '@/domain/delivery/entitlement-repository';
 import type { MailMessage, MailSender } from '@/domain/notifications/mail-sender';
@@ -339,7 +341,11 @@ export class InMemoryEntitlementRepository implements EntitlementRepository {
 export class InMemoryOrderRepository implements OrderRepository {
   readonly items = new Map<string, Order>();
 
-  constructor(private readonly products: InMemoryProductRepository) {}
+  constructor(
+    private readonly products: InMemoryProductRepository,
+    /** When given, paying an order with a coupon counts one use, like the real markPaid. */
+    private readonly coupons?: InMemoryCouponRepository,
+  ) {}
 
   async create(input: NewOrder): Promise<Order> {
     const order: Order = {
@@ -379,7 +385,16 @@ export class InMemoryOrderRepository implements OrderRepository {
       if (product && product.stock >= item.quantity) product.stock -= item.quantity;
       else order.needsStockReview = true;
     }
+    if (order.couponCode && this.coupons) {
+      const coupon = [...this.coupons.items.values()].find((c) => c.code === order.couponCode);
+      if (coupon) coupon.usedCount += 1;
+    }
     return { order, changed: true };
+  }
+
+  async buyerHistory(email: string, couponCode: string): Promise<BuyerHistory> {
+    const paid = [...this.items.values()].filter((o) => o.email === email && o.status === 'paid');
+    return { paidOrders: paid.length, paidOrdersWithThisCoupon: paid.filter((o) => o.couponCode === couponCode).length };
   }
 
   async setShipment(id: string, shipment: ShipmentState): Promise<void> {
@@ -393,6 +408,65 @@ export class InMemoryOrderRepository implements OrderRepository {
       order.status = status;
       order.mpPaymentId = mpPaymentId;
     }
+  }
+}
+
+export function buildCoupon(overrides: Partial<Coupon> = {}): Coupon {
+  return {
+    id: nextId(),
+    code: 'NAVIDAD10',
+    kind: 'percent',
+    value: 10,
+    minSubtotalCents: null,
+    maxDiscountCents: null,
+    maxUses: null,
+    customerLimit: 'unlimited',
+    usedCount: 0,
+    expiresAt: null,
+    active: true,
+    createdAt: new Date(),
+    ...overrides,
+  };
+}
+
+export class InMemoryCouponRepository implements CouponRepository {
+  readonly items = new Map<string, Coupon>();
+
+  constructor(seed: Coupon[] = []) {
+    for (const c of seed) this.items.set(c.id, c);
+  }
+
+  async listAll(): Promise<Coupon[]> {
+    return [...this.items.values()].reverse();
+  }
+
+  async findById(id: string): Promise<Coupon | null> {
+    return this.items.get(id) ?? null;
+  }
+
+  async findByCode(code: string): Promise<Coupon | null> {
+    return [...this.items.values()].find((c) => c.code === code) ?? null;
+  }
+
+  async create(fields: CouponFields): Promise<Coupon> {
+    const coupon = buildCoupon(fields);
+    this.items.set(coupon.id, coupon);
+    return coupon;
+  }
+
+  async update(id: string, fields: CouponFields): Promise<Coupon> {
+    const coupon = { ...this.items.get(id)!, ...fields };
+    this.items.set(id, coupon);
+    return coupon;
+  }
+
+  async setActive(id: string, active: boolean): Promise<void> {
+    const coupon = this.items.get(id);
+    if (coupon) coupon.active = active;
+  }
+
+  async delete(id: string): Promise<void> {
+    this.items.delete(id);
   }
 }
 

@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 import type { CartLine } from '@/domain/cart/cart';
+import type { AppliedCoupon } from '@/domain/coupons/coupon';
 import { CARRIER_METHODS, CartChangedError, postalCodeSchema, provinceCodeSchema } from '@/domain/orders/order';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
 import { DomainError } from '@/domain/shared/errors';
@@ -65,10 +66,28 @@ export async function quoteShipping(
   }
 }
 
+const couponCodeSchema = z.string().max(60);
+
+/** Checks a coupon against the cart and says how much it takes off. */
+export async function applyCoupon(request: {
+  lines: CartLine[];
+  code: string;
+}): Promise<ActionResult<AppliedCoupon>> {
+  const user = await requireUser('/checkout');
+  try {
+    const lines = linesSchema.parse(request.lines);
+    const code = couponCodeSchema.parse(request.code);
+    return { ok: true, data: await container.checkout.applyCoupon({ userId: user.id, email: user.email }, lines, code) };
+  } catch (err) {
+    return toError(err);
+  }
+}
+
 const startSchema = z.object({
   lines: linesSchema,
   // Shape and rules are checked by the domain (shippingInputSchema); absent for digital-only carts.
   shipping: z.unknown().optional(),
+  couponCode: couponCodeSchema.optional(),
 });
 
 /** Creates the order and returns where to send the buyer to pay. */
@@ -76,8 +95,13 @@ export async function startCheckout(request: z.input<typeof startSchema>): Promi
   const user = await requireUser('/checkout');
   if (!paymentsEnabled) return { ok: false, error: 'Los pagos todavía no están habilitados.' };
   try {
-    const { lines, shipping } = startSchema.parse(request);
-    const { redirectUrl } = await container.checkout.start({ userId: user.id, email: user.email }, lines, shipping);
+    const { lines, shipping, couponCode } = startSchema.parse(request);
+    const { redirectUrl } = await container.checkout.start(
+      { userId: user.id, email: user.email },
+      lines,
+      shipping,
+      couponCode,
+    );
     return { ok: true, data: { redirectUrl } };
   } catch (err) {
     return toError(err);

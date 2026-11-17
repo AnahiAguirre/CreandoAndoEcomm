@@ -61,6 +61,11 @@ export default async function AdminOrdersPage() {
                     </li>
                   ))}
                 </ul>
+                {order.discountCents > 0 && (
+                  <p className="mt-1 text-green-700">
+                    Cupón {order.couponCode}: − {formatPrice(order.discountCents)}
+                  </p>
+                )}
 
                 {order.shipping && (
                   <div className="mt-3 rounded-lg bg-neutral-50 p-3">

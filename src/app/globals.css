@@ -317,7 +317,26 @@ body {
   }
 }
 
+/* Navidad: las lamparitas de la guirnalda del encabezado brillan y se apagan despacio. */
+@keyframes xmas-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.xmas-bulb {
+  animation: xmas-glow 3.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .xmas-bulb {
+    animation: none !important;
+  }
+
   /* Quieto, a la vista, en vez de cruzar la pantalla. */
   .train-ride {
     animation: none !important;

@@ -166,6 +166,8 @@ describe('CorreoShipmentCreator', () => {
     ],
     subtotalCents: 3950000,
     shippingCents: 650025,
+    discountCents: 0,
+    couponCode: null,
     totalCents: 4600025,
     shipping: {
       method: 'domicilio',

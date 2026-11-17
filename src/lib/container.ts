@@ -13,6 +13,8 @@ import type { PaymentGateway } from '@/domain/orders/ports';
 import { ConfirmPayment } from '@/domain/orders/use-cases/confirm-payment';
 import { ShipOrder } from '@/domain/orders/use-cases/ship-order';
 import { CreateCheckout } from '@/domain/orders/use-cases/create-checkout';
+import { CouponAdmin } from '@/domain/coupons/use-cases/coupon-admin';
+import { DrizzleCouponRepository } from '@/infra/db/repositories/drizzle-coupon-repository';
 import { createAuth } from '@/infra/auth/create-auth';
 import { db } from '@/infra/db/client';
 import { DrizzleCategoryRepository } from '@/infra/db/repositories/drizzle-category-repository';
@@ -43,6 +45,7 @@ const productRepository = new DrizzleProductRepository(db);
 const categoryRepository = new DrizzleCategoryRepository(db);
 const entitlementRepository = new DrizzleEntitlementRepository(db);
 const orderRepository = new DrizzleOrderRepository(db);
+const couponRepository = new DrizzleCouponRepository(db);
 const fileStorage = new SupabaseFileStorage(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY);
 
 const mail: MailSender = env.RESEND_API_KEY
@@ -107,7 +110,8 @@ export const container = {
   delivery,
   shipOrder,
   orders: orderRepository,
-  checkout: new CreateCheckout(productRepository, orderRepository, paymentGateway, shippingQuoter),
+  checkout: new CreateCheckout(productRepository, orderRepository, paymentGateway, shippingQuoter, couponRepository),
+  coupons: new CouponAdmin(couponRepository),
   payments: {
     confirm: new ConfirmPayment(orderRepository, paymentGateway, delivery, shipOrder),
     /** Mercado Pago's webhook signature, checked with our secret. `false` when payments aren't configured. */

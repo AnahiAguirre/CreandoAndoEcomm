@@ -57,6 +57,20 @@
       "when": 1794495996056,
       "tag": "0007_featured",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794921838900,
+      "tag": "0008_coupons",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794922636668,
+      "tag": "0009_coupon_limits",
+      "breakpoints": true
     }
   ]
 }

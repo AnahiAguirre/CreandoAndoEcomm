@@ -1,6 +1,15 @@
 import { type CartLine, type CartSummary, reconcileCart } from '@/domain/cart/cart';
 import { isDigital } from '@/domain/catalog/product';
 import type { ProductRepository } from '@/domain/catalog/product-repository';
+import {
+  type AppliedCoupon,
+  assertCustomerMayUse,
+  couponDiscount,
+  CouponNotValidError,
+  describeCoupon,
+  normalizeCouponCode,
+} from '@/domain/coupons/coupon';
+import type { CouponRepository } from '@/domain/coupons/coupon-repository';
 import { normalizeEmail } from '@/domain/delivery/entitlement';
 import { DomainError } from '@/domain/shared/errors';
 
@@ -58,7 +67,30 @@ export class CreateCheckout {
     private readonly orders: OrderRepository,
     private readonly gateway: PaymentGateway,
     private readonly shippingQuoter: ShippingQuoter,
+    private readonly coupons: CouponRepository,
   ) {}
+
+  /**
+   * Checks a coupon against the cart as it is now in the catalog. Used by the
+   * "Aplicar" button; `start` checks it again, so an accepted coupon that expires
+   * or runs out before paying is refused there.
+   */
+  async applyCoupon(buyer: Buyer, lines: CartLine[], rawCode: string): Promise<AppliedCoupon> {
+    const found = await this.products.findActiveByIds(lines.map((l) => l.productId));
+    const { subtotalCents } = reconcileCart(lines, found);
+    return this.priceCoupon(buyer, rawCode, subtotalCents);
+  }
+
+  private async priceCoupon(buyer: Buyer, rawCode: string, subtotalCents: number): Promise<AppliedCoupon> {
+    const code = normalizeCouponCode(rawCode);
+    if (!code) throw new CouponNotValidError('Escribí el código del cupón.');
+    const coupon = await this.coupons.findByCode(code);
+    const discountCents = couponDiscount(coupon, subtotalCents);
+    if (coupon!.customerLimit !== 'unlimited') {
+      assertCustomerMayUse(coupon!, await this.orders.buyerHistory(normalizeEmail(buyer.email), code));
+    }
+    return { code, discountCents, label: describeCoupon(coupon!) };
+  }
 
   /** The cart as it stands right now in the catalog (prices, stock, what vanished). */
   async preview(lines: CartLine[]): Promise<CheckoutPreview> {
@@ -81,6 +113,7 @@ export class CreateCheckout {
     buyer: Buyer,
     lines: CartLine[],
     shippingInput: unknown,
+    couponCode?: string | null,
   ): Promise<{ orderId: string; redirectUrl: string }> {
     const found = await this.products.findActiveByIds(lines.map((l) => l.productId));
     const summary = reconcileCart(lines, found);
@@ -103,13 +136,16 @@ export class CreateCheckout {
       }
     }
 
-    const totals = computeOrderTotals(lines, found, shippingCents);
+    const coupon = couponCode ? await this.priceCoupon(buyer, couponCode, summary.subtotalCents) : null;
+    const totals = computeOrderTotals(lines, found, shippingCents, coupon?.discountCents ?? 0);
     const order = await this.orders.create({
       userId: buyer.userId,
       email: normalizeEmail(buyer.email),
       items: totals.items satisfies OrderItem[],
       subtotalCents: totals.subtotalCents,
       shippingCents: totals.shippingCents,
+      discountCents: totals.discountCents,
+      couponCode: coupon?.code ?? null,
       totalCents: totals.totalCents,
       shipping,
     });

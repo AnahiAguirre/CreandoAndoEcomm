@@ -41,13 +41,27 @@ export class MercadoPagoGateway implements PaymentGateway {
   }
 
   async createCheckout(order: Order): Promise<{ redirectUrl: string }> {
-    const items = order.items.map((item) => ({
-      id: item.productId ?? item.name,
-      title: item.name.slice(0, MAX_TITLE),
-      quantity: item.quantity,
-      unit_price: toPesos(item.unitPriceCents),
-      currency_id: 'ARS',
-    }));
+    // Mercado Pago has no discount line and refuses negative prices, so with a coupon the
+    // products go as ONE line already discounted. What the buyer pays (and what
+    // ConfirmPayment compares against `totalCents`) adds up exactly either way.
+    const items =
+      order.discountCents > 0
+        ? [
+            {
+              id: 'productos',
+              title: `${order.items.map((i) => `${i.quantity} × ${i.name}`).join(', ')} (cupón ${order.couponCode})`.slice(0, MAX_TITLE),
+              quantity: 1,
+              unit_price: toPesos(order.subtotalCents - order.discountCents),
+              currency_id: 'ARS',
+            },
+          ]
+        : order.items.map((item) => ({
+            id: item.productId ?? item.name,
+            title: item.name.slice(0, MAX_TITLE),
+            quantity: item.quantity,
+            unit_price: toPesos(item.unitPriceCents),
+            currency_id: 'ARS',
+          }));
     if (order.shippingCents > 0) {
       items.push({ id: 'envio', title: 'Envío', quantity: 1, unit_price: toPesos(order.shippingCents), currency_id: 'ARS' });
     }

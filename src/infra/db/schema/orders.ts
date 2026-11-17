@@ -18,6 +18,9 @@ export const orders = pgTable(
     status: orderStatus('status').notNull().default('pending'),
     subtotalCents: integer('subtotal_cents').notNull(),
     shippingCents: integer('shipping_cents').notNull().default(0),
+    // Coupon: a copy of its code (no FK: deleting a coupon must not touch past sales).
+    discountCents: integer('discount_cents').notNull().default(0),
+    couponCode: text('coupon_code'),
     totalCents: integer('total_cents').notNull(),
     // Null for digital-only orders.
     shipping: jsonb('shipping').$type<ShippingDetails>(),

@@ -1,3 +1,4 @@
+import type { BuyerHistory } from '@/domain/coupons/coupon';
 import { DomainError } from '@/domain/shared/errors';
 import type { Cents } from '@/domain/shared/money';
 
@@ -30,6 +31,8 @@ export interface OrderRepository {
   markUnpaid(id: string, status: Extract<OrderStatus, 'rejected' | 'cancelled'>, mpPaymentId: string): Promise<void>;
   /** Records how registering the shipment went. A shipment already `created` is never overwritten. */
   setShipment(id: string, shipment: ShipmentState): Promise<void>;
+  /** The buyer's (normalized email) PAID orders, for coupons with a per-buyer rule. */
+  buyerHistory(email: string, couponCode: string): Promise<BuyerHistory>;
 }
 
 // ---------- payments ----------

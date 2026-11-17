@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { CartLink } from '@/components/cart/cart-link';
 import { isAdmin } from '@/domain/auth/user';
 import { getCurrentUser } from '@/lib/auth-guards';
+import { isChristmasSeason } from '@/lib/season';
 
+import { LightGarland, SantaHat } from './christmas';
 import { HeaderNav } from './header-nav';
 import { UserMenu } from './user-menu';
 
@@ -12,6 +14,7 @@ const navLink = 'text-tinta-medio transition-colors duration-300 ease-suave hove
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
+  const christmas = isChristmasSeason();
 
   return (
     // Sticky and translucent, 64px, in sage; a hairline and a soft shadow set it apart
@@ -24,14 +27,17 @@ export async function SiteHeader() {
           {/* The logo is a JPEG on white; multiply drops that white square so
               the translucent header shows through around the splashes. At
               56px its lettering is too small to read, so the name stays beside it. */}
-          <Image
-            src="/home/logo.jpeg"
-            alt=""
-            width={56}
-            height={56}
-            priority
-            className="size-14 mix-blend-multiply"
-          />
+          <span className="relative">
+            <Image
+              src="/home/logo.jpeg"
+              alt=""
+              width={56}
+              height={56}
+              priority
+              className="size-14 mix-blend-multiply"
+            />
+            {christmas && <SantaHat size={30} className="absolute -top-1.5 left-0.5 -rotate-12" />}
+          </span>
           <span className="font-display text-xl font-bold">CreandoAndo</span>
         </Link>
 
@@ -54,6 +60,8 @@ export async function SiteHeader() {
       </nav>
       {/* Hints that the row of pills scrolls sideways. */}
       <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-12 w-12 bg-gradient-to-l from-salvia to-transparent lg:hidden" />
+
+      {christmas && <LightGarland />}
 
     </header>
   );

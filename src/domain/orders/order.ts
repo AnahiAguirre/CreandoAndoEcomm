@@ -102,6 +102,11 @@ export interface Order {
   items: OrderItem[];
   subtotalCents: Cents;
   shippingCents: Cents;
+  /** Taken off the products by a coupon (never off shipping). 0 without one. */
+  discountCents: Cents;
+  /** The coupon used. Kept even if the coupon is later deleted. */
+  couponCode: string | null;
+  /** subtotal − discount + shipping. */
   totalCents: Cents;
   shipping: ShippingDetails | null;
   mpPaymentId: string | null;
@@ -136,6 +141,7 @@ export interface OrderTotals {
   items: OrderItem[];
   subtotalCents: Cents;
   shippingCents: Cents;
+  discountCents: Cents;
   totalCents: Cents;
   hasPhysical: boolean;
 }
@@ -146,7 +152,12 @@ export interface OrderTotals {
  * Throws instead of silently fixing: if reconciling had to change anything, the
  * buyer is shown the change (see `CartChangedError`) and confirms again.
  */
-export function computeOrderTotals(lines: CartLine[], products: CartProduct[], shippingCents: Cents): OrderTotals {
+export function computeOrderTotals(
+  lines: CartLine[],
+  products: CartProduct[],
+  shippingCents: Cents,
+  discountCents: Cents = 0,
+): OrderTotals {
   const summary = reconcileCart(lines, products);
   if (summary.adjustments.length > 0) throw new CartChangedError(summary.adjustments);
   if (summary.items.length === 0) throw new EmptyCartError();
@@ -161,11 +172,15 @@ export function computeOrderTotals(lines: CartLine[], products: CartProduct[], s
   const hasPhysical = summary.items.some((i) => !isDigital(i.product));
   const shipping = hasPhysical ? shippingCents : 0;
 
+  // A discount only ever comes off the products, never below zero.
+  const discount = Math.min(Math.max(0, discountCents), summary.subtotalCents);
+
   return {
     items,
     subtotalCents: summary.subtotalCents,
     shippingCents: shipping,
-    totalCents: summary.subtotalCents + shipping,
+    discountCents: discount,
+    totalCents: summary.subtotalCents - discount + shipping,
     hasPhysical,
   };
 }

@@ -114,6 +114,12 @@ function Detail({ order }: { order: Order }) {
             <span className="font-medium">{formatPrice(item.unitPriceCents * item.quantity)}</span>
           </li>
         ))}
+        {order.discountCents > 0 && (
+          <li className="flex justify-between gap-4 text-verde">
+            <span>Cupón {order.couponCode}</span>
+            <span>− {formatPrice(order.discountCents)}</span>
+          </li>
+        )}
         {order.shippingCents > 0 && (
           <li className="flex justify-between gap-4 text-tinta-medio">
             <span>{order.shipping?.quoteLabel ?? 'Envío'}</span>

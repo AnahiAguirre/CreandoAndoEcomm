@@ -5,12 +5,16 @@ import { ConfirmPayment } from '@/domain/orders/use-cases/confirm-payment';
 import { ShipOrder } from '@/domain/orders/use-cases/ship-order';
 import { CreateCheckout, DigitalNotReadyError, UnknownAgencyError } from '@/domain/orders/use-cases/create-checkout';
 
+import { CouponNotValidError } from '@/domain/coupons/coupon';
+
 import {
+  buildCoupon,
   buildFile,
   buildProduct,
   FakePaymentGateway,
   FakeShipmentCreator,
   FakeShippingQuoter,
+  InMemoryCouponRepository,
   InMemoryOrderRepository,
   InMemoryProductRepository,
 } from '../../helpers/fakes';
@@ -39,7 +43,8 @@ function setup() {
     files: [buildFile()],
   });
   const products = new InMemoryProductRepository([toy, pdf]);
-  const orders = new InMemoryOrderRepository(products);
+  const coupons = new InMemoryCouponRepository();
+  const orders = new InMemoryOrderRepository(products, coupons);
   const gateway = new FakePaymentGateway();
   const quoter = new FakeShippingQuoter();
   const shipments = new FakeShipmentCreator();
@@ -58,7 +63,8 @@ function setup() {
     shipments,
     shipOrder,
     granted,
-    checkout: new CreateCheckout(products, orders, gateway, quoter),
+    coupons,
+    checkout: new CreateCheckout(products, orders, gateway, quoter, coupons),
     confirm: new ConfirmPayment(orders, gateway, delivery, shipOrder),
   };
 }
@@ -284,5 +290,84 @@ describe('ConfirmPayment', () => {
 
   it('syncOrder with no payment yet reports pending', async () => {
     expect((await t.confirm.syncOrder(orderId)).kind).toBe('pending');
+  });
+});
+
+describe('coupons at checkout', () => {
+  let t: ReturnType<typeof setup>;
+  beforeEach(() => {
+    t = setup();
+    t.coupons.items.set('c1', buildCoupon({ id: 'c1', code: 'NAVIDAD10', kind: 'percent', value: 10, maxUses: 1 }));
+  });
+
+  const cart = [{ productId: 'toy', quantity: 2 }];
+
+  it('applyCoupon prices the discount against the catalog, whatever case was typed', async () => {
+    const applied = await t.checkout.applyCoupon(buyer, cart, ' navidad10 ');
+    expect(applied).toEqual({ code: 'NAVIDAD10', discountCents: 370000, label: '10% de descuento' });
+  });
+
+  it('start takes the discount off the products only, and the gateway charges that total', async () => {
+    const { orderId } = await t.checkout.start(buyer, cart, shipping, 'NAVIDAD10');
+    const order = (await t.orders.findById(orderId))!;
+    expect(order).toMatchObject({ subtotalCents: 3700000, discountCents: 370000, shippingCents: 500000, couponCode: 'NAVIDAD10' });
+    expect(order.totalCents).toBe(3700000 - 370000 + 500000);
+    expect(t.gateway.checkouts[0].totalCents).toBe(order.totalCents);
+  });
+
+  it('start refuses a coupon that stopped working since it was applied', async () => {
+    t.coupons.items.get('c1')!.active = false;
+    await expect(t.checkout.start(buyer, cart, shipping, 'NAVIDAD10')).rejects.toBeInstanceOf(CouponNotValidError);
+    expect(t.orders.items.size).toBe(0);
+  });
+
+  it('a use is counted once, when the order is paid', async () => {
+    const { orderId } = await t.checkout.start(buyer, cart, shipping, 'NAVIDAD10');
+    expect(t.coupons.items.get('c1')!.usedCount).toBe(0);
+    const total = (await t.orders.findById(orderId))!.totalCents;
+    t.gateway.payments.set('pay-c', { id: 'pay-c', status: 'approved', orderId, amountCents: total });
+    await t.confirm.fromPaymentId('pay-c');
+    await t.confirm.fromPaymentId('pay-c'); // webhook retry
+    expect(t.coupons.items.get('c1')!.usedCount).toBe(1);
+    // maxUses was 1: the next buyer is told it is used up.
+    await expect(t.checkout.applyCoupon(buyer, cart, 'NAVIDAD10')).rejects.toThrow(/todas las veces/);
+  });
+
+  /** Creates and pays an order for `who`, with or without a coupon. */
+  async function paidOrder(who: typeof buyer, couponCode?: string) {
+    const { orderId } = await t.checkout.start(who, cart, shipping, couponCode);
+    const total = (await t.orders.findById(orderId))!.totalCents;
+    t.gateway.payments.set(`pay-${orderId}`, { id: `pay-${orderId}`, status: 'approved', orderId, amountCents: total });
+    await t.confirm.fromPaymentId(`pay-${orderId}`);
+  }
+
+  it('"cada cliente, una vez": the same buyer is refused the second time, others are not', async () => {
+    t.coupons.items.set('c1', buildCoupon({ id: 'c1', code: 'NAVIDAD10', customerLimit: 'once' }));
+    await paidOrder(buyer, 'NAVIDAD10');
+    await expect(t.checkout.applyCoupon(buyer, cart, 'NAVIDAD10')).rejects.toThrow(/Ya usaste este cupón/);
+    // The email is compared normalized.
+    await expect(t.checkout.applyCoupon({ ...buyer, email: 'ANA@example.com' }, cart, 'NAVIDAD10')).rejects.toThrow(/Ya usaste/);
+    await expect(t.checkout.applyCoupon({ userId: 'u2', email: 'otra@example.com' }, cart, 'NAVIDAD10')).resolves.toBeTruthy();
+  });
+
+  it('"solo en la primera compra": refused once the buyer has any paid order, coupon or not', async () => {
+    t.coupons.items.set(
+      'c2',
+      buildCoupon({
+        id: 'c2',
+        code: 'PRIMERACOMPRA',
+        value: 25,
+        maxDiscountCents: 1_000_000,
+        minSubtotalCents: 5_000_000,
+        customerLimit: 'first_order',
+      }),
+    );
+    const big = [{ productId: 'toy', quantity: 3 }]; // $55.500
+    // 25% of $55.500 is $13.875, capped at $10.000.
+    await expect(t.checkout.applyCoupon(buyer, big, 'PRIMERACOMPRA')).resolves.toMatchObject({ discountCents: 1_000_000 });
+    // Under $50.000 of products it does not apply.
+    await expect(t.checkout.applyCoupon(buyer, cart, 'PRIMERACOMPRA')).rejects.toThrow(/desde/);
+    await paidOrder(buyer); // a first purchase without the coupon
+    await expect(t.checkout.applyCoupon(buyer, big, 'PRIMERACOMPRA')).rejects.toThrow(/primera compra/);
   });
 });
