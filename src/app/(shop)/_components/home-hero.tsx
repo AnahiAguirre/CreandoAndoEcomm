@@ -74,21 +74,28 @@ interface ControlsProps extends DotsProps {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+/** A round prev/next button. */
+function ArrowButton({ side, onClick }: { side: 'prev' | 'next'; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={side === 'prev' ? 'Juguete anterior' : 'Juguete siguiente'}
+      onClick={onClick}
+      className="nav-btn flex size-11 shrink-0 items-center justify-center rounded-full border border-control-borde bg-white text-tinta"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d={side === 'prev' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} />
+      </svg>
+    </button>
+  );
+}
+
 /** Desktop: prev/next arrows, the "01 / 03" counter, and the progress bars. */
 function Controls({ count, slide, onPrev, onNext, onPick }: ControlsProps) {
-  const arrow = 'nav-btn flex size-11 items-center justify-center rounded-full border border-control-borde bg-white text-tinta';
   return (
     <div className="flex items-center gap-4">
-      <button type="button" aria-label="Juguete anterior" onClick={onPrev} className={arrow}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M15 6l-6 6 6 6" />
-        </svg>
-      </button>
-      <button type="button" aria-label="Juguete siguiente" onClick={onNext} className={arrow}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" />
-        </svg>
-      </button>
+      <ArrowButton side="prev" onClick={onPrev} />
+      <ArrowButton side="next" onClick={onNext} />
       <span className="font-display ml-1.5 min-w-[52px] text-[15px] font-semibold text-tinta-soft">
         {pad(slide + 1)} / {pad(count)}
       </span>
@@ -158,7 +165,7 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
       {/* Mobile: a simple stacked carousel — same state, no blob or Ken Burns.
           The buttons are the call to action, so they land on the first screen. */}
       <div className="flex flex-col items-center gap-3 px-4 pb-8 pt-4 text-center md:hidden">
-        {/* No arrows on a phone: a horizontal swipe on the photo changes toy. */}
+        {/* A horizontal swipe on the photo changes toy, as do the arrows below. */}
         <div
           className="relative h-[clamp(140px,28svh,300px)] w-full max-w-md touch-pan-y overflow-hidden rounded-2xl bg-white"
           onTouchStart={(e) => {
@@ -186,7 +193,14 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
             Ver detalle <span aria-hidden="true">&nbsp;›</span>
           </Link>
         </div>
-        {rotates && <ProgressDots count={count} slide={slide} onPick={pick} />}
+        {/* The arrows flank the progress bars; a swipe on the photo still works too. */}
+        {rotates && (
+          <div className="flex items-center gap-2">
+            <ArrowButton side="prev" onClick={() => go(-1)} />
+            <ProgressDots count={count} slide={slide} onPick={pick} />
+            <ArrowButton side="next" onClick={() => go(1)} />
+          </div>
+        )}
       </div>
 
       {/* Desktop: copy and controls on the left, the toy on its color shape on the right. */}
@@ -260,7 +274,7 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
                   alt={s.product.name}
                   fill
                   sizes="(min-width: 1200px) 520px, 45vw"
-                  className="object-cover"
+                  className="object-contain p-6"
                   style={{ animation: on ? 'ken-burns 3.6s cubic-bezier(.28,.11,.32,1) both' : 'none', transform: 'scale(1.04)' }}
                   priority={i === 0}
                 />

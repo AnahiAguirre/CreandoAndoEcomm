@@ -32,14 +32,14 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
   return (
     <article className={`flex h-full flex-col gap-3 p-3 ${softCard}`}>
       <Link href={`/producto/${product.slug}`} className="group flex flex-1 flex-col gap-3 text-tinta hover:text-tinta">
-        <span className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-arena">
+        <span className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-white">
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={product.name}
               fill
               sizes={sizes}
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-contain transition-transform duration-500 group-hover:scale-105"
             />
           ) : isDigital(product) ? (
             // A printable with no photo yet: a colored-in sheet, so it still reads as a product.
