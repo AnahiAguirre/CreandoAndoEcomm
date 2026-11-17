@@ -9,9 +9,10 @@ export const metadata: Metadata = { title: 'Quiénes somos' };
 // We don't make the toys: we are health professionals who choose them for families.
 // Still to add: who we are (professions, names, photo), where, and how to reach us.
 const STORY = [
-  'Somos profesionales de la salud. En nuestro trabajo con chicos y familias vemos todos los días cuánto lugar ocupan las pantallas, y lo difícil que es encontrar alternativas que entusiasmen.',
-  'Sabemos que el juego es mucho más que entretenimiento: es la forma en que los chicos aprenden. Mientras arman, encastran, pintan o inventan, ejercitan la motricidad, la atención, el lenguaje y la manera de vincularse con otros.',
+  'Somos profesionales de la salud. En nuestro trabajo con peques y familias vemos todos los días cuánto lugar ocupan las pantallas, y lo difícil que es encontrar alternativas que entusiasmen.',
+  'Sabemos que el juego es mucho más que entretenimiento: es la forma en que los peques aprenden. Mientras arman, encastran, pintan o inventan, ejercitan la motricidad, la atención, el lenguaje y la manera de vincularse con otros.',
   'Por eso creamos CreandoAndo. No fabricamos los juguetes: los elegimos uno por uno, con la mirada de nuestra profesión, para que además de divertir estimulen el desarrollo. Y para que en casa sea más fácil decirle que sí al juego.',
+  'También preparamos imprimibles: láminas y cuadernos para colorear en PDF, que se descargan al instante y se imprimen en casa todas las veces que quieran. Una propuesta simple para una tarde de lluvia, un viaje o una sala de espera.',
 ];
 
 /** What playing with what we choose works on. Each one is a reason it was picked. */
