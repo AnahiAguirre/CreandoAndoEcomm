@@ -35,7 +35,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = await loadProduct(slug);
+  const [product, categories] = await Promise.all([
+    loadProduct(slug),
+    container.catalog.storefrontCategories.execute(),
+  ]);
+  const category = categories.find((c) => c.id === product.categoryId)?.name;
   const available = isInStock(product);
 
   const images = [...product.images]
@@ -60,7 +64,7 @@ export default async function ProductPage({ params }: Props) {
         {/* Sticky like an Apple product page: the photos scroll, the buy box stays. */}
         <Reveal delay={90} className="md:sticky md:top-24 md:self-start">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
-            {isDigital(product) ? 'Imprimible en PDF · entrega inmediata' : 'Juguete de madera · envío a todo el país'}
+            {isDigital(product) ? `${category ?? 'Imprimible en PDF'} · entrega inmediata` : `${category ?? 'Juguete'} · envío a todo el país`}
           </span>
 
           <h1 className="mt-3 text-balance text-3xl font-semibold leading-tight tracking-tight md:text-4xl">

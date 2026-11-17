@@ -11,6 +11,14 @@ import { formatPrice } from '@/lib/format';
 const buyButton =
   'mt-1 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-azul px-4 text-sm font-semibold text-white transition-[background-color,transform] duration-300 ease-suave hover:bg-azul-dark hover:text-white active:scale-[0.97]';
 
+/**
+ * The small line above a product's name: its category ("Libros", "Rompecabezas"…),
+ * or just what kind of product it is when it has none.
+ */
+export function productLabel(product: Pick<Product, 'kind'>, categoryName?: string): string {
+  return categoryName ?? (isDigital(product) ? 'Imprimible PDF' : 'Juguete');
+}
+
 /** What the browser needs to put this product in the cart. */
 export function toCartProduct(product: Product, imageUrl: string | null): CartProductPublic {
   const { id, slug, name, kind, priceCents, stock } = product;
@@ -22,13 +30,15 @@ interface Props {
   /** Public URL of its cover photo, if it has one. */
   imageUrl: string | null;
   sizes: string;
+  /** The name of its category, shown above the product's name. */
+  categoryName?: string;
 }
 
 /**
  * A product in a grid, on the home and in the catalog: photo, name and price
  * lead to its page, and the button adds it to the cart right there.
  */
-export function ProductCard({ product, imageUrl, sizes }: Props) {
+export function ProductCard({ product, imageUrl, sizes, categoryName }: Props) {
   return (
     <article className={`flex h-full flex-col gap-3 p-3 ${softCard}`}>
       <Link href={`/producto/${product.slug}`} className="group flex flex-1 flex-col gap-3 text-tinta hover:text-tinta">
@@ -55,7 +65,7 @@ export function ProductCard({ product, imageUrl, sizes }: Props) {
         </span>
         <span className="flex flex-col gap-1">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
-            {isDigital(product) ? 'Imprimible PDF' : 'Juguete de madera'}
+            {productLabel(product, categoryName)}
           </span>
           <span className="font-semibold leading-snug">{product.name}</span>
           <span className="font-bold">{formatPrice(product.priceCents)}</span>

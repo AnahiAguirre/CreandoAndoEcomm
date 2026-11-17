@@ -111,7 +111,7 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
-                        {digital ? 'Imprimible PDF' : 'Juguete de madera'}
+                        {digital ? 'Imprimible PDF' : 'Juguete'}
                       </span>
                       <h2 className="font-semibold leading-snug">
                         <Link href={`/producto/${product.slug}`} className="text-tinta hover:underline">

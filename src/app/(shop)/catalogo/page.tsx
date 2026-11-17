@@ -82,6 +82,7 @@ export default async function CatalogPage({ searchParams }: Props) {
                   product={p}
                   imageUrl={cover ? container.assetUrls.publicImageUrl(cover.storagePath) : null}
                   sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                  categoryName={categories.find((c) => c.id === p.categoryId)?.name}
                 />
               </li>
             );

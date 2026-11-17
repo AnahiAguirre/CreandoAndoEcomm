@@ -31,7 +31,11 @@ function imageOf(product: Product): string | null {
  * come from the catalog, so whatever the admin loads (and marks as featured) shows up here.
  */
 export default async function HomePage() {
-  const products = await container.catalog.list.execute();
+  const [products, categories] = await Promise.all([
+    container.catalog.list.execute(),
+    container.catalog.storefrontCategories.execute(),
+  ]);
+  const categoryName = (p: Product) => categories.find((c) => c.id === p.categoryId)?.name;
   const prices = {
     juguetes: fromPriceOfKind(products, 'physical'),
     imprimibles: fromPriceOfKind(products, 'digital'),
@@ -58,7 +62,7 @@ export default async function HomePage() {
       )}
       <BenefitsRow />
       <CategoryShop prices={prices} />
-      <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p) }))} />
+      <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p), categoryName: categoryName(p) }))} />
       <PrintablesFan fromPriceCents={prices.imprimibles} />
       <HowToBuy />
       <ClosingAbout />

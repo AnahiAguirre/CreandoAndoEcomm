@@ -7,7 +7,7 @@ import type { Product } from '@/domain/catalog/product';
 import { SectionHeading, sectionSpacing } from './section-heading';
 
 interface Props {
-  products: { product: Product; imageUrl: string | null }[];
+  products: { product: Product; imageUrl: string | null; categoryName?: string }[];
 }
 
 /** The real catalog on the home: featured first, each one ready to go to the cart. */
@@ -26,11 +26,12 @@ export function ProductShowcase({ products }: Props) {
           }
         />
         <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-          {products.map(({ product, imageUrl }) => (
+          {products.map(({ product, imageUrl, categoryName }) => (
             <li key={product.id}>
               <ProductCard
                 product={product}
                 imageUrl={imageUrl}
+                categoryName={categoryName}
                 sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
               />
             </li>
