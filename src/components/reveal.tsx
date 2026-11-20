@@ -18,7 +18,7 @@ interface Props {
 
 /**
  * Fades content in as it enters the viewport — once, unless `repeat`. The
- * transition itself lives in globals.css (`[data-reveal]`), so content is
+ * transition itself lives in globals.css (`[data-js-reveal]`), so content is
  * styled correctly even before this component hydrates.
  */
 export function Reveal({ children, delay = 0, as: Tag = 'div', className, repeat = false }: Props) {
@@ -28,18 +28,19 @@ export function Reveal({ children, delay = 0, as: Tag = 'div', className, repeat
     const node = ref.current;
     if (!node) return;
 
-    // No IntersectionObserver (or reduced motion): show it and move on.
-    if (typeof IntersectionObserver === 'undefined') {
-      node.dataset.reveal = 'shown';
-      return;
-    }
+    // No IntersectionObserver: it stays as the server sent it, visible.
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    // Only now that the script runs does it step back to wait for its entrance;
+    // the observer below brings whatever is already on screen straight back in.
+    node.dataset.jsReveal = 'wait';
 
     const show = new IntersectionObserver(
       (entries) => {
         const entry = entries[entries.length - 1];
         if (!entry?.isIntersecting) return;
         node.style.transitionDelay = `${delay}ms`;
-        node.dataset.reveal = 'shown';
+        node.dataset.jsReveal = 'shown';
         if (!repeat) show.disconnect();
       },
       // Fire a bit before the element is fully on screen, like Apple does:
@@ -55,7 +56,7 @@ export function Reveal({ children, delay = 0, as: Tag = 'div', className, repeat
           const entry = entries[entries.length - 1];
           if (!entry || entry.isIntersecting) return;
           node.style.transitionDelay = '0ms';
-          node.dataset.reveal = '';
+          node.dataset.jsReveal = 'wait';
         })
       : null;
     hide?.observe(node);
@@ -67,7 +68,7 @@ export function Reveal({ children, delay = 0, as: Tag = 'div', className, repeat
   }, [delay, repeat]);
 
   return (
-    <Tag ref={ref} data-reveal="" className={className}>
+    <Tag ref={ref} data-js-reveal="shown" className={className}>
       {children}
     </Tag>
   );

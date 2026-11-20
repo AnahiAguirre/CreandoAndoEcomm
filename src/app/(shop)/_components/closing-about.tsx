@@ -5,7 +5,7 @@ import { CATALOG_LINKS } from '@/components/nav-links';
 import { Reveal } from '@/components/reveal';
 
 import { pillButton } from './pill-button';
-import { SectionHeading, sectionSpacing } from './section-heading';
+import { SectionHeading, homeContainer, sectionSpacing } from './section-heading';
 
 const stroke = {
   fill: 'none',
@@ -19,8 +19,8 @@ const stroke = {
 const AREAS: { label: string; bg: string; ink: string; icon: ReactNode }[] = [
   {
     label: 'Motricidad fina',
-    bg: 'bg-[#fdecc0]',
-    ink: 'text-[#8a6400]',
+    bg: 'bg-amarillo-soft',
+    ink: 'text-amarillo-tinta',
     icon: (
       <>
         <path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12" />
@@ -32,8 +32,8 @@ const AREAS: { label: string; bg: string; ink: string; icon: ReactNode }[] = [
   },
   {
     label: 'Atención',
-    bg: 'bg-[#dcebf7]',
-    ink: 'text-[#1f5287]',
+    bg: 'bg-cielo',
+    ink: 'text-azul-dark',
     icon: (
       <>
         <path d="M4 7h3a1 1 0 0 0 1-1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1h-12a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a2 2 0 0 0 0-4h-1a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1" />
@@ -42,8 +42,8 @@ const AREAS: { label: string; bg: string; ink: string; icon: ReactNode }[] = [
   },
   {
     label: 'Imaginación',
-    bg: 'bg-[#f6e1ec]',
-    ink: 'text-[#99355a]',
+    bg: 'bg-rosa',
+    ink: 'text-rosa-tinta',
     icon: (
       <>
         <path d="M12 3l1.9 4.6 4.9.4-3.7 3.2 1.1 4.8L12 13.5 7.8 16l1.1-4.8L5.2 8l4.9-.4z" />
@@ -53,8 +53,8 @@ const AREAS: { label: string; bg: string; ink: string; icon: ReactNode }[] = [
   },
   {
     label: 'Juego compartido',
-    bg: 'bg-[#d6ead9]',
-    ink: 'text-[#2e7d46]',
+    bg: 'bg-verde-soft',
+    ink: 'text-verde',
     icon: (
       <>
         <circle cx="9" cy="7" r="3" />
@@ -73,36 +73,35 @@ const AREAS: { label: string; bg: string; ink: string; icon: ReactNode }[] = [
 export function ClosingAbout() {
   return (
     <section className={sectionSpacing}>
-      <div className="mx-auto grid max-w-[75rem] items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:gap-12">
+      <div className={`${homeContainer} grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-16`}>
         <ul className="grid grid-cols-2 gap-3 md:gap-4">
-          {/* The tiles come in one after the other, like the steps of Cómo comprar. */}
+          {/* The tiles come in one after the other, every time the section comes into view. */}
           {AREAS.map((a, i) => (
             <Reveal
               as="li"
               key={a.label}
               repeat
               delay={i * 200}
-              className={`flex aspect-[5/4] flex-col justify-between rounded-3xl p-4 md:p-5 ${a.bg} ${a.ink}`}
+              className={`flex items-center gap-3 rounded-2xl px-4 py-4 md:px-5 md:py-5 ${a.bg} ${a.ink}`}
             >
-              <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" {...stroke}>
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" className="shrink-0" {...stroke}>
                 {a.icon}
               </svg>
-              <span className="text-base font-bold leading-tight text-tinta md:text-lg">{a.label}</span>
+              <span className="font-display text-lg font-extrabold leading-tight text-tinta md:text-xl">{a.label}</span>
             </Reveal>
           ))}
         </ul>
         <div>
           <SectionHeading
-            eyebrow="Quiénes somos"
             title="Jugar también es crecer."
             subtitle="Somos profesionales de la salud. Elegimos cada juguete y cada lámina por lo que estimula, además de lo divertido que es."
           />
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Link href={CATALOG_LINKS.todo} className={pillButton}>
-              Elegí el tuyo <span aria-hidden="true">&nbsp;›</span>
+              Elegí el tuyo<span aria-hidden="true">&nbsp;›</span>
             </Link>
             <Link href="/quienes-somos" className="font-semibold text-azul hover:underline">
-              Conocé nuestra historia <span aria-hidden="true">›</span>
+              Conocé nuestra historia<span aria-hidden="true">&nbsp;›</span>
             </Link>
           </div>
         </div>

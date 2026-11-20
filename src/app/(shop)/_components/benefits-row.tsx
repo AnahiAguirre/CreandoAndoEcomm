@@ -60,7 +60,7 @@ export function BenefitsRow() {
               {b.icon}
             </svg>
             <span className="flex flex-col">
-              <span className="text-lg font-bold leading-tight text-tinta">{b.title}</span>
+              <span className="font-display text-lg font-extrabold leading-tight text-tinta">{b.title}</span>
               <span className="text-[15px] text-azul">{b.detail}</span>
             </span>
           </li>

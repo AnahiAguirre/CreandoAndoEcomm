@@ -13,7 +13,7 @@ import { formatPrice } from '@/lib/format';
 /** One toy of the carousel, from the catalog. */
 export interface HeroSlide {
   product: CartProductPublic;
-  /** Its description, already cut to a couple of lines. */
+  /** Its description, already cut to its first whole sentence. */
   desc: string;
   /** Its photo, or the home's own drawing for it. */
   img: string;
@@ -21,17 +21,17 @@ export interface HeroSlide {
 
 // Each slide's soft shape and dot take the next pair of colors, like the original design.
 const COLORS = [
-  { blob: '#dcebf7', dot: '#f7c81e' },
-  { blob: '#e2f0dc', dot: '#3b8fd9' },
-  { blob: '#fbe9c9', dot: '#e2382b' },
-  { blob: '#f6e1ec', dot: '#2e7d46' },
+  { blob: 'var(--color-cielo)', dot: 'var(--color-amarillo-vivo)' },
+  { blob: 'var(--color-brote)', dot: 'var(--color-celeste)' },
+  { blob: 'var(--color-durazno)', dot: 'var(--color-rojo-vivo)' },
+  { blob: 'var(--color-rosa)', dot: 'var(--color-verde)' },
 ];
 
 // Long enough to read the name, the description and the price before it moves on.
 const AUTOPLAY_MS = 6000;
 
-const buyNow = 'cart-btn flex items-center justify-center gap-2 rounded-full bg-azul font-bold text-white';
-const detail = 'ghost-btn flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-azul font-bold text-azul';
+const buyNow = 'cart-btn flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-azul font-semibold text-white';
+const detail = 'ghost-btn flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-azul font-semibold text-azul';
 
 interface DotsProps {
   count: number;
@@ -52,12 +52,12 @@ function ProgressDots({ count, slide, onPick }: DotsProps) {
           onClick={() => onPick(i)}
           className="flex h-11 items-center border-0 bg-transparent px-1"
         >
+          {/* The active bar grows open (a transform, never a width change) and then fills up. */}
           <span
-            className="relative h-1.5 overflow-hidden rounded-full bg-barra-fondo transition-[width] duration-[450ms] ease-[cubic-bezier(.2,.8,.2,1)]"
-            style={{ width: i === slide ? 44 : 8 }}
+            className={`relative block h-1.5 origin-left overflow-hidden rounded-full bg-barra-fondo ${i === slide ? 'dot-grow w-11' : 'w-2'}`}
           >
             <span
-              className="absolute left-0 top-0 h-1.5 w-0 rounded-full bg-azul"
+              className="absolute inset-0 origin-left scale-x-0 rounded-full bg-azul"
               style={{ animation: i === slide ? `progress-bar ${AUTOPLAY_MS}ms linear forwards` : 'none' }}
             />
           </span>
@@ -158,7 +158,8 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden pb-10 md:h-[680px] md:pb-0"
+      // On a laptop or bigger the hero is the first screen, all of it, under the header and its garland.
+      className="relative overflow-hidden pb-10 md:h-[calc(100svh-88px)] md:max-h-[920px] md:min-h-[620px] md:pb-0"
     >
       {/* The bottom edge of the hero is the little train's track. */}
       <TrainTrack size="sm" className="absolute inset-x-0 bottom-0 z-10" />
@@ -180,12 +181,12 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
         >
           <Image src={cur.img} alt={cur.product.name} fill sizes="28rem" className="object-contain" priority />
         </div>
-        <h1 className="flex items-center justify-center text-[28px] font-bold leading-[1.15]">
+        <h1 className="max-w-full text-balance font-display text-[28px] font-extrabold leading-[1.12] [overflow-wrap:break-word]">
           {cur.product.name}
         </h1>
         <p className="line-clamp-2 max-w-sm text-[15px] text-tinta-calida">{cur.desc}</p>
         <span className="text-sm text-tinta-soft">
-          Precio <span className="font-display ml-1.5 text-lg font-bold text-tinta">{formatPrice(cur.product.priceCents)}</span>
+          Precio <span className="font-display ml-1.5 text-lg font-extrabold text-tinta">{formatPrice(cur.product.priceCents)}</span>
         </span>
         <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-2">
           <BuyNowButton product={cur.product} className={`${buyNow} h-12 min-w-[190px] flex-[1.4] px-4 text-[15px]`} />
@@ -204,9 +205,9 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
       </div>
 
       {/* Desktop: copy and controls on the left, the toy on its color shape on the right. */}
-      <div className="mx-auto hidden h-full max-w-[75rem] grid-cols-[1fr_1.1fr] items-center gap-10 px-4 md:grid lg:px-8">
-        <div>
-          <div className="relative h-[380px]">
+      <div className="mx-auto hidden h-full max-w-[75rem] grid-cols-[minmax(0,5fr)_minmax(0,6fr)] items-center gap-16 px-4 pb-6 md:grid lg:px-8">
+        <div className="min-w-0">
+          <div className="relative h-[400px]">
             {slides.map((s, i) => {
               const on = i === slide;
               const prev = i === (slide - dir + count) % count;
@@ -214,20 +215,20 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
                 <div
                   key={s.product.id}
                   aria-hidden={!on}
-                  className="absolute inset-x-0 top-0 flex flex-col gap-[18px] transition-[opacity,transform,visibility] duration-500 ease-[cubic-bezier(.2,.8,.2,1)]"
+                  className="absolute inset-0 flex flex-col justify-center gap-5 transition-[opacity,transform,visibility] duration-500 ease-[cubic-bezier(.2,.8,.2,1)]"
                   style={{
                     opacity: on ? 1 : 0,
                     visibility: on ? 'visible' : 'hidden',
                     transform: on ? 'translateY(0)' : prev ? 'translateY(-28px)' : 'translateY(28px)',
                   }}
                 >
-                  <h1 className="line-clamp-3 font-display text-[40px] font-bold leading-[1.06] xl:text-[52px]">
+                  <h1 className="line-clamp-3 text-balance font-display text-[44px] font-extrabold leading-[1.04] tracking-[-0.02em] [overflow-wrap:break-word] xl:text-[56px]">
                     {s.product.name}
                   </h1>
-                  <p className="line-clamp-3 max-w-[440px] text-lg leading-[1.55] text-tinta-calida">{s.desc}</p>
+                  <p className="line-clamp-2 max-w-[44ch] text-lg leading-[1.55] text-tinta-calida">{s.desc}</p>
                   <span className="text-[15px] text-tinta-soft">
                     Precio{' '}
-                    <span className="font-display ml-1.5 text-2xl font-bold text-tinta">
+                    <span className="font-display ml-1.5 text-[28px] font-extrabold text-tinta">
                       {formatPrice(s.product.priceCents)}
                     </span>
                   </span>
@@ -242,11 +243,13 @@ export function HomeHero({ slides }: { slides: HeroSlide[] }) {
             })}
           </div>
           {rotates && (
-            <Controls count={count} slide={slide} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
+            <div className="mt-6">
+              <Controls count={count} slide={slide} onPrev={() => go(-1)} onNext={() => go(1)} onPick={pick} />
+            </div>
           )}
         </div>
 
-        <div className="relative h-[560px]">
+        <div className="relative h-[clamp(480px,78%,680px)]">
           <div
             className="blob absolute inset-0 transition-colors duration-[900ms] ease-out"
             style={{ backgroundColor: color.blob }}

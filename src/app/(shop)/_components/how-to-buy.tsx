@@ -18,7 +18,7 @@ export function HowToBuy() {
   return (
     <section className={sectionSpacing}>
       <div className="mx-auto max-w-[75rem]">
-        <SectionHeading eyebrow="Fácil y seguro" title="Cómo comprar" />
+        <SectionHeading title="Cómo comprar" />
         <ol className="mt-8 grid gap-5 md:grid-cols-3">
           {/* The steps come in one after the other, every time the section comes into view. */}
           {STEPS.map((s, i) => (

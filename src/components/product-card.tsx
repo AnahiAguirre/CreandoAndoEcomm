@@ -9,7 +9,7 @@ import { isDigital, isInStock, type Product } from '@/domain/catalog/product';
 import { formatPrice } from '@/lib/format';
 
 const buyButton =
-  'mt-1 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-azul px-4 text-sm font-semibold text-white transition-[background-color,transform] duration-300 ease-suave hover:bg-azul-dark hover:text-white active:scale-[0.97]';
+  'mt-1 inline-flex h-11 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-azul px-3 text-[13px] font-semibold text-white min-[420px]:text-sm transition-[background-color,transform] duration-300 ease-suave hover:bg-azul-dark hover:text-white active:scale-[0.97]';
 
 /**
  * The small line above a product's name: its category ("Libros", "Rompecabezas"…),
@@ -64,15 +64,13 @@ export function ProductCard({ product, imageUrl, sizes, categoryName }: Props) {
           )}
         </span>
         <span className="flex flex-col gap-1">
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-soft">
-            {productLabel(product, categoryName)}
-          </span>
+          <span className="text-sm text-tinta-soft">{productLabel(product, categoryName)}</span>
           <span className="font-semibold leading-snug">{product.name}</span>
-          <span className="font-bold">{formatPrice(product.priceCents)}</span>
+          <span className="font-extrabold">{formatPrice(product.priceCents)}</span>
           {!isInStock(product) && <span className="text-sm font-medium text-rojo">Sin stock</span>}
         </span>
       </Link>
-      <AddToCartButton product={toCartProduct(product, imageUrl)} className={buyButton} iconClassName="size-4" />
+      <AddToCartButton product={toCartProduct(product, imageUrl)} className={buyButton} iconClassName="hidden size-4 min-[420px]:block" />
     </article>
   );
 }

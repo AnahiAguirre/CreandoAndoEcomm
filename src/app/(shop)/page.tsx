@@ -6,8 +6,8 @@ import { container } from '@/lib/container';
 import { BenefitsRow } from './_components/benefits-row';
 import { CategoryShop } from './_components/category-shop';
 import { ClosingAbout } from './_components/closing-about';
+import { FamilyQuestions } from './_components/family-questions';
 import { HomeHero } from './_components/home-hero';
-import { HowToBuy } from './_components/how-to-buy';
 import { PrintablesFan } from './_components/printables-fan';
 import { ProductShowcase } from './_components/product-showcase';
 import { ShopHero } from './_components/shop-hero';
@@ -20,6 +20,13 @@ const HOME_ART: Record<string, string> = {
   'autopista-didactica': '/home/autopista.png',
   'rompecabezas-de-animales': '/home/rompecabezas-animales.png',
 };
+
+/** The hero shows one whole sentence of the description, never one cut off mid-word. */
+function firstSentence(text: string | null | undefined): string {
+  const t = (text ?? '').trim();
+  const end = t.search(/[.!?](\s|$)/);
+  return end === -1 ? t : t.slice(0, end + 1);
+}
 
 function imageOf(product: Product): string | null {
   const cover = coverImage(product);
@@ -52,7 +59,7 @@ export default async function HomePage() {
             const img = imageOf(p);
             return {
               product: toCartProduct(p, img),
-              desc: p.description || 'Elegido por profesionales de la salud para jugar sin pantallas.',
+              desc: firstSentence(p.description) || 'Elegido por profesionales de la salud para jugar sin pantallas.',
               img: img ?? '/home/logo.jpeg',
             };
           })}
@@ -60,12 +67,14 @@ export default async function HomePage() {
       ) : (
         <ShopHero product={hero} imageUrl={hero ? imageOf(hero) : null} />
       )}
+      {/* What a buyer wants to know before paying, right under the first screen. */}
       <BenefitsRow />
       <CategoryShop prices={prices} />
       <ProductShowcase products={homeShowcase(products).map((p) => ({ product: p, imageUrl: imageOf(p), categoryName: categoryName(p) }))} />
       <PrintablesFan fromPriceCents={prices.imprimibles} />
-      <HowToBuy />
       <ClosingAbout />
+      {/* The doubts before paying (once a three-step band) close the page as questions. */}
+      <FamilyQuestions />
     </>
   );
 }

@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/format';
 
 import { PaintedFlower } from '@/components/illustrations/painted-sheets';
 import { PlayOnView } from './play-on-view';
-import { SectionHeading, sectionSpacing } from './section-heading';
+import { SectionHeading, homeContainer, sectionSpacing } from './section-heading';
 
 export interface KindPrices {
   juguetes: Cents | null;
@@ -28,25 +28,26 @@ const CARDS: Card[] = [
   {
     key: 'juguetes',
     title: 'Juguetes',
-    detail: 'Rompecabezas, pistas y juegos de madera.\nEstimulan la motricidad, la atención y la imaginación.',
+    detail: 'Rompecabezas, pistas y juegos de madera. Estimulan la motricidad, la atención y la imaginación.',
     cta: 'Ver juguetes',
-    bg: 'bg-[#dcebf7]',
+    bg: 'bg-cielo',
     art: (
       <Image
         src="/home/pista-trenes.png"
         alt=""
         fill
-        sizes="(min-width: 768px) 45vw, 90vw"
-        className="object-contain p-6 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+        sizes="(min-width: 768px) 60vw, 90vw"
+        // Fills its half edge to edge, so the photo's own pale background never shows as a box.
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
     ),
   },
   {
     key: 'imprimibles',
     title: 'Imprimibles',
-    detail: 'Láminas en PDF para colorear: trazo y creatividad, listas para imprimir.\nTe llegan al instante.',
+    detail: 'Láminas en PDF para colorear: trazo y creatividad, listas para imprimir. Te llegan al instante.',
     cta: 'Ver imprimibles',
-    bg: 'bg-[#e2f0dc]',
+    bg: 'bg-brote',
     art: (
       <span className="absolute inset-0 flex items-center justify-center">
         {/* The sheet colors itself in each time the card comes into view, like the printables section. */}
@@ -58,33 +59,44 @@ const CARDS: Card[] = [
   },
 ];
 
-/** Two ways into the catalog, as in the menu, each with the lowest price it starts at. */
+/**
+ * Two ways into the catalog, as in the menu, each with the lowest price it starts at.
+ * With only one kind for sale it becomes one wide shelf (picture beside the words)
+ * instead of a lonely half-empty card.
+ */
 export function CategoryShop({ prices }: { prices: KindPrices }) {
   // A card with nothing to buy behind it would send people to an empty list.
   const cards = CARDS.filter((c) => prices[c.key] !== null);
   if (cards.length === 0) return null;
+  const single = cards.length === 1;
 
   return (
-    <section className={sectionSpacing}>
-      <div className="mx-auto max-w-[75rem]">
-        <SectionHeading eyebrow="La tienda" title="Qué estás buscando" />
-        <ul className={`mt-6 grid gap-5 ${cards.length > 1 ? 'md:grid-cols-2' : ''}`}>
+    // The first section under the hero's track: the same 128px of air as every other gap.
+    <section className={`${sectionSpacing} md:pt-32`}>
+      <div className={homeContainer}>
+        <SectionHeading title="Qué estás buscando" />
+        <ul className={`mt-8 grid gap-6 ${single ? '' : 'md:grid-cols-2'}`}>
           {cards.map((c) => (
-            <li key={c.key}>
+            <li key={c.key} className="min-w-0">
               <Link
                 href={CATALOG_LINKS[c.key]}
-                className={`group flex h-full flex-col overflow-hidden ${softCard} text-tinta transition-transform duration-300 hover:-translate-y-1 hover:text-tinta`}
+                className={`group flex h-full flex-col overflow-hidden ${softCard} text-tinta transition-transform duration-300 hover:-translate-y-1 hover:text-tinta ${
+                  single ? 'md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ''
+                }`}
               >
-                <span className={`relative block aspect-[5/2] md:aspect-[2/1] ${c.bg}`}>{c.art}</span>
-                <span className="flex flex-1 flex-col gap-1 p-4 md:p-5">
-                  <span className="text-xl font-bold">{c.title}</span>
-                  <span className="whitespace-pre-line text-sm text-tinta-medio">{c.detail}</span>
-                  <span className="mt-3 flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-tinta-medio">
-                      desde <strong className="text-base text-tinta">{formatPrice(prices[c.key]!)}</strong>
+                <span className={`relative block ${single ? 'aspect-[4/3] md:aspect-auto md:min-h-[360px]' : 'aspect-[4/3]'} ${c.bg}`}>
+                  {c.art}
+                </span>
+                <span className={`flex flex-1 flex-col gap-2 p-5 md:p-8 ${single ? 'md:justify-center' : ''}`}>
+                  <span className="font-display text-[28px] font-extrabold leading-tight md:text-4xl">{c.title}</span>
+                  <span className="max-w-[40ch] text-pretty text-tinta-medio md:text-lg">{c.detail}</span>
+                  <span className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                    <span className="text-tinta-medio">
+                      desde <strong className="font-display text-xl font-extrabold text-tinta">{formatPrice(prices[c.key]!)}</strong>
                     </span>
                     <span className="font-semibold text-azul group-hover:underline">
-                      {c.cta} <span aria-hidden="true">›</span>
+                      {c.cta}
+                      <span aria-hidden="true">&nbsp;›</span>
                     </span>
                   </span>
                 </span>

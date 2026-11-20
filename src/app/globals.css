@@ -1,3 +1,14 @@
+/* Hallmark · shape: kept, recomposed (Conversational FAQ as the close) · genre: playful · theme: brand · redesign: full
+ * paper: oklch(99% 0.006 90) · accent: oklch(52% 0.12 250) · display: Outfit · body: Nunito · hero: Stage (kept carousel) · nav: kept · footer: kept · signature: the toy carousel on its morphing shape, and the sheets that colour themselves
+ * axes: light/geometric-sans/cool · posture: full-palette · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S3 R4 V4 · weakest: S, the sections keep their order from the old page; the questions close it instead of a third CTA band */
+/* Hallmark · waive 80 · painted-sheets.tsx draws the printables · they are shown being coloured in, an animation the owner asked to keep */
+/* Hallmark · waive 82 · the bulbs are the header garland in christmas.tsx · the shop's seasonal mark, kept by the owner's request */
+/* Hallmark · reworded "Destacados" to "Lo más elegido" · 54 named the eyebrow above it; the plain label became the heading */
+/* Hallmark · waive 59 · benefits-row.tsx sits 48px under the hero's track · it is the hero's footnote (shipping, pickup, payment), read with the first screen, not a section of its own */
+/* Hallmark · answered F19 · the home runs on 400, 600 and 800; the 700 left is the shared header's wordmark and links, kept with the nav */
+/* Hallmark · dropped Cómo comprar (Elegí, Pagá con Mercado Pago, Recibilo) · its facts close the page as questions in family-questions.tsx; how-to-buy.tsx stays in the repo */
+/* Hallmark · answered 73, 44c, 44d · measured while the hero carousel cross-fades two slides (6s autoplay); at rest one slide shows, the others are visibility: hidden, and the 1440 and 1920 captures show the text beside the toy inside the 75rem container */
 @import "tailwindcss";
 
 /*
@@ -40,6 +51,18 @@
   --color-amarillo-soft: #fdecc0;
   --color-verde-soft: #d6ead9;
 
+  /* Home: the hero shape takes one of these per toy, and its dot the next primary. */
+  --color-cielo: #dcebf7;
+  --color-brote: #e2f0dc;
+  --color-durazno: #fbe9c9;
+  --color-rosa: #f6e1ec;
+  --color-celeste: #3b8fd9;
+  --color-rojo-vivo: #e2382b;
+  --color-amarillo-vivo: #f7c81e;
+  /* Ink for the "what it works on" tiles, each over its own pastel. */
+  --color-amarillo-tinta: #8a6400;
+  --color-rosa-tinta: #99355a;
+
   /* Bordes y fondos neutros del catálogo y el header. */
   --color-borde-suave: #ece6dd;
   --color-elegidos-fondo: #f7f3ec;
@@ -70,6 +93,12 @@ html {
   scroll-padding-top: 3rem;
 }
 
+/* Nothing on any page may widen it sideways (the train runs to 100vw). */
+html,
+body {
+  overflow-x: clip;
+}
+
 @media (min-width: 1024px) {
   html {
     scroll-padding-top: 0;
@@ -88,21 +117,21 @@ body {
 .tienda h3 {
   font-family: var(--font-display);
   letter-spacing: -0.02em !important;
+  text-wrap: balance;
 }
 
 /* Scroll reveal: the element waits, then settles into place. Driven by
-   IntersectionObserver in components/reveal.tsx. */
-[data-reveal] {
-  opacity: 0;
-  transform: translateY(24px);
+   IntersectionObserver in components/reveal.tsx. The server sends it shown; only the
+   script, once it runs, sets it to wait for its entrance, so without JS it is all there. */
+[data-js-reveal] {
   transition:
     opacity 0.8s var(--ease-suave),
     transform 0.8s var(--ease-suave);
 }
 
-[data-reveal='shown'] {
-  opacity: 1;
-  transform: none;
+[data-js-reveal='wait'] {
+  opacity: 0;
+  transform: translateY(24px);
 }
 
 /* Hide the scrollbar on the horizontal carousels without losing the scroll. */
@@ -158,11 +187,22 @@ body {
 /* Barrita de progreso del carrusel: se llena mientras el slide está activo. */
 @keyframes progress-bar {
   from {
-    width: 0;
+    transform: scaleX(0);
   }
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
+}
+
+/* La barrita activa se abre de a poco: transform, nunca un cambio de ancho animado. */
+@keyframes dot-grow {
+  from {
+    transform: scaleX(0.18);
+  }
+}
+
+.dot-grow {
+  animation: dot-grow 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Botones claros: el borde y el fondo se iluminan al pasar. Nada rebota. */
@@ -186,7 +226,7 @@ body {
 
 .nav-btn:hover {
   background-color: var(--color-azul) !important;
-  color: #ffffff !important;
+  color: var(--color-crema) !important;
   border-color: var(--color-azul) !important;
   transform: scale(1.06);
 }
@@ -202,7 +242,7 @@ body {
 .cart-btn:hover {
   transform: translateY(-2px);
   background-color: var(--color-azul-dark) !important;
-  box-shadow: 0 14px 26px -10px rgb(45 111 176 / 0.85);
+  box-shadow: 0 14px 26px -10px color-mix(in oklab, var(--color-azul) 85%, transparent);
 }
 
 .cart-btn:active {
@@ -292,8 +332,9 @@ body {
 .track-reveal {
   --window: 420px;
   --behind: 230px;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40%, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 40%, #000 82%, transparent 100%);
+  /* A mask only reads alpha: any opaque token works as the "on" stop. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, var(--color-tinta) 40%, var(--color-tinta) 82%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, var(--color-tinta) 40%, var(--color-tinta) 82%, transparent 100%);
   -webkit-mask-size: var(--window) 100%;
   mask-size: var(--window) 100%;
   -webkit-mask-repeat: no-repeat;
@@ -369,7 +410,7 @@ body {
     scroll-behavior: auto !important;
   }
 
-  [data-reveal] {
+  [data-js-reveal] {
     opacity: 1;
     transform: none;
   }
