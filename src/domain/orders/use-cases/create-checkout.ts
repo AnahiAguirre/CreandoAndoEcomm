@@ -13,6 +13,7 @@ import type { CouponRepository } from '@/domain/coupons/coupon-repository';
 import { normalizeEmail } from '@/domain/delivery/entitlement';
 import { DomainError } from '@/domain/shared/errors';
 
+import { applyFreeShipping } from '../free-shipping';
 import {
   computeOrderTotals,
   type OrderItem,
@@ -99,10 +100,20 @@ export class CreateCheckout {
     return { ...summary, hasPhysical: summary.items.some((i) => !isDigital(i.product)) };
   }
 
-  /** Shipping price for what is in the cart, to a postal code. Used by the "Calcular envío" button. */
-  async quoteShipping(lines: CartLine[], postalCode: string, method: CarrierMethod): Promise<ShippingQuote> {
+  /**
+   * Shipping price for what is in the cart, to a postal code. Used by the "Calcular envío" button.
+   * Free once the cart reaches the minimum (see `free-shipping.ts`).
+   */
+  async quoteShipping(
+    lines: CartLine[],
+    postalCode: string,
+    method: CarrierMethod,
+  ): Promise<ShippingQuote & { free: boolean }> {
+    const found = await this.products.findActiveByIds(lines.map((l) => l.productId));
+    const { subtotalCents } = reconcileCart(lines, found);
     const parcel = await this.parcelOf(lines);
-    return this.shippingQuoter.quote({ postalCode, method, parcel });
+    const quote = await this.shippingQuoter.quote({ postalCode, method, parcel });
+    return applyFreeShipping(quote, subtotalCents);
   }
 
   agencies(provinceCode: ProvinceCode, postalCode: string): Promise<Agency[]> {
@@ -177,7 +188,7 @@ export class CreateCheckout {
 
   private async shippingDetails(
     input: ShippingInput & { provinceCode: ProvinceCode; postalCode: string },
-    quote: ShippingQuote,
+    quote: ShippingQuote & { free: boolean },
     parcel: Parcel,
   ): Promise<ShippingDetails> {
     let agency: string | null = null;
@@ -207,6 +218,7 @@ export class CreateCheckout {
       address: street ? addressText(street) : null,
       agency,
       quoteLabel: quote.label,
+      ...(quote.free && { freeShipping: true }),
       provinceCode: input.provinceCode,
       street,
       agencyCode,

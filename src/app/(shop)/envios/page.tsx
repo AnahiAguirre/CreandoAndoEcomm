@@ -5,6 +5,7 @@ import { CATALOG_LINKS } from '@/components/nav-links';
 import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pickup';
 import { WHATSAPP_DISPLAY, whatsappLink } from '@/lib/contact';
 import { shippingEnabled } from '@/lib/env';
+import { FREE_SHIPPING_FROM } from '@/lib/shipping-copy';
 
 export const metadata: Metadata = { title: 'Envíos y retiro' };
 
@@ -27,10 +28,11 @@ export default function ShippingInfoPage() {
 
         <article className={card}>
           <h2 className="text-xl font-semibold">Envío por Correo Argentino · a todo el país</h2>
+          <p className="mt-2 font-semibold text-verde">Gratis en compras desde {FREE_SHIPPING_FROM}.</p>
           <p className="mt-2 text-tinta-medio">
             {shippingEnabled
-              ? 'El costo se calcula en el checkout con tu código postal, y podés elegir recibirlo en tu casa o retirarlo en una sucursal del Correo.'
-              : CARRIER_COST_NOTE}
+              ? 'En compras menores, el costo se calcula en el checkout con tu código postal. Podés elegir recibirlo en tu casa o retirarlo en una sucursal del Correo.'
+              : `En compras menores: ${CARRIER_COST_NOTE.charAt(0).toLowerCase()}${CARRIER_COST_NOTE.slice(1)}`}
           </p>
           <p className="mt-2 text-tinta-medio">
             En el checkout te pedimos la dirección completa. Cuando lo despachamos, te avisamos por email.

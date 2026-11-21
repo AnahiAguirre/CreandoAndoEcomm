@@ -8,6 +8,7 @@ import { isDigital, isInStock } from '@/domain/catalog/product';
 import { ProductNotFoundError } from '@/domain/catalog/use-cases/get-product-by-slug';
 import { container } from '@/lib/container';
 import { formatPrice } from '@/lib/format';
+import { FREE_SHIPPING_TEXT } from '@/lib/shipping-copy';
 
 import { ProductGallery } from './_components/product-gallery';
 
@@ -82,6 +83,8 @@ export default async function ProductPage({ params }: Props) {
           ) : (
             <p className="mt-1 text-sm font-medium text-rojo">Sin stock por el momento</p>
           )}
+
+          {!isDigital(product) && <p className="mt-1 text-sm text-tinta-medio">{FREE_SHIPPING_TEXT}</p>}
 
           {product.description && (
             <p className="mt-6 whitespace-pre-line leading-relaxed text-tinta-soft">{product.description}</p>

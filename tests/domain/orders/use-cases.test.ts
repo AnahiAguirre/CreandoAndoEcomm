@@ -100,6 +100,30 @@ describe('CreateCheckout.start', () => {
     expect(t.quoter.quotes).toHaveLength(1);
   });
 
+  it('ships for free once the products reach $70.000, and says so on the order', async () => {
+    // 4 × $18.500 = $74.000
+    const { orderId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 4 }], shipping);
+    const order = (await t.orders.findById(orderId))!;
+    expect(order.shippingCents).toBe(0);
+    expect(order.totalCents).toBe(4 * 1850000);
+    expect(order.shipping?.freeShipping).toBe(true);
+    expect(order.shipping?.quoteLabel).toBe('Envío gratis por Correo Argentino');
+  });
+
+  it('below $70.000 the shipping is charged and the order is not marked free', async () => {
+    const { orderId } = await t.checkout.start(buyer, [{ productId: 'toy', quantity: 3 }], shipping);
+    const order = (await t.orders.findById(orderId))!;
+    expect(order.shippingCents).toBe(500000);
+    expect(order.shipping?.freeShipping).toBeUndefined();
+  });
+
+  it('the "Calcular envío" quote is free from the minimum too', async () => {
+    const below = await t.checkout.quoteShipping([{ productId: 'toy', quantity: 1 }], '1425', 'domicilio');
+    const above = await t.checkout.quoteShipping([{ productId: 'toy', quantity: 4 }], '1425', 'domicilio');
+    expect(below).toMatchObject({ priceCents: 500000, free: false });
+    expect(above).toMatchObject({ priceCents: 0, free: true });
+  });
+
   it('refuses to sell a printable that has no PDF yet, so nobody pays for nothing', async () => {
     t.products.items.set('empty', buildProduct({ id: 'empty', kind: 'digital', priceCents: 100000, active: true, files: [] }));
     await expect(t.checkout.start(buyer, [{ productId: 'empty', quantity: 1 }], undefined)).rejects.toBeInstanceOf(

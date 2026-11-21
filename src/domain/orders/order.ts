@@ -75,6 +75,8 @@ export interface ShippingDetails {
   agency: string | null;
   /** What the buyer was shown when quoting, e.g. "Correo Argentino Clásico". */
   quoteLabel: string;
+  /** The cart reached the free-shipping minimum: Correo ships it at no cost to the buyer. */
+  freeShipping?: boolean;
   // The fields below do not exist on orders made before the carrier integration.
   provinceCode?: ProvinceCode;
   street?: { name: string; number: string; floor: string | null; apartment: string | null; city: string };

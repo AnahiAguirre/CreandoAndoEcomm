@@ -82,8 +82,11 @@ export default async function AdminOrdersPage() {
                         {order.shipping.address ?? order.shipping.agency} · CP {order.shipping.postalCode}
                       </p>
                     )}
-                    {order.shipping.method !== 'retiro' && order.shippingCents === 0 && (
+                    {order.shipping.method !== 'retiro' && order.shippingCents === 0 && !order.shipping.freeShipping && (
                       <p className="text-amber-700">Falta coordinar y cobrar el costo del envío con el comprador.</p>
+                    )}
+                    {order.shipping.freeShipping && (
+                      <p className="text-green-700">Envío gratis: la compra superó el mínimo, no se le cobra el envío.</p>
                     )}
                     {order.status === 'paid' && order.shipping.method !== 'retiro' && order.shipping.shipment && (
                       <div className="mt-2 flex flex-wrap items-center gap-3">

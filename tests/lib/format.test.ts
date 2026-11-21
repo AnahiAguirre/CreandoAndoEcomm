@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatPrice } from '@/lib/format';
+import { formatPrice, formatPriceShort } from '@/lib/format';
 
 // Intl inserts a non-breaking space between "$" and the digits; normalize it.
 const plain = (s: string) => s.replace(/ /g, ' ');
@@ -14,5 +14,12 @@ describe('formatPrice', () => {
   it('handles zero and sub-peso amounts', () => {
     expect(plain(formatPrice(0))).toBe('$ 0,00');
     expect(plain(formatPrice(5))).toBe('$ 0,05');
+  });
+});
+
+describe('formatPriceShort', () => {
+  it('drops the centavos for round amounts in copy', () => {
+    expect(plain(formatPriceShort(7000000))).toBe('$ 70.000');
+    expect(plain(formatPriceShort(0))).toBe('$ 0');
   });
 });

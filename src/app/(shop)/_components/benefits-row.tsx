@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { FREE_SHIPPING_FROM } from '@/lib/shipping-copy';
+
 const stroke = {
   fill: 'none',
   stroke: 'currentColor',
@@ -11,7 +13,7 @@ const stroke = {
 const BENEFITS: { title: string; detail: string; icon: ReactNode }[] = [
   {
     title: 'Envíos a todo el país',
-    detail: 'Por Correo Argentino',
+    detail: `Gratis desde ${FREE_SHIPPING_FROM}`,
     icon: (
       <>
         <path d="M3 7h11v9H3z" />

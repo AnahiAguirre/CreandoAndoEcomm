@@ -10,7 +10,9 @@ import type { CartProductPublic } from '@/components/cart/types';
 import { useHydrated } from '@/components/cart/use-hydrated';
 import { linesOf, maxQuantity, reconcileCart } from '@/domain/cart/cart';
 import { isDigital } from '@/domain/catalog/product';
+import { FREE_SHIPPING_MIN_CENTS, missingForFreeShipping } from '@/domain/orders/free-shipping';
 import { formatPrice } from '@/lib/format';
+import { FREE_SHIPPING_TEXT } from '@/lib/shipping-copy';
 
 import { loadCartProducts } from './actions';
 
@@ -85,6 +87,7 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
   }
 
   const hasPhysical = summary.items.some((i) => !isDigital(i.product));
+  const missingCents = missingForFreeShipping(summary.subtotalCents);
   const byId = new Map(products.map((p) => [p.id, p]));
 
   return (
@@ -177,10 +180,15 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
             {hasPhysical && (
               <div className="flex justify-between">
                 <dt className="text-tinta-medio">Envío</dt>
-                <dd className="text-tinta-medio">Se calcula al finalizar</dd>
+                {missingCents === 0 ? (
+                  <dd className="font-semibold text-verde">Gratis</dd>
+                ) : (
+                  <dd className="text-tinta-medio">Se calcula al finalizar</dd>
+                )}
               </div>
             )}
           </dl>
+          {hasPhysical && <FreeShippingProgress missingCents={missingCents} />}
           <p className="mt-4 flex justify-between border-t border-borde-suave pt-4 text-lg font-bold">
             <span>Total</span>
             <span>{formatPrice(summary.subtotalCents)}</span>
@@ -213,6 +221,34 @@ export function CartView({ checkoutEnabled }: { checkoutEnabled: boolean }) {
         </aside>
       </div>
     </>
+  );
+}
+
+/** How far the cart is from free shipping, so the buyer knows what one more toy is worth. */
+function FreeShippingProgress({ missingCents }: { missingCents: number }) {
+  const reached = missingCents === 0;
+  const percent = Math.round(((FREE_SHIPPING_MIN_CENTS - missingCents) / FREE_SHIPPING_MIN_CENTS) * 100);
+  return (
+    <div className="mt-4 rounded-2xl bg-verde-soft p-3 text-sm">
+      <p className="font-medium text-tinta">
+        {reached ? '¡Tu compra tiene envío gratis por Correo!' : `Te faltan ${formatPrice(missingCents)} para el envío gratis.`}
+      </p>
+      {!reached && (
+        <>
+          <div
+            className="mt-2 h-2 overflow-hidden rounded-full bg-white"
+            role="progressbar"
+            aria-label="Camino al envío gratis"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent}
+          >
+            <div className="h-full rounded-full bg-verde" style={{ width: `${percent}%` }} />
+          </div>
+          <p className="mt-2 text-xs text-tinta-medio">{FREE_SHIPPING_TEXT}.</p>
+        </>
+      )}
+    </div>
   );
 }
 

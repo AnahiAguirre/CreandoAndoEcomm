@@ -126,6 +126,12 @@ function Detail({ order }: { order: Order }) {
             <span>{formatPrice(order.shippingCents)}</span>
           </li>
         )}
+        {order.shipping?.freeShipping && (
+          <li className="flex justify-between gap-4 text-verde">
+            <span>{order.shipping.quoteLabel}</span>
+            <span>Gratis</span>
+          </li>
+        )}
       </ul>
       <p className="mt-4 flex justify-between border-t border-borde-suave pt-4 text-base font-bold">
         <span>Total</span>
@@ -146,7 +152,7 @@ function Detail({ order }: { order: Order }) {
           ) : (
             <>
               <p>{order.shipping.address ?? order.shipping.agency} (CP {order.shipping.postalCode})</p>
-              {order.shippingCents === 0 && <p>{CARRIER_COST_NOTE}</p>}
+              {order.shippingCents === 0 && !order.shipping.freeShipping && <p>{CARRIER_COST_NOTE}</p>}
             </>
           )}
         </div>

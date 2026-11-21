@@ -8,10 +8,12 @@ import { useHydrated } from '@/components/cart/use-hydrated';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/field';
 import type { CheckoutPreview } from '@/domain/orders/use-cases/create-checkout';
+import { missingForFreeShipping } from '@/domain/orders/free-shipping';
 import type { Agency, ShippingQuote } from '@/domain/orders/ports';
 import { CARRIER_COST_NOTE, PICKUP_LABEL, PICKUP_NOTE } from '@/domain/orders/pickup';
 import { type CarrierMethod, PROVINCES, type ProvinceCode, type ShippingMethod } from '@/domain/orders/order';
 import { formatPrice } from '@/lib/format';
+import { FREE_SHIPPING_FROM } from '@/lib/shipping-copy';
 
 import type { AppliedCoupon } from '@/domain/coupons/coupon';
 
@@ -116,6 +118,9 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
   const quote = quoted?.forKey === currentKey ? quoted : null;
   const methods: ShippingMethod[] = carrierQuotes ? ['retiro', 'domicilio', 'sucursal'] : ['retiro', 'domicilio'];
   const shipsByCarrier = method !== 'retiro';
+  // Same rule as the server (`CreateCheckout.quoteShipping`): products subtotal, before any coupon.
+  const missingCents = missingForFreeShipping(preview.subtotalCents);
+  const freeShipping = missingCents === 0;
   const needsQuote = carrierQuotes && shipsByCarrier;
   const shippingCents = hasPhysical && needsQuote ? (quote?.quote.priceCents ?? 0) : 0;
   const applied = coupon?.forLines === linesKey ? coupon.applied : null;
@@ -218,7 +223,20 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
               ))}
             </div>
 
-            <p className="text-xs text-tinta-medio">{method === 'retiro' ? PICKUP_NOTE : !carrierQuotes ? CARRIER_COST_NOTE : null}</p>
+            <p className="text-xs text-tinta-medio">
+              {method === 'retiro' ? (
+                PICKUP_NOTE
+              ) : freeShipping ? (
+                <span className="font-semibold text-verde">
+                  Tu compra llega a {FREE_SHIPPING_FROM}: el envío por Correo es gratis.
+                </span>
+              ) : (
+                <>
+                  {!carrierQuotes && `${CARRIER_COST_NOTE} `}
+                  Te faltan {formatPrice(missingCents)} para el envío gratis (desde {FREE_SHIPPING_FROM}).
+                </>
+              )}
+            </p>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nombre de quien recibe" htmlFor="recipient" errors={fieldErrors.recipient}>
@@ -278,7 +296,8 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
               </Button>
               {quote && (
                 <p className="text-sm">
-                  {quote.quote.label}: <strong>{formatPrice(quote.quote.priceCents)}</strong>{' '}
+                  {quote.quote.label}:{' '}
+                  <strong>{quote.quote.priceCents === 0 ? 'Gratis' : formatPrice(quote.quote.priceCents)}</strong>{' '}
                   {quote.quote.etaDays > 0 && (
                     <span className="text-tinta-medio">· llega en ~{quote.quote.etaDays} días</span>
                   )}
@@ -331,7 +350,7 @@ export function CheckoutView({ carrierQuotes }: { carrierQuotes: boolean }) {
             <div className="flex justify-between">
               <dt className="text-tinta-medio">Envío</dt>
               <dd className="font-semibold">
-                {method === 'retiro'
+                {method === 'retiro' || freeShipping
                   ? 'Gratis'
                   : !carrierQuotes
                     ? 'A coordinar'

@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { CATALOG_LINKS } from '@/components/nav-links';
 import { Reveal } from '@/components/reveal';
+import { FREE_SHIPPING_FROM } from '@/lib/shipping-copy';
 
 import { pillButton } from './pill-button';
 import { homeContainer, sectionSpacing } from './section-heading';
@@ -14,7 +15,7 @@ const QUESTIONS: { q: string; a: string }[] = [
   },
   {
     q: '¿Hacen envíos?',
-    a: 'Sí, a todo el país por Correo Argentino. Si preferís, lo retirás sin costo en el local.',
+    a: `Sí, a todo el país por Correo Argentino, y es gratis en compras desde ${FREE_SHIPPING_FROM}. Si preferís, lo retirás sin costo en el local.`,
   },
   {
     q: '¿Cuándo me llegan los imprimibles?',
