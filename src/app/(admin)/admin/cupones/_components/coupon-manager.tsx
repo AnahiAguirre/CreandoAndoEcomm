@@ -190,7 +190,7 @@ export function CouponManager({ coupons, now }: { coupons: Coupon[]; now: Date }
       {coupons.length === 0 ? (
         <p className="text-neutral-500">Todavía no hay cupones. Creá el primero.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+        <div role="region" aria-label="Lista de cupones" tabIndex={0} className="overflow-x-auto rounded-xl border border-black/10 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>
