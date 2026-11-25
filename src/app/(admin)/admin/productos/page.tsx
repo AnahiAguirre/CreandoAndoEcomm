@@ -47,7 +47,46 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       {products.length === 0 ? (
         <p className="text-neutral-500">{q ? 'Sin resultados.' : 'Todavía no hay productos. Creá el primero.'}</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-black/10 bg-white">
+        <>
+        {/* Phone: one card per product (six columns don't fit). From `md` up, the table. */}
+        <ul className="flex flex-col divide-y divide-black/5 overflow-hidden rounded-xl border border-black/10 bg-white md:hidden">
+          {products.map((p) => {
+            const cover = coverImage(p);
+            return (
+              <li key={p.id} className="flex items-start gap-3 p-3">
+                <Link
+                  href={`/admin/productos/${p.id}`}
+                  className="relative block size-16 shrink-0 overflow-hidden rounded-md bg-neutral-100"
+                  aria-label={`Editar ${p.name}`}
+                >
+                  {cover && (
+                    <Image
+                      src={container.assetUrls.publicImageUrl(cover.storagePath)}
+                      alt=""
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  )}
+                </Link>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <Link href={`/admin/productos/${p.id}`} className="font-medium leading-snug">
+                    {p.name}
+                  </Link>
+                  <p className="text-xs text-neutral-500">
+                    {(p.categoryId && categoryNames.get(p.categoryId)) || 'Sin categoría'} ·{' '}
+                    {p.kind === 'digital' ? 'PDF' : `Stock: ${p.stock}`}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <PriceCell productId={p.id} priceCents={p.priceCents} />
+                    <Badge tone={p.active ? 'success' : 'warning'}>{p.active ? 'Publicado' : 'Borrador'}</Badge>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-xl border border-black/10 bg-white md:block">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>
@@ -104,6 +143,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </section>
   );
